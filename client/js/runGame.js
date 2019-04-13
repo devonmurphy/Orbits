@@ -9,8 +9,6 @@ var offsetTop = canvas.offsetTop + canvas.height / 2;
 // Scale and size
 var orbitLineWidth = "50";
 var earthRadius = 1500;
-var playerRadius = 250;
-var bulletRadius = 125;
 var gameScale = .04;
 
 // Colors
@@ -167,21 +165,20 @@ var drawPlayers = function (players) {
             context.fillStyle = enemyColor;
         }
         context.beginPath();
-        context.arc(player.x, -player.y, playerRadius, 0, 2 * Math.PI);
+        context.arc(player.x, -player.y, player.radius, 0, 2 * Math.PI);
         context.fill();
     }
 }
 
 var drawBullets = function (bullets) {
     for (var i = 0; i < bullets.length; i++) {
-        console.log(bullets[i]);
         if (socket.id === bullets[i].id) {
             context.fillStyle = playerBulletColor;
         } else {
             context.fillStyle = enemyBulletColor;
         }
         context.beginPath();
-        context.arc(bullets[i].x, -bullets[i].y, bulletRadius, 0, 2 * Math.PI);
+        context.arc(bullets[i].x, -bullets[i].y, bullets[i].radius, 0, 2 * Math.PI);
         context.fill();
     }
 
@@ -189,7 +186,7 @@ var drawBullets = function (bullets) {
 
 var drawShootingOrbits = function (shootingOrbits) {
     // Draw orbits
-    if(!shootingOrbits[socket.id]){
+    if (!shootingOrbits[socket.id]) {
         return
     }
     var ellipse = shootingOrbits[socket.id].ellipse;

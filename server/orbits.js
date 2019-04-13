@@ -1,8 +1,9 @@
 var mass = 5000000000;
 class Mass {
-    constructor(x, y) {
+    constructor(x, y, radius) {
         this.x = x;
         this.y = y;
+        this.radius = radius;
         this.vx = 0;
         this.vy = 0;
         this.lastTime = new Date();

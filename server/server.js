@@ -27,10 +27,15 @@ server.listen(5000, function () {
 // Reload code here
 reload(app);
 
-// Stores a dictionary of players using socket id as the key
+// Containers used for game state
 var players = {};
-var bullets = [];
 var shootingOrbits = {};
+var bullets = [];
+
+// Game constants
+var playerRadius = 250;
+var bulletRadius = 125;
+var startingDist = 4000;
 var thrust = 125;
 var shotPower = 500;
 var mass = orbit.mass;
@@ -46,7 +51,7 @@ io.on('connection', function (socket) {
     socket.on('new player', function () {
         // Create the player
         var sign = (Object.keys(players).length % 2 === 0 ? -1 : 1);
-        var sharedPlayer = new orbit.Mass(sign * 4000, 0);
+        var sharedPlayer = new orbit.Mass(sign * startingDist, 0, playerRadius);
 
         var dist = Math.sqrt(Math.pow(sharedPlayer.x, 2) + Math.pow(sharedPlayer.y, 2));
         var circularOrbitVel = Math.sqrt(mass / dist);
@@ -106,7 +111,7 @@ io.on('connection', function (socket) {
             if (players[id].player) {
                 var player = players[id].player;
                 player.mouseDown = false;
-                var bullet = new orbit.Mass(player.x, player.y);
+                var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
                 var dist = magnitude(player.clientX, player.clientY, player.x, player.y);
                 bullet.vx = player.vx + shotPower * (player.clientX - player.x) / dist;
                 bullet.vy = player.vy + shotPower * (-player.clientY - player.y) / dist;
@@ -166,7 +171,7 @@ setInterval(function () {
         }
 
         if (player.mouseDown === true) {
-            var bullet = new orbit.Mass(player.x, player.y);
+            var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
             var dist = magnitude(player.clientX, player.clientY, player.x, player.y);
             bullet.vx = player.vx + shotPower * (player.clientX - player.x) / dist;
             bullet.vy = player.vy + shotPower * (-player.clientY - player.y) / dist;
