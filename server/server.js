@@ -33,12 +33,14 @@ var shootingOrbits = {};
 var bullets = [];
 
 // Game constants
+var earthRadius = 1500;
+var mass = 5000000000;
+var planet = new orbit.Planet(0, 0, earthRadius, mass);
 var playerRadius = 250;
 var bulletRadius = 125;
 var startingDist = 4000;
 var thrust = 125;
 var shotPower = 500;
-var mass = orbit.mass;
 
 function deepCopy(obj) {
     var copy = Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
@@ -53,7 +55,7 @@ var calculateShootingOrbit = function (player, bullet) {
     // Calculate the bullet velocity by adding the player's vel with their shot
     bullet.vx = player.vx + shotPower * shootX / dist;
     bullet.vy = player.vy - shotPower * shootY / dist;
-    return bullet.calculateOrbit();
+    return bullet.calculateOrbit(planet.mass);
 }
 
 // Setup handlers to catch5players joining and control input
@@ -66,11 +68,11 @@ io.on('connection', function (socket) {
 
         // Calculate velocity for circular orbit
         var dist = Math.sqrt(Math.pow(sharedPlayer.x, 2) + Math.pow(sharedPlayer.y, 2));
-        var circularOrbitVel = Math.sqrt(mass / dist);
+        var circularOrbitVel = Math.sqrt(planet.mass / dist);
         sharedPlayer.vy = -sign * circularOrbitVel;
 
         // Initial calculation of orbit parameters
-        var orbitParams = sharedPlayer.calculateOrbit();
+        var orbitParams = sharedPlayer.calculateOrbit(planet.mass);
         players[socket.id] = {
             player: deepCopy(sharedPlayer),
             orbitParams: deepCopy(orbitParams),
@@ -157,20 +159,14 @@ setInterval(function () {
     for (var id in players) {
         var player = players[id].player;
         var controls = players[id].controls;
-        var dist = Math.sqrt(Math.pow(player.x, 2) + Math.pow(player.y, 2));
-        var gravity = {
-            x: -mass * player.x / (dist * dist * dist),
-            y: -mass * player.y / (dist * dist * dist),
-        };
 
-        // Update the player state
-        player.addForce(gravity);
         player.addForce(controls);
+        planet.addForce(player);
         player.update();
 
         // Player is pressing a movement control - recalculate the player orbit
         if (controls.x || controls.y) {
-            var orbitParams = player.calculateOrbit();
+            var orbitParams = player.calculateOrbit(planet.mass);
             players[id].orbitParams = deepCopy(orbitParams);
         }
 
@@ -185,12 +181,7 @@ setInterval(function () {
     // Calculate the bullet trajectories
     for (var i = 0; i < bullets.length; i++) {
         var bullet = bullets[i];
-        var dist = Math.sqrt(Math.pow(bullet.x, 2) + Math.pow(bullet.y, 2));
-        var gravity = {
-            x: -mass * bullet.x / (dist * dist * dist),
-            y: -mass * bullet.y / (dist * dist * dist),
-        };
-        bullet.addForce(gravity);
+        planet.addForce(bullets[i]);
         bullet.update();
     }
 

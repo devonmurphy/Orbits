@@ -1,4 +1,3 @@
-var mass = 5000000000;
 class Mass {
     constructor(x, y, radius) {
         this.x = x;
@@ -58,7 +57,7 @@ class Mass {
     }
 
     // Performs Newton's method to solve for mean anomaly in elliptical and hyperbolic orbits
-    Newton(steps, time, Ecc, timeInt, a) {
+    Newton(steps, time, Ecc, timeInt, a, mass) {
         var n;
         var E = 0;
         var Mean = 0;
@@ -93,7 +92,7 @@ class Mass {
         return E;
     }
 
-    calculateHyperbolicOrbit(a, Ecc, theta, w) {
+    calculateHyperbolicOrbit(a, Ecc, theta, w, mass) {
         var maxDrawDistance = 20000;
         var maxDrawSteps = 200;
         var drawStep = .1;
@@ -111,7 +110,7 @@ class Mass {
         var orbitPoints = [];
         var dist = this.magnitude(this.x, this.y, x, y)
         while (dist < maxDrawDistance && orbitPoints.length < maxDrawSteps) {
-            EccAnom = this.Newton(maxNewtonSteps, curTime, Ecc, timeInt, a);
+            EccAnom = this.Newton(maxNewtonSteps, curTime, Ecc, timeInt, a, mass);
             theta = 2 * Math.atan(Math.sqrt((1 + Ecc) / (Ecc - 1)) * Math.tanh(EccAnom / 2));
             r = a * (Ecc * Math.cosh(EccAnom) - 1);
             x = -r * (Math.cos(theta - w));
@@ -145,7 +144,7 @@ class Mass {
         return orbitPoints;
     }
 
-    calculateOrbit() {
+    calculateOrbit(mass) {
         // Parameters used in calculations
         // ecc = eccentricty vector
         // Ecc = magnitude of eccentricty vector
@@ -226,13 +225,24 @@ class Mass {
 };
 
 class Planet {
-    constructor(x, y, width, height) {
+    constructor(x, y, radius, mass) {
         this.x = x;
         this.y = y;
-        this.width = width;
-        this.height = height;
+        this.radius = radius;
+        this.mass = mass;
+    }
+
+    addForce(player) {
+        var dist = Math.sqrt(Math.pow(player.x, 2) + Math.pow(player.y, 2));
+        var gravity = {
+            x: -this.mass * player.x / (dist * dist * dist),
+            y: -this.mass * player.y / (dist * dist * dist),
+        };
+
+        // Update the player state
+        player.addForce(gravity);
     }
 
 };
 
-module.exports = { mass, Planet, Mass }
+module.exports = { Planet, Mass }
