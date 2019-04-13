@@ -45,25 +45,40 @@ function deepCopy(obj) {
     return copy;
 }
 
+var calculateShootingOrbit = function (player, bullet) {
+    var shootX = (player.clientX - player.x);
+    var shootY = (player.clientY - player.y);
+    var dist = Math.sqrt(Math.pow(shootX, 2) + Math.pow(shootY, 2));
+
+    // Calculate the bullet velocity by adding the player's vel with their shot
+    bullet.vx = player.vx + shotPower * shootX / dist;
+    bullet.vy = player.vy - shotPower * shootY / dist;
+    return bullet.calculateOrbit();
+}
+
 // Setup handlers to catch5players joining and control input
 io.on('connection', function (socket) {
     // Assign the first two players that join to 1 or 2
     socket.on('new player', function () {
-        // Create the player
+        // Spawn player either at (-startingDist,0) or (startingDist,0)
         var sign = (Object.keys(players).length % 2 === 0 ? -1 : 1);
         var sharedPlayer = new orbit.Mass(sign * startingDist, 0, playerRadius);
 
+        // Calculate velocity for circular orbit
         var dist = Math.sqrt(Math.pow(sharedPlayer.x, 2) + Math.pow(sharedPlayer.y, 2));
         var circularOrbitVel = Math.sqrt(mass / dist);
         sharedPlayer.vy = -sign * circularOrbitVel;
+
+        // Initial calculation of orbit parameters
         var orbitParams = sharedPlayer.calculateOrbit();
         players[socket.id] = {
             player: deepCopy(sharedPlayer),
             orbitParams: deepCopy(orbitParams),
             controls: { x: 0, y: 0 },
-            thrust: 10,
         };
     });
+
+    // Receives player controls
     socket.on('movement', function (data) {
         if (Object.keys(players).length > 0 && players[socket.id]) {
             var player = players[socket.id].player;
@@ -88,6 +103,7 @@ io.on('connection', function (socket) {
             }
         }
     });
+
     socket.on('keyup', function (data) {
     });
 
@@ -99,29 +115,24 @@ io.on('connection', function (socket) {
                 player.mouseDown = true;
             }
         }
-        //drawShootingOrbit = true;
     });
 
+    // Fires the bullet when the mouse is released
     socket.on('mouseup', function (data) {
-        //drawShootingOrbit = false;
-        // Fire the bullet
         var id = socket.id;
-
         if (players[id]) {
             if (players[id].player) {
                 var player = players[id].player;
                 player.mouseDown = false;
                 var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
-                var dist = magnitude(player.clientX, player.clientY, player.x, player.y);
-                bullet.vx = player.vx + shotPower * (player.clientX - player.x) / dist;
-                bullet.vy = player.vy + shotPower * (-player.clientY - player.y) / dist;
+                calculateShootingOrbit(player, bullet);
                 bullet.id = socket.id;
-                bullet.calculateOrbit();
                 bullets.push(deepCopy(bullet));
             }
         }
     });
 
+    // Update the player's clientX and clientY position when they move their mouse
     socket.on('mousemove', function (data) {
         var id = socket.id;
         if (players[id]) {
@@ -132,27 +143,17 @@ io.on('connection', function (socket) {
                     player.clientY = data.clientY;
                 }
             }
-            /*
-            if (drawShootingOrbit === true) {
-                var shootX = data.clientX - player.x;
-                var shootY = data.clientY - player.y;
-            }
-            */
         }
     });
+
+    // TODO: USE THIS FOR SOMETHING
     socket.on('mouseout', function (data) {
     });
 });
 
-
-var magnitude = function (x1, y1, x2, y2) {
-    var x = x2 - x1;
-    var y = y2 - y1;
-    return Math.sqrt(x * x + y * y);
-}
-
 // Update the game state every 15 ms
 setInterval(function () {
+    // Loop through the player list and update their position and velocity
     for (var id in players) {
         var player = players[id].player;
         var controls = players[id].controls;
@@ -162,20 +163,21 @@ setInterval(function () {
             y: -mass * player.y / (dist * dist * dist),
         };
 
+        // Update the player state
         player.addForce(gravity);
         player.addForce(controls);
-        var state = player.update();
+        player.update();
+
+        // Player is pressing a movement control - recalculate the player orbit
         if (controls.x || controls.y) {
             var orbitParams = player.calculateOrbit();
             players[id].orbitParams = deepCopy(orbitParams);
         }
 
+        // Player mouse is down - calculate the shooting orbit
         if (player.mouseDown === true) {
             var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
-            var dist = magnitude(player.clientX, player.clientY, player.x, player.y);
-            bullet.vx = player.vx + shotPower * (player.clientX - player.x) / dist;
-            bullet.vy = player.vy + shotPower * (-player.clientY - player.y) / dist;
-            var orbitParams = bullet.calculateOrbit();
+            var orbitParams = calculateShootingOrbit(player, bullet);
             shootingOrbits[id] = deepCopy(orbitParams);
         }
     }

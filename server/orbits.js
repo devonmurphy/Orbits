@@ -123,7 +123,6 @@ class Mass {
 
             dist = this.magnitude(this.x, this.y, x, y)
             if (dist < hasPassedShipDist) {
-                console.log("has passed ship!");
                 hasPassedShip = true;
             }
         }
