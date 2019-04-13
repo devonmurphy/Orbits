@@ -49,12 +49,12 @@ function deepCopy(obj) {
 
 var calculateShootingOrbit = function (player, bullet) {
     var shootX = (player.clientX - player.x);
-    var shootY = (player.clientY - player.y);
+    var shootY = (-player.clientY - player.y);
     var dist = Math.sqrt(Math.pow(shootX, 2) + Math.pow(shootY, 2));
 
     // Calculate the bullet velocity by adding the player's vel with their shot
     bullet.vx = player.vx + shotPower * shootX / dist;
-    bullet.vy = player.vy - shotPower * shootY / dist;
+    bullet.vy = player.vy + shotPower * shootY / dist;
     return bullet.calculateOrbit(planet.mass);
 }
 
