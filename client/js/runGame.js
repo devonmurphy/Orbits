@@ -15,9 +15,10 @@ var gameScale = .04;
 var backgroundColor = "#000066";
 var earthColor = "#a6ff99";
 
-var playerColor = "#00ccff";
+var playerColor = "#1f9fef";
 var orbitLineColor = "#a329e0";
-var playerBulletColor = "#00ccff";
+var playerShootingLineColor = "#1f9fef";
+var playerBulletColor = "#1f9fef";
 
 var enemyColor = "#ff0066";
 var enemyOrbitLineColor = "#ffcc00";
@@ -93,19 +94,23 @@ canvas.addEventListener("mouseout", function (event) {
     socket.emit('mouseout', data);
 });
 
+// Capture scroll wheel and send data
+canvas.addEventListener('wheel', function (event) {
+    //Send the wheel Y axis scroll event to server
+    socket.emit('wheel', event.deltaY)
+    // This prevents the page from scrolling
+    event.preventDefault();
+});
+
 /**
  * Disables the right click menu for the given element.
  */
-function disableRightClickContextMenu(element) {
-    element.addEventListener('contextmenu', function (e) {
-        if (e.button == 2) {
-            // Block right-click menu thru preventing default action.
-            e.preventDefault();
-        }
-    });
-}
-
-disableRightClickContextMenu(canvas);
+canvas.addEventListener('contextmenu', function (e) {
+    if (e.button == 2) {
+        // Block right-click menu thru preventing default action.
+        e.preventDefault();
+    }
+});
 
 // On connection notify the server of a new player
 socket.emit('new player');
@@ -195,6 +200,7 @@ var drawShootingOrbits = function (shootingOrbits) {
     // Draw Elliptical orbit
     if (ellipse) {
         context.beginPath();
+        context.strokeStyle = playerShootingLineColor;
         context.lineWidth = orbitLineWidth;
         context.ellipse(ellipse.x, ellipse.y, ellipse.a, ellipse.b, ellipse.w, 0, 2 * Math.PI);
         context.stroke();
@@ -203,6 +209,7 @@ var drawShootingOrbits = function (shootingOrbits) {
     // Draw Hyperbolic orbit
     if (points) {
         context.beginPath();
+        context.strokeStyle = playerShootingLineColor;
         context.lineWidth = orbitLineWidth;
         for (var pos = 0; pos < points.length - 1; pos++) {
             context.moveTo(points[pos].x, points[pos].y);

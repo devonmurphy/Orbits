@@ -40,14 +40,15 @@ var playerRadius = 250;
 var bulletRadius = 125;
 var startingDist = 4000;
 var thrust = 125;
-var shotPower = 500;
+var startingShotPower = 500;
+var shotPowerChangeRate = 30;
 
 function deepCopy(obj) {
     var copy = Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
     return copy;
 }
 
-var calculateShootingOrbit = function (player, bullet) {
+var calculateShootingOrbit = function (shotPower, player, bullet) {
     var shootX = (player.clientX - player.x);
     var shootY = (-player.clientY - player.y);
     var dist = Math.sqrt(Math.pow(shootX, 2) + Math.pow(shootY, 2));
@@ -77,6 +78,7 @@ io.on('connection', function (socket) {
             player: deepCopy(sharedPlayer),
             orbitParams: deepCopy(orbitParams),
             controls: { x: 0, y: 0 },
+            shotPower: startingShotPower,
         };
     });
 
@@ -109,6 +111,23 @@ io.on('connection', function (socket) {
     socket.on('keyup', function (data) {
     });
 
+    // Adjusts player shot power whenever they scroll
+    socket.on('wheel', function (data) {
+        var id = socket.id;
+        if (players[id]) {
+            if (players[id].player) {
+                var player = players[id];
+                if (data < 0) {
+                    player.shotPower += shotPowerChangeRate;
+                }
+
+                if (data > 0) {
+                    player.shotPower -= shotPowerChangeRate;
+                }
+            }
+        }
+    });
+
     socket.on('mousedown', function (data) {
         var id = socket.id;
         if (players[id]) {
@@ -125,9 +144,10 @@ io.on('connection', function (socket) {
         if (players[id]) {
             if (players[id].player) {
                 var player = players[id].player;
+                var shotPower = players[id].shotPower;
                 player.mouseDown = false;
                 var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
-                calculateShootingOrbit(player, bullet);
+                calculateShootingOrbit(shotPower, player, bullet);
                 bullet.id = socket.id;
                 bullets.push(deepCopy(bullet));
             }
@@ -159,6 +179,7 @@ setInterval(function () {
     for (var id in players) {
         var player = players[id].player;
         var controls = players[id].controls;
+        var shotPower = players[id].shotPower;
 
         player.addForce(controls);
         planet.addForce(player);
@@ -173,7 +194,7 @@ setInterval(function () {
         // Player mouse is down - calculate the shooting orbit
         if (player.mouseDown === true) {
             var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
-            var orbitParams = calculateShootingOrbit(player, bullet);
+            var orbitParams = calculateShootingOrbit(shotPower, player, bullet);
             shootingOrbits[id] = deepCopy(orbitParams);
         }
     }
