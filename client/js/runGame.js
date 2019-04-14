@@ -24,6 +24,8 @@ var enemyColor = "#ff0066";
 var enemyOrbitLineColor = "#ffcc00";
 var enemyBulletColor = "#ff0066";
 
+var playerDead = false;
+
 // Start movement when keys are pressed down
 document.addEventListener('keydown', function (event) {
     switch (event.keyCode) {
@@ -118,6 +120,11 @@ socket.emit('new player');
 // Receive game state from server and then render it
 socket.on('gameState', function (gameState) {
     render(gameState);
+});
+
+// Receive you died 
+socket.on('youdied', function (data) {
+    playerDead = true;
 });
 
 var drawEarth = function () {
@@ -237,9 +244,18 @@ var render = function (gameState) {
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
 
+
+
     // Draw everthing
     drawPlayers(players);
     drawBullets(bullets);
     drawEarth();
     drawShootingOrbits(shootingOrbits);
+
+    if (playerDead === true) {
+        context.font = "3000px Garamond";
+        context.fillStyle = "red";
+        context.textAlign = "center";
+        context.fillText("You Died", 0, -5000);
+    }
 }

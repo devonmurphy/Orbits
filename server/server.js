@@ -83,6 +83,8 @@ io.on('connection', function (socket) {
             controls: { x: 0, y: 0 },
             shotPower: startingShotPower,
         };
+        players[socket.id].player.id = socket.id;
+        players[socket.id].player.type = "player";
     });
 
     // Receives player controls
@@ -152,6 +154,7 @@ io.on('connection', function (socket) {
                 var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
                 calculateShootingOrbit(shotPower, player, bullet);
                 bullet.id = socket.id;
+                bullet.type = "bullet"
                 bullets.push(deepCopy(bullet));
             }
         }
@@ -215,10 +218,23 @@ setInterval(function () {
     map.objects = allObjects;
     map.updateCollisions();
     var collisions = map.collisions;
-    if(collisions.length > 1){
-        console.log(collisions);
-    }
+
     // Handle collsiions here
+    for (var i = 0; i < collisions.length; i++) {
+        // Delete the bullet if they hit another object
+        if (collisions[i].type === 'bullet') {
+            if (bullets.indexOf(collisions[i]) > -1) {
+                bullets.splice(bullets.indexOf(collisions[i]), 1);
+            }
+        }
+
+        // Delete the player if they got hit
+        if (collisions[i].type === 'player') {
+            var id = collisions[i].id;
+            io.to(id).emit('youdied','You Died');
+            delete players[id];
+        }
+    }
 
     var gameState = {
         players,

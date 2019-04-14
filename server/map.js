@@ -23,11 +23,13 @@ class Grid {
     }
 
     checkCollision(obj1, obj2) {
+        if (obj1.id === obj2.id){
+            return false;
+        }
         var dx = obj1.x - obj2.x;
         var dy = obj1.y - obj2.y;
         var distance = Math.sqrt(dx * dx + dy * dy);
         if (distance < obj1.radius + obj2.radius) {
-            console.log('COLLISION DETECTED')
             return true;
         }
         return false;
