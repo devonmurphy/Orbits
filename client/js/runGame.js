@@ -253,9 +253,10 @@ var render = function (gameState) {
     drawShootingOrbits(shootingOrbits);
 
     if (playerDead === true) {
-        context.font = "3000px Garamond";
-        context.fillStyle = "red";
+        context.font = "3000px Garamond Pro";
+        context.fillStyle = "#d63515";
+        canvas.style.letterSpacing = -30;
         context.textAlign = "center";
-        context.fillText("You Died", 0, -5000);
+        context.fillText("YOU DIED", 0, -5000);
     }
 }
