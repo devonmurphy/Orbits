@@ -205,7 +205,7 @@ class Mass {
             var dot = ecc.x * this.x + ecc.y * this.y;
             theta = Math.acos(dot / Ecc / dist);
             periapsis = (1 - Ecc) * a;
-            orbitParams.points = this.calculateHyperbolicOrbit(a, Ecc, theta, w);
+            orbitParams.points = this.calculateHyperbolicOrbit(a, Ecc, theta, w, mass);
         }
 
         orbitParams.speed = speed;
