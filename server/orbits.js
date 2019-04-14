@@ -117,7 +117,10 @@ class Mass {
             y = -r * (Math.sin(theta - w));
             var orbitPos = { x, y };
 
+            if (!isNaN(x) && !isNaN(y)) {
             orbitPoints.push(orbitPos);
+            }
+
             curTime += isClockwise * drawStep;
 
             dist = this.magnitude(this.x, this.y, x, y)
@@ -138,7 +141,9 @@ class Mass {
             y = -r * (Math.sin(theta - w));
             var orbitPos = { x, y };
 
-            orbitPoints.unshift(orbitPos);
+            if (!isNaN(x) && !isNaN(y)) {
+                orbitPoints.unshift(orbitPos);
+            }
             curTime -= isClockwise * drawStep;
         }
         return orbitPoints;
