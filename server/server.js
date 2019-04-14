@@ -9,6 +9,7 @@ var app = express();
 var server = http.Server(app);
 var io = socketIO(server);
 var orbit = require('./orbits.js');
+var map = require('./map.js');
 
 // Setup server to serve the client folder
 app.set('port', 5000);
@@ -42,6 +43,8 @@ var startingDist = 4000;
 var thrust = 125;
 var startingShotPower = 500;
 var shotPowerChangeRate = 30;
+
+var map = new map.Map(3, 1000);
 
 function deepCopy(obj) {
     var copy = Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
@@ -176,6 +179,7 @@ io.on('connection', function (socket) {
 // Update the game state every 15 ms
 setInterval(function () {
     // Loop through the player list and update their position and velocity
+    var allObjects = [];
     for (var id in players) {
         var player = players[id].player;
         var controls = players[id].controls;
@@ -197,6 +201,7 @@ setInterval(function () {
             var orbitParams = calculateShootingOrbit(shotPower, player, bullet);
             shootingOrbits[id] = deepCopy(orbitParams);
         }
+        allObjects.push(player);
     }
 
     // Calculate the bullet trajectories
@@ -204,7 +209,16 @@ setInterval(function () {
         var bullet = bullets[i];
         planet.addForce(bullets[i]);
         bullet.update();
+        allObjects.push(bullet);
     }
+
+    map.objects = allObjects;
+    map.updateCollisions();
+    var collisions = map.collisions;
+    if(collisions.length > 1){
+        console.log(collisions);
+    }
+    // Handle collsiions here
 
     var gameState = {
         players,
