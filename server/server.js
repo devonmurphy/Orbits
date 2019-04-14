@@ -44,7 +44,7 @@ var thrust = 125;
 var startingShotPower = 500;
 var shotPowerChangeRate = 30;
 
-var map = new map.Map(3, 1000);
+var map = new map.Map(20, 1000);
 
 function deepCopy(obj) {
     var copy = Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
