@@ -43,8 +43,9 @@ var startingDist = 4000;
 var thrust = 125;
 var startingShotPower = 500;
 var shotPowerChangeRate = 30;
-
-var map = new map.Map(20, 1000);
+var mapSize  = 5;
+var gridSize = 6700;
+var map = new map.Map(mapSize, gridSize);
 
 function deepCopy(obj) {
     var copy = Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
@@ -215,11 +216,14 @@ setInterval(function () {
         allObjects.push(bullet);
     }
 
+    // Add the earth as an object 
+    allObjects.push(planet);
+
     map.objects = allObjects;
     map.updateCollisions();
     var collisions = map.collisions;
 
-    // Handle collsiions here
+    // Handle collsions here
     for (var i = 0; i < collisions.length; i++) {
         // Delete the bullet if they hit another object
         if (collisions[i].type === 'bullet') {

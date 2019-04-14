@@ -8,6 +8,7 @@ class Grid {
         this.collisions = []
     }
 
+    // Gets the objects within range of the grid
     getObjectsInRange(objects) {
         this.objects = [];
         for (var i = 0; i < objects.length; i++) {
@@ -22,8 +23,9 @@ class Grid {
         }
     }
 
+    // Checks if there is a collision between two objects
     checkCollision(obj1, obj2) {
-        if (obj1.id === obj2.id){
+        if (obj1.id === obj2.id) {
             return false;
         }
         var dx = obj1.x - obj2.x;
@@ -35,12 +37,17 @@ class Grid {
         return false;
     }
 
+    // Recursively finds all of the collisions in the grid
     getCollisions(iteration = 0) {
         if (this.objects.length <= 1) {
             return;
         }
+
+        // Iterates through each unique pair of objects and tests if they are colliding
         for (var n = iteration; n < this.objects.length - 1; n++) {
+            // If they are colliding add both to the collisions array
             if (this.checkCollision(this.objects[iteration], this.objects[n + 1]) === true) {
+                // Only add them if they are not in already
                 if (this.collisions.indexOf(this.objects[iteration]) === -1) {
                     this.collisions.push(this.objects[iteration]);
                 }
@@ -69,16 +76,18 @@ class Map {
     }
 
     createMap() {
-        // Create Map
-        for (var x = -this.mapSize; x < this.mapSize; x++) {
-            for (var y = -this.mapSize; y < this.mapSize; y++) {
-                var grid = new Grid(x * this.gridSize, y * this.gridSize, this.gridSize);
+        // Create Map grid square that has sides of mapSize
+        for (var x = -this.mapSize; x <= this.mapSize; x++) {
+            for (var y = -this.mapSize; y <= this.mapSize; y++) {
+                var grid = new Grid(x * this.gridSize - this.gridSize / 2, y * this.gridSize - this.gridSize / 2, this.gridSize);
                 this.map.push(grid);
             }
         }
     }
 
+    // Iterate through all of the grids to see if there are collisions
     updateCollisions() {
+        // Reset the collisions to get new ones
         this.collisions = [];
         for (var i = 0; i < this.map.length; i++) {
             var grid = this.map[i];
@@ -88,6 +97,5 @@ class Map {
             this.collisions = this.collisions.concat(grid.collisions);
         }
     }
-
 }
 module.exports = { Map };
