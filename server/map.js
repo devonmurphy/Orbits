@@ -76,10 +76,11 @@ class Map {
     }
 
     createMap() {
+        var overlap = 0.95;
         // Create Map grid square that has sides of mapSize
         for (var x = -this.mapSize; x <= this.mapSize; x++) {
             for (var y = -this.mapSize; y <= this.mapSize; y++) {
-                var grid = new Grid(x * this.gridSize - this.gridSize / 2, y * this.gridSize - this.gridSize / 2, this.gridSize);
+                var grid = new Grid(overlap * x * this.gridSize - this.gridSize / 2, overlap * y * this.gridSize - this.gridSize / 2, this.gridSize);
                 this.map.push(grid);
             }
         }
