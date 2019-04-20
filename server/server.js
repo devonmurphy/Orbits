@@ -37,13 +37,22 @@ var bullets = [];
 var earthRadius = 1500;
 var mass = 5000000000;
 var planet = new orbit.Planet(0, 0, earthRadius, mass);
+
+// Player constants
 var playerRadius = 250;
-var bulletRadius = 125;
-var startingDist = 4000;
 var thrust = 125;
+var startingDist = 4000;
+
+// Player shooting constants
+var fireRate = 500;
+var bulletRadius = 125;
 var startingShotPower = 500;
 var shotPowerChangeRate = 30;
-var mapSize  = 5;
+var shotPowerMin = 0;
+var shotPowerMax = 2240;
+
+// Map constants
+var mapSize = 5;
 var gridSize = 6700;
 var map = new map.Map(mapSize, gridSize);
 
@@ -130,6 +139,13 @@ io.on('connection', function (socket) {
                 if (data > 0) {
                     player.shotPower -= shotPowerChangeRate;
                 }
+                // Clamp values between shotPowerMin and shotPowerMax
+                if(player.shotPower < shotPowerMin){
+                    player.shotPower = shotPowerMin;
+                }
+                if(player.shotPower > shotPowerMax){
+                    player.shotPower = shotPowerMax;
+                }
             }
         }
     });
@@ -152,11 +168,18 @@ io.on('connection', function (socket) {
                 var player = players[id].player;
                 var shotPower = players[id].shotPower;
                 player.mouseDown = false;
-                var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
-                calculateShootingOrbit(shotPower, player, bullet);
-                bullet.id = socket.id;
-                bullet.type = "bullet"
-                bullets.push(deepCopy(bullet));
+                var currentTime = (new Date()).getTime();
+                if(player.lastMouseUpTime === undefined){
+                    player.lastMouseUpTime = 0;
+                }
+                if (currentTime - player.lastMouseUpTime > fireRate) {
+                    player.lastMouseUpTime = currentTime;
+                    var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
+                    calculateShootingOrbit(shotPower, player, bullet);
+                    bullet.id = socket.id;
+                    bullet.type = "bullet"
+                    bullets.push(deepCopy(bullet));
+                }
             }
         }
     });
@@ -235,7 +258,7 @@ setInterval(function () {
         // Delete the player if they got hit
         if (collisions[i].type === 'player') {
             var id = collisions[i].id;
-            io.to(id).emit('youdied','You Died');
+            io.to(id).emit('youdied', 'You Died');
             delete players[id];
         }
     }
