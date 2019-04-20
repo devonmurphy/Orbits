@@ -54,7 +54,7 @@ function deepCopy(obj) {
 
 var calculateShootingOrbit = function (shotPower, player, bullet) {
     var shootX = (player.clientX - player.x);
-    var shootY = (-player.clientY - player.y);
+    var shootY = (player.clientY - player.y);
     var dist = Math.sqrt(Math.pow(shootX, 2) + Math.pow(shootY, 2));
 
     // Calculate the bullet velocity by adding the player's vel with their shot
@@ -169,7 +169,7 @@ io.on('connection', function (socket) {
                 var player = players[id].player;
                 if (player.mouseDown === true) {
                     player.clientX = data.clientX;
-                    player.clientY = data.clientY;
+                    player.clientY = -data.clientY;
                 }
             }
         }
