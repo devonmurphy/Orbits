@@ -40,7 +40,7 @@ var planet = new orbit.Planet(0, 0, earthRadius, mass);
 
 // Player constants
 var playerRadius = 250;
-var thrust = 125;
+var thrust = 200;
 var startingDist = 4000;
 
 // Player shooting constants
