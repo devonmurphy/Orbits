@@ -46,6 +46,7 @@ var startingDist = 4000;
 // Player shooting constants
 var fireRate = 500;
 var bulletRadius = 125;
+var startingBulletCount = 20;
 var startingShotPower = 500;
 var shotPowerChangeRate = 30;
 var shotPowerMin = 0;
@@ -73,21 +74,20 @@ var calculateShootingOrbit = function (shotPower, player, bullet) {
 }
 
 var calculateThrustForce = function (thrustPower, player) {
-    var shootX = (player.clientX - player.x);
-    var shootY = (player.clientY - player.y);
-    var dist = Math.sqrt(Math.pow(shootX, 2) + Math.pow(shootY, 2));
+    var thrustX = (player.clientX - player.x);
+    var thrustY = (player.clientY - player.y);
+    var dist = Math.sqrt(Math.pow(thrustX, 2) + Math.pow(thrustY, 2));
 
     // Calculate the thrust vector
     var thrust = {
-        x: thrustPower * shootX / dist,
-        y: thrustPower * shootY / dist,
+        x: thrustPower * thrustX / dist,
+        y: thrustPower * thrustY / dist,
     }
     return thrust;
 }
 
-// Setup handlers to catch5players joining and control input
+// Setup handlers to catch players joining and control input
 io.on('connection', function (socket) {
-    // Assign the first two players that join to 1 or 2
     socket.on('new player', function () {
         // Spawn player either at (-startingDist,0) or (startingDist,0)
         var sign = (Object.keys(players).length % 2 === 0 ? -1 : 1);
@@ -105,6 +105,7 @@ io.on('connection', function (socket) {
             orbitParams: deepCopy(orbitParams),
             controls: { x: 0, y: 0 },
             shotPower: startingShotPower,
+            bulletCount: startingBulletCount,
         };
         players[socket.id].player.id = socket.id;
         players[socket.id].player.type = "player";
@@ -191,7 +192,11 @@ io.on('connection', function (socket) {
                     if (player.lastMouseUpTime === undefined) {
                         player.lastMouseUpTime = 0;
                     }
-                    if (currentTime - player.lastMouseUpTime > fireRate) {
+                    if (players[id].bulletCount === undefined) {
+                        players[id].bulletCount = startingBulletCount;
+                    }
+                    if (currentTime - player.lastMouseUpTime > fireRate && players[id].bulletCount !== 0) {
+                        players[id].bulletCount -= 1;
                         player.lastMouseUpTime = currentTime;
                         var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
                         calculateShootingOrbit(shotPower, player, bullet);
@@ -239,7 +244,7 @@ setInterval(function () {
         var controls = players[id].controls;
         var shotPower = players[id].shotPower;
 
-        if (player.rightMouseDown === true) {
+        if (player.rightMouseDown === true && player.clientX && player.clientY) {
             var mouseThrustForce = calculateThrustForce(thrust, player);
             player.addForce(mouseThrustForce);
         }

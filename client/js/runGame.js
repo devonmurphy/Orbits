@@ -229,11 +229,27 @@ var drawShootingOrbits = function (shootingOrbits) {
 
 }
 
+var drawUI = function (localPlayer) {
+    if (playerDead === true) {
+        context.font = "3000px Garamond Pro";
+        context.fillStyle = "#d63515";
+        canvas.style.letterSpacing = -30;
+        context.textAlign = "center";
+        context.fillText("YOU DIED", 0, -5000);
+    } else {
+        context.font = "600px Helvetica Now";
+        context.fillStyle = "white";
+        context.textAlign = "center";
+        context.fillText("bullets: " + localPlayer.bulletCount, 8000, 8000);
+    }
+}
+
 //  Render based on game state received from server
 var render = function (gameState) {
     var players = gameState.players;
     var bullets = gameState.bullets;
     var shootingOrbits = gameState.shootingOrbits;
+    var localPlayer = players[socket.id];
     // Reset canvas and draw background
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -254,11 +270,8 @@ var render = function (gameState) {
     drawEarth();
     drawShootingOrbits(shootingOrbits);
 
-    if (playerDead === true) {
-        context.font = "3000px Garamond Pro";
-        context.fillStyle = "#d63515";
-        canvas.style.letterSpacing = -30;
-        context.textAlign = "center";
-        context.fillText("YOU DIED", 0, -5000);
+    if (localPlayer) {
+        drawUI(localPlayer);
     }
+
 }
