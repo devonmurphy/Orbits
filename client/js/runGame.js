@@ -68,6 +68,7 @@ canvas.addEventListener("mousedown", function (event) {
     var data = {
         clientX: (event.clientX - offsetLeft) / gameScale,
         clientY: (event.clientY - offsetTop) / gameScale,
+        button: event.button,
     };
     socket.emit('mousedown', data);
 });
@@ -76,6 +77,7 @@ canvas.addEventListener("mouseup", function (event) {
     var data = {
         clientX: (event.clientX - offsetLeft) / gameScale,
         clientY: (event.clientY - offsetTop) / gameScale,
+        button: event.button,
     };
     socket.emit('mouseup', data);
 });

@@ -72,6 +72,19 @@ var calculateShootingOrbit = function (shotPower, player, bullet) {
     return bullet.calculateOrbit(planet.mass);
 }
 
+var calculateThrustForce = function (thrustPower, player) {
+    var shootX = (player.clientX - player.x);
+    var shootY = (player.clientY - player.y);
+    var dist = Math.sqrt(Math.pow(shootX, 2) + Math.pow(shootY, 2));
+
+    // Calculate the thrust vector
+    var thrust = {
+        x: thrustPower * shootX / dist,
+        y: thrustPower * shootY / dist,
+    }
+    return thrust;
+}
+
 // Setup handlers to catch5players joining and control input
 io.on('connection', function (socket) {
     // Assign the first two players that join to 1 or 2
@@ -140,10 +153,10 @@ io.on('connection', function (socket) {
                     player.shotPower -= shotPowerChangeRate;
                 }
                 // Clamp values between shotPowerMin and shotPowerMax
-                if(player.shotPower < shotPowerMin){
+                if (player.shotPower < shotPowerMin) {
                     player.shotPower = shotPowerMin;
                 }
-                if(player.shotPower > shotPowerMax){
+                if (player.shotPower > shotPowerMax) {
                     player.shotPower = shotPowerMax;
                 }
             }
@@ -155,7 +168,12 @@ io.on('connection', function (socket) {
         if (players[id]) {
             if (players[id].player) {
                 var player = players[id].player;
-                player.mouseDown = true;
+                if (data.button === 0) {
+                    player.leftMouseDown = true;
+                }
+                if (data.button === 2) {
+                    player.rightMouseDown = true;
+                }
             }
         }
     });
@@ -165,20 +183,25 @@ io.on('connection', function (socket) {
         var id = socket.id;
         if (players[id]) {
             if (players[id].player) {
-                var player = players[id].player;
-                var shotPower = players[id].shotPower;
-                player.mouseDown = false;
-                var currentTime = (new Date()).getTime();
-                if(player.lastMouseUpTime === undefined){
-                    player.lastMouseUpTime = 0;
-                }
-                if (currentTime - player.lastMouseUpTime > fireRate) {
-                    player.lastMouseUpTime = currentTime;
-                    var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
-                    calculateShootingOrbit(shotPower, player, bullet);
-                    bullet.id = socket.id;
-                    bullet.type = "bullet"
-                    bullets.push(deepCopy(bullet));
+                if (data.button === 0) {
+                    var player = players[id].player;
+                    var shotPower = players[id].shotPower;
+                    player.leftMouseDown = false;
+                    var currentTime = (new Date()).getTime();
+                    if (player.lastMouseUpTime === undefined) {
+                        player.lastMouseUpTime = 0;
+                    }
+                    if (currentTime - player.lastMouseUpTime > fireRate) {
+                        player.lastMouseUpTime = currentTime;
+                        var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
+                        calculateShootingOrbit(shotPower, player, bullet);
+                        bullet.id = socket.id;
+                        bullet.type = "bullet"
+                        bullets.push(deepCopy(bullet));
+                    }
+                } else if (data.button === 2) {
+                    var player = players[id].player;
+                    player.rightMouseDown = false;
                 }
             }
         }
@@ -190,7 +213,7 @@ io.on('connection', function (socket) {
         if (players[id]) {
             if (players[id].player) {
                 var player = players[id].player;
-                if (player.mouseDown === true) {
+                if (player.leftMouseDown === true) {
                     player.clientX = data.clientX;
                     player.clientY = -data.clientY;
                 }
@@ -212,18 +235,23 @@ setInterval(function () {
         var controls = players[id].controls;
         var shotPower = players[id].shotPower;
 
+        if (player.rightMouseDown === true) {
+            var mouseThrustForce = calculateThrustForce(thrust, player);
+            player.addForce(mouseThrustForce);
+        }
+
         player.addForce(controls);
         planet.addForce(player);
         player.update();
 
         // Player is pressing a movement control - recalculate the player orbit
-        if (controls.x || controls.y) {
+        if (controls.x || controls.y || player.rightMouseDown) {
             var orbitParams = player.calculateOrbit(planet.mass);
             players[id].orbitParams = deepCopy(orbitParams);
         }
 
         // Player mouse is down - calculate the shooting orbit
-        if (player.mouseDown === true) {
+        if (player.leftMouseDown === true) {
             var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
             var orbitParams = calculateShootingOrbit(shotPower, player, bullet);
             shootingOrbits[id] = deepCopy(orbitParams);
