@@ -217,6 +217,10 @@ io.on('connection', function (socket) {
                     player.clientX = data.clientX;
                     player.clientY = -data.clientY;
                 }
+                if (player.rightMouseDown === true) {
+                    player.clientX = data.clientX;
+                    player.clientY = -data.clientY;
+                }
             }
         }
     });
