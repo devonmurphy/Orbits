@@ -230,10 +230,17 @@ var drawShootingOrbits = function (shootingOrbits) {
 }
 
 var drawGameUI = function (localPlayer) {
+    var uiX = 8000;
+    var uiY = 8000;
     context.font = "600px Helvetica Now";
     context.fillStyle = "white";
     context.textAlign = "center";
-    context.fillText("bullets: " + localPlayer.bulletCount, 8000, 8000);
+    context.fillText("bullets: " + localPlayer.bulletCount, uiX, uiY);
+
+    context.font = "600px Helvetica Now";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.fillText("fuel: " + localPlayer.player.fuel, uiX, uiY+600);
 }
 
 //  Render based on game state received from server

@@ -42,6 +42,8 @@ var planet = new orbit.Planet(0, 0, earthRadius, mass);
 var playerRadius = 250;
 var thrust = 200;
 var startingDist = 4000;
+var startingFuel = 1000;
+var fuelDrainRate = 1;
 
 // Player shooting constants
 var fireRate = 500;
@@ -97,6 +99,7 @@ io.on('connection', function (socket) {
         var dist = Math.sqrt(Math.pow(sharedPlayer.x, 2) + Math.pow(sharedPlayer.y, 2));
         var circularOrbitVel = Math.sqrt(planet.mass / dist);
         sharedPlayer.vy = -sign * circularOrbitVel;
+        sharedPlayer.fuel = startingFuel;
 
         // Initial calculation of orbit parameters
         var orbitParams = sharedPlayer.calculateOrbit(planet.mass);
@@ -244,12 +247,30 @@ setInterval(function () {
         var controls = players[id].controls;
         var shotPower = players[id].shotPower;
 
-        if (player.rightMouseDown === true && player.clientX && player.clientY) {
-            var mouseThrustForce = calculateThrustForce(thrust, player);
-            player.addForce(mouseThrustForce);
+        if ((player.fuel > 0) && (controls.x || controls.y || player.rightMouseDown)) {
+
+            // lower their fuel when controls are engaged
+            player.fuel -= fuelDrainRate;
+            // dont lower it too much though
+            if (player.fuel < 0) {
+                player.fuel = 0;
+            }
+
+            var mouseThrustForce = { x: 0, y: 0 };
+            if (player.rightMouseDown === true && player.clientX && player.clientY) {
+                mouseThrustForce = calculateThrustForce(thrust, player);
+            }
+            var controlForceMag = Math.sqrt(Math.pow(controls.x + mouseThrustForce.x, 2) + Math.pow(controls.y + mouseThrustForce.y, 2));
+            var controlForce = {
+                x: (controls.x + mouseThrustForce.x) / controlForceMag*thrust,
+                y: (controls.y + mouseThrustForce.y) / controlForceMag*thrust
+            };
+            console.log(controlForce);
+
+            player.addForce(controlForce);
+
         }
 
-        player.addForce(controls);
         planet.addForce(player);
         player.update();
 
