@@ -42,7 +42,7 @@ var planet = new orbit.Planet(0, 0, earthRadius, mass);
 var playerRadius = 250;
 var thrust = 200;
 var startingDist = 4000;
-var startingFuel = 1000;
+var startingFuel = 2000;
 var fuelDrainRate = 1;
 
 // Player shooting constants
