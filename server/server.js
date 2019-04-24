@@ -265,10 +265,7 @@ setInterval(function () {
                 x: (controls.x + mouseThrustForce.x) / controlForceMag*thrust,
                 y: (controls.y + mouseThrustForce.y) / controlForceMag*thrust
             };
-            console.log(controlForce);
-
             player.addForce(controlForce);
-
         }
 
         planet.addForce(player);

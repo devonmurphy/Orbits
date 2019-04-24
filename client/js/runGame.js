@@ -141,37 +141,34 @@ var drawPlayers = function (players) {
     for (var id in players) {
         if (socket.id === id) {
             context.strokeStyle = orbitLineColor;
-        } else {
-            context.strokeStyle = enemyOrbitLineColor;
-        }
-        // Draw orbits
 
-        if (players[id]) {
-            var ellipse = players[id].orbitParams.ellipse;
-            var points = players[id].orbitParams.points;
+            if (players[id]) {
+                var ellipse = players[id].orbitParams.ellipse;
+                var points = players[id].orbitParams.points;
 
-        }
-        // Draw Elliptical orbit
-        if (ellipse) {
-
-            context.beginPath();
-            context.lineWidth = orbitLineWidth;
-            context.ellipse(ellipse.x, ellipse.y, ellipse.a, ellipse.b, ellipse.w, 0, 2 * Math.PI);
-            context.stroke();
-        }
-
-        // Draw Hyperbolic orbit
-        if (points) {
-            context.beginPath();
-            context.lineWidth = orbitLineWidth;
-            for (var pos = 0; pos < points.length - 1; pos++) {
-                context.moveTo(points[pos].x, points[pos].y);
-                context.lineTo(points[pos + 1].x, points[pos + 1].y);
             }
-            context.stroke();
+            // Draw Elliptical orbit
+            if (ellipse) {
+
+                context.beginPath();
+                context.lineWidth = orbitLineWidth;
+                context.ellipse(ellipse.x, ellipse.y, ellipse.a, ellipse.b, ellipse.w, 0, 2 * Math.PI);
+                context.stroke();
+            }
+
+            // Draw Hyperbolic orbit
+            if (points) {
+                context.beginPath();
+                context.lineWidth = orbitLineWidth;
+                for (var pos = 0; pos < points.length - 1; pos++) {
+                    context.moveTo(points[pos].x, points[pos].y);
+                    context.lineTo(points[pos + 1].x, points[pos + 1].y);
+                }
+                context.stroke();
+            }
         }
 
-        // Draw players
+        // Draw player
         var player = players[id].player;
         if (socket.id === id) {
             context.fillStyle = playerColor;
@@ -240,7 +237,7 @@ var drawGameUI = function (localPlayer) {
     context.font = "600px Helvetica Now";
     context.fillStyle = "white";
     context.textAlign = "center";
-    context.fillText("fuel: " + localPlayer.player.fuel, uiX, uiY+600);
+    context.fillText("fuel: " + localPlayer.player.fuel, uiX, uiY + 600);
 }
 
 //  Render based on game state received from server
