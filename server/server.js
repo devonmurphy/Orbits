@@ -261,11 +261,13 @@ setInterval(function () {
                 mouseThrustForce = calculateThrustForce(thrust, player);
             }
             var controlForceMag = Math.sqrt(Math.pow(controls.x + mouseThrustForce.x, 2) + Math.pow(controls.y + mouseThrustForce.y, 2));
-            var controlForce = {
-                x: (controls.x + mouseThrustForce.x) / controlForceMag*thrust,
-                y: (controls.y + mouseThrustForce.y) / controlForceMag*thrust
-            };
-            player.addForce(controlForce);
+            if (controlForceMag !== 0) {
+                var controlForce = {
+                    x: (controls.x + mouseThrustForce.x) / controlForceMag * thrust,
+                    y: (controls.y + mouseThrustForce.y) / controlForceMag * thrust
+                };
+                player.addForce(controlForce);
+            }
         }
 
         planet.addForce(player);
