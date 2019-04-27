@@ -25,6 +25,7 @@ var enemyOrbitLineColor = "#ffcc00";
 var enemyBulletColor = "#ff0066";
 
 var playerDead = false;
+var DEBUG_LINE = false;
 
 // Start movement when keys are pressed down
 document.addEventListener('keydown', function (event) {
@@ -214,14 +215,28 @@ var drawShootingOrbits = function (shootingOrbits) {
 
     // Draw Hyperbolic orbit
     if (points) {
-        context.beginPath();
-        context.strokeStyle = playerShootingLineColor;
-        context.lineWidth = orbitLineWidth;
-        for (var pos = 0; pos < points.length - 1; pos++) {
-            context.moveTo(points[pos].x, points[pos].y);
-            context.lineTo(points[pos + 1].x, points[pos + 1].y);
+        if (!DEBUG_LINE) {
+            context.beginPath();
+            context.strokeStyle = playerShootingLineColor;
+            context.lineWidth = orbitLineWidth;
+            for (var pos = 0; pos < points.length - 1; pos++) {
+                context.moveTo(points[pos].x, points[pos].y);
+                context.lineTo(points[pos + 1].x, points[pos + 1].y);
+            }
+            context.stroke();
+        } else {
+            // DEBUG LINE MODE TO SEE POINTS
+            context.strokeStyle = playerShootingLineColor;
+            context.lineWidth = orbitLineWidth;
+            var colors = ["green", "cyan","purple","red","yellow","orange"];
+            for (var pos = 0; pos < points.length - 1; pos++) {
+                context.beginPath();
+                context.strokeStyle = colors[pos%colors.length];
+                context.moveTo(points[pos].x, points[pos].y);
+                context.lineTo(points[pos + 1].x, points[pos + 1].y);
+                context.stroke();
+            }
         }
-        context.stroke();
     }
 
 }
