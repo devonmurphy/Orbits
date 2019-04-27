@@ -93,13 +93,10 @@ class Mass {
     }
 
     calculateHyperbolicOrbit(a, Ecc, theta, w, mass) {
-        var maxDrawDistanceForward = 30000;
-        var maxDrawDistanceBackward = Infinity;
         var maxDrawSteps = 500;
         var drawStep = .1;
         var maxNewtonSteps = 100;
-        var hasPassedShip = false;
-        var hasPassedShipDist = 100;
+        var maxDrawDist = 10000000;
 
         var W = (Ecc + Math.cos(theta)) / (1 + Ecc * Math.cos(theta));
         var Eint = Math.log(W + Math.sqrt(W * W - 1));
@@ -110,9 +107,8 @@ class Mass {
         var r, x = this.x, y = -this.y, EccAnom;
         var orbitPoints = [];
         var dist = this.magnitude(this.x, this.y, x, y);
-        var lastDist = dist;
 
-        while (orbitPoints.length < maxDrawSteps) {
+        while (orbitPoints.length < maxDrawSteps && dist < maxDrawDist) {
             EccAnom = this.Newton(maxNewtonSteps, curTime, Ecc, timeInt, a, mass);
             theta = 2 * Math.atan(Math.sqrt((1 + Ecc) / (Ecc - 1)) * Math.tanh(EccAnom / 2));
             r = a * (Ecc * Math.cosh(EccAnom) - 1);
@@ -124,61 +120,8 @@ class Mass {
                 orbitPoints.push(orbitPos);
             }
 
-            curTime += isClockwise * drawStep;
-
+            curTime += isClockwise*drawStep;
             dist = this.magnitude(this.x, this.y, x, y);
-
-            // Check if path orbit is getting farther away
-            if ((dist - lastDist > 0) && dist > maxDrawDistanceForward) {
-                console.log("--------------leaving && max drawDistance: ");
-                console.log(lastDist);
-                console.log(dist);
-                break
-            }
-
-            lastDist = dist;
-            if (dist < hasPassedShipDist) {
-                hasPassedShip = true;
-            }
-        }
-
-        console.log("----------------------------------")
-        if (!(orbitPoints.length < maxDrawSteps)) {
-            console.log("maxDrawSteps first loop");
-        }
-        if (hasPassedShip) {
-            console.log("hassPassedShip first loop");
-        }
-        console.log("first loop size: " + orbitPoints.length);
-
-        if (!(dist < maxDrawDistanceForward)) {
-            console.log("maxDrawDist first loop");
-            x = this.x;
-            y = -this.y;
-            dist = this.magnitude(this.x, this.y, x, y);
-            timeInt = isClockwise * Meanint * Math.sqrt(-(a * a * a) / mass);
-            curTime = 0;
-            drawStep = 0;
-            while (dist < maxDrawDistanceBackward && orbitPoints.length < maxDrawSteps) {
-                EccAnom = this.Newton(maxNewtonSteps, curTime, Ecc, timeInt, a, mass);
-                theta = 2 * Math.atan(Math.sqrt((1 + Ecc) / (Ecc - 1)) * Math.tanh(EccAnom / 2));
-                r = a * (Ecc * Math.cosh(EccAnom) - 1);
-                x = -r * (Math.cos(theta - w));
-                y = -r * (Math.sin(theta - w));
-                var orbitPos = { x, y };
-
-                if (!isNaN(x) && !isNaN(y)) {
-                    orbitPoints.unshift(orbitPos);
-                }
-
-                curTime -= isClockwise * drawStep;
-
-                dist = this.magnitude(this.x, this.y, x, y)
-                if (dist < hasPassedShipDist) {
-                    hasPassedShip = true;
-                }
-            }
-            console.log("second loop size: " + orbitPoints.length);
         }
         return orbitPoints;
     }
@@ -190,9 +133,6 @@ class Mass {
         // H = angular momentum
         // T = period
         // a = semiminor axis
-        // b = other axis
-        // w = 
-        // theta =
 
         // Calculation of eccentricty vector
         var elipEcc = 1;
