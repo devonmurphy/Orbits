@@ -15,7 +15,7 @@ var uiX = 11500;
 var uiY = 12000;
 
 // Colors
-var backgroundColor = "#000066";
+var backgroundColor = "#000022";
 var earthColor = "#a6ff99";
 
 var playerColor = "#1f9fef";
