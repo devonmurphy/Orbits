@@ -120,7 +120,7 @@ class Mass {
                 orbitPoints.push(orbitPos);
             }
 
-            curTime += isClockwise*drawStep;
+            curTime += isClockwise * drawStep;
             dist = this.magnitude(this.x, this.y, x, y);
         }
         return orbitPoints;

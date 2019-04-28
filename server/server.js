@@ -109,6 +109,7 @@ io.on('connection', function (socket) {
             controls: { x: 0, y: 0 },
             shotPower: startingShotPower,
             bulletCount: startingBulletCount,
+            score: 0,
         };
         players[socket.id].player.id = socket.id;
         players[socket.id].player.type = "player";
@@ -314,6 +315,10 @@ setInterval(function () {
 
         // Delete the player if they got hit
         if (collisions[i].type === 'player') {
+            if (collisions[i].hitBy) {
+                players[collisions[i].hitBy].score += 1;
+                console.log(players[collisions[i].hitBy].score);
+            }
             var id = collisions[i].id;
             io.to(id).emit('youdied', 'You Died');
             delete players[id];

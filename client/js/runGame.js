@@ -247,12 +247,17 @@ var drawShootingOrbits = function (shootingOrbits) {
 
 var drawGameUI = function (localPlayer) {
 
-    context.font = "600px Helvetica Now";
+    context.font = "600px Verdana";
     context.fillStyle = "white";
     context.textAlign = "center";
-    context.fillText("bullets: " + localPlayer.bulletCount, uiX - 650, uiY);
+    context.fillText("score: " + localPlayer.score, uiX - 850, uiY - 600);
 
-    context.font = "600px Helvetica Now";
+    context.font = "600px Verdana";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.fillText("bullets: " + localPlayer.bulletCount, uiX - 850, uiY);
+
+    context.font = "600px Verdana";
     context.fillStyle = "white";
     context.textAlign = "center";
     context.fillText("fuel: " + localPlayer.player.fuel, uiX, uiY + 600);

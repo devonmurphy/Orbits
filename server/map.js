@@ -49,9 +49,16 @@ class Grid {
             if (this.checkCollision(this.objects[iteration], this.objects[n + 1]) === true) {
                 // Only add them if they are not in already
                 if (this.collisions.indexOf(this.objects[iteration]) === -1) {
+                    if (this.objects[n + 1].id) {
+                        this.objects[iteration].hitBy = this.objects[n + 1].id;
+                    }
                     this.collisions.push(this.objects[iteration]);
                 }
                 if (this.collisions.indexOf(this.objects[n + 1]) === -1) {
+                    if (this.objects[iteration].id) {
+                        this.objects[n + 1].hitBy = this.objects[iteration].id;
+                        console.log(this.objects[n + 1].hitBy);
+                    }
                     this.collisions.push(this.objects[n + 1]);
                 }
             }
