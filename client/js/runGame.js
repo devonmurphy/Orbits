@@ -9,7 +9,10 @@ var offsetTop = canvas.offsetTop + canvas.height / 2;
 // Scale and size
 var orbitLineWidth = "50";
 var earthRadius = 1500;
-var gameScale = .04;
+var gameScale = .03;
+
+var uiX = 11500;
+var uiY = 12000;
 
 // Colors
 var backgroundColor = "#000066";
@@ -26,6 +29,7 @@ var enemyBulletColor = "#ff0066";
 
 var playerDead = false;
 var DEBUG_LINE = false;
+var DEBUG_MAP = false;
 
 // Start movement when keys are pressed down
 document.addEventListener('keydown', function (event) {
@@ -228,10 +232,10 @@ var drawShootingOrbits = function (shootingOrbits) {
             // DEBUG LINE MODE TO SEE POINTS
             context.strokeStyle = playerShootingLineColor;
             context.lineWidth = orbitLineWidth;
-            var colors = ["green", "cyan","purple","red","yellow","orange"];
+            var colors = ["green", "cyan", "purple", "red", "yellow", "orange"];
             for (var pos = 0; pos < points.length - 1; pos++) {
                 context.beginPath();
-                context.strokeStyle = colors[pos%colors.length];
+                context.strokeStyle = colors[pos % colors.length];
                 context.moveTo(points[pos].x, points[pos].y);
                 context.lineTo(points[pos + 1].x, points[pos + 1].y);
                 context.stroke();
@@ -242,12 +246,11 @@ var drawShootingOrbits = function (shootingOrbits) {
 }
 
 var drawGameUI = function (localPlayer) {
-    var uiX = 8000;
-    var uiY = 8000;
+
     context.font = "600px Helvetica Now";
     context.fillStyle = "white";
     context.textAlign = "center";
-    context.fillText("bullets: " + localPlayer.bulletCount, uiX, uiY);
+    context.fillText("bullets: " + localPlayer.bulletCount, uiX - 650, uiY);
 
     context.font = "600px Helvetica Now";
     context.fillStyle = "white";
@@ -273,7 +276,17 @@ var render = function (gameState) {
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
 
-
+    if (gameState.map && DEBUG_MAP) {
+        var map = gameState.map.map;
+        var colors = ["green", "cyan", "purple", "red", "yellow", "orange"];
+        for (var i = 0; i < map.length; i++) {
+            console.log(map[i]);
+            context.beginPath();
+            context.fillStyle = colors[i % colors.length];
+            context.rect(map[i].x, map[i].y, gameState.map.gridSize, gameState.map.gridSize);
+            context.fill();
+        }
+    }
 
     // Draw everthing
     drawPlayers(players);

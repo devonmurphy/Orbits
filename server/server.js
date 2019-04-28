@@ -55,8 +55,8 @@ var shotPowerMin = 0;
 var shotPowerMax = 2240;
 
 // Map constants
-var mapSize = 5;
-var gridSize = 6700;
+var mapSize = 1;
+var gridSize = 10000;
 var map = new map.Map(mapSize, gridSize);
 
 function deepCopy(obj) {
