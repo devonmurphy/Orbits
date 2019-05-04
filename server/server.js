@@ -1,15 +1,14 @@
 // Base code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b
 // Dependencies
 var express = require('express');
-var http = require('http');
 var path = require('path');
-var socketIO = require('socket.io');
 var reload = require('reload');
-var app = express();
-var server = http.Server(app);
-var io = socketIO(server);
 var orbit = require('./orbits.js');
 var map = require('./map.js');
+
+var app = require('express')();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 // Setup server to serve the client folder
 app.set('port', 5000);
