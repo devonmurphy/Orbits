@@ -1,7 +1,5 @@
 // Intiates client connection and sets up controls 
 var socket = io();
-var movement = { right: false, left: false, forward: false, backward: false }
-var canvas = document.getElementById('renderer');
 var context = canvas.getContext("2d");
 var offsetLeft = canvas.offsetLeft + canvas.width / 2;
 var offsetTop = canvas.offsetTop + canvas.height / 2;
