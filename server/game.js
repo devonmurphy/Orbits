@@ -290,8 +290,9 @@ module.exports = function (io) {
             // Delete the player if they got hit
             if (collisions[i].type === 'player') {
                 if (collisions[i].hitBy) {
-                    players[collisions[i].hitBy].score += 1;
-                    console.log(players[collisions[i].hitBy].score);
+                    if (players[collisions[i].hitBy]) {
+                        players[collisions[i].hitBy].score += 1;
+                    }
                 }
                 var id = collisions[i].id;
                 io.to(id).emit('youdied', 'You Died');

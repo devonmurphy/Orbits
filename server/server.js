@@ -11,7 +11,6 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
 var game = require('./game.js')(io);
-console.log(game);
 
 // Setup server to serve the client folder
 app.set('port', 5000);
