@@ -1,4 +1,4 @@
-exports.startGame = function (io) {
+function startGame(io, gameId) {
     // Spawn a new player when the join
     var orbit = require('./orbits.js');
     var map = require('./map.js');
@@ -210,8 +210,8 @@ exports.startGame = function (io) {
         }
     }
 
-    // Setup handlers to catch players joining and control input
-    io.on('connection', function (socket) {
+    var joinGame = function (socket) {
+        socket.join(gameId);
         // Server connection
         socket.on('new player', newPlayer);
 
@@ -227,6 +227,18 @@ exports.startGame = function (io) {
         });
         socket.on('keyup', function (data) {
         });
+    }
+
+    // Setup handlers to catch players joining and control input
+    var playerCount = 0;
+    io.on('connection', function (socket) {
+        if (playerCount % 2 === 0 && gameId === "1") {
+            joinGame(socket);
+        }
+        if (playerCount % 2 === 1 && gameId === "2") {
+            joinGame(socket);
+        }
+        playerCount += 1;
     });
 
     // Update the game state every 15 ms
@@ -323,7 +335,9 @@ exports.startGame = function (io) {
         };
 
         // Send the game state to the client to be rendered
-        io.sockets.emit('gameState', gameState);
+        io.sockets.in(gameId).emit('gameState', gameState);
 
     }, 15);
 }
+
+module.exports = startGame;
