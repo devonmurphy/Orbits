@@ -64,8 +64,7 @@ function startGame(io, gameId, playerSockets) {
     }
 
     // Create a new player
-    var newPlayer = function () {
-        var socket = this;
+    var newPlayer = function (socket) {
         // Spawn player either at (-startingDist,0) or (startingDist,0)
         var sign = (Object.keys(players).length % 2 === 0 ? -1 : 1);
         var sharedPlayer = new orbit.Mass(sign * startingDist, 0, playerRadius);
@@ -78,7 +77,7 @@ function startGame(io, gameId, playerSockets) {
 
         // Initial calculation of orbit parameters
         var orbitParams = sharedPlayer.calculateOrbit(planet.mass);
-        players[this.id] = {
+        players[socket.id] = {
             player: deepCopy(sharedPlayer),
             orbitParams: deepCopy(orbitParams),
             controls: { x: 0, y: 0 },
@@ -212,8 +211,6 @@ function startGame(io, gameId, playerSockets) {
 
     var joinGame = function (socket) {
         socket.join(gameId);
-        // Server connection
-        socket.on('new player', newPlayer);
 
         // Player controls
         socket.on('movement', movement);
@@ -227,11 +224,11 @@ function startGame(io, gameId, playerSockets) {
         });
         socket.on('keyup', function (data) {
         });
+        newPlayer(socket);
+        console.log(socket);
     }
 
-    console.log("player sockets: "+playerSockets);
-    for(var i = 0; i++; i < playerSockets.length){
-        console.log(playerSockets[i]);
+    for(var i = 0; i < playerSockets.length; i++){
         joinGame(playerSockets[i]);
     }
 
