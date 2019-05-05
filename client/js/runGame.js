@@ -283,7 +283,6 @@ var render = function (gameState) {
         var map = gameState.map.map;
         var colors = ["green", "cyan", "purple", "red", "yellow", "orange"];
         for (var i = 0; i < map.length; i++) {
-            console.log(map[i]);
             context.beginPath();
             context.fillStyle = colors[i % colors.length];
             context.rect(map[i].x, map[i].y, gameState.map.gridSize, gameState.map.gridSize);

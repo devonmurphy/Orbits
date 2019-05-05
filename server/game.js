@@ -1,4 +1,5 @@
-module.exports = function (io) {
+function startGame(io, gameId, playerSockets) {
+    // Spawn a new player when the join
     var orbit = require('./orbits.js');
     var map = require('./map.js');
 
@@ -62,156 +63,177 @@ module.exports = function (io) {
         return thrust;
     }
 
-    // Setup handlers to catch players joining and control input
-    io.on('connection', function (socket) {
-        socket.on('new player', function () {
-            // Spawn player either at (-startingDist,0) or (startingDist,0)
-            var sign = (Object.keys(players).length % 2 === 0 ? -1 : 1);
-            var sharedPlayer = new orbit.Mass(sign * startingDist, 0, playerRadius);
+    // Create a new player
+    var newPlayer = function () {
+        var socket = this;
+        // Spawn player either at (-startingDist,0) or (startingDist,0)
+        var sign = (Object.keys(players).length % 2 === 0 ? -1 : 1);
+        var sharedPlayer = new orbit.Mass(sign * startingDist, 0, playerRadius);
 
-            // Calculate velocity for circular orbit
-            var dist = Math.sqrt(Math.pow(sharedPlayer.x, 2) + Math.pow(sharedPlayer.y, 2));
-            var circularOrbitVel = Math.sqrt(planet.mass / dist);
-            sharedPlayer.vy = -sign * circularOrbitVel;
-            sharedPlayer.fuel = startingFuel;
+        // Calculate velocity for circular orbit
+        var dist = Math.sqrt(Math.pow(sharedPlayer.x, 2) + Math.pow(sharedPlayer.y, 2));
+        var circularOrbitVel = Math.sqrt(planet.mass / dist);
+        sharedPlayer.vy = -sign * circularOrbitVel;
+        sharedPlayer.fuel = startingFuel;
 
-            // Initial calculation of orbit parameters
-            var orbitParams = sharedPlayer.calculateOrbit(planet.mass);
-            players[socket.id] = {
-                player: deepCopy(sharedPlayer),
-                orbitParams: deepCopy(orbitParams),
-                controls: { x: 0, y: 0 },
-                shotPower: startingShotPower,
-                bulletCount: startingBulletCount,
-                score: 0,
-            };
-            players[socket.id].player.id = socket.id;
-            players[socket.id].player.type = "player";
-        });
+        // Initial calculation of orbit parameters
+        var orbitParams = sharedPlayer.calculateOrbit(planet.mass);
+        players[this.id] = {
+            player: deepCopy(sharedPlayer),
+            orbitParams: deepCopy(orbitParams),
+            controls: { x: 0, y: 0 },
+            shotPower: startingShotPower,
+            bulletCount: startingBulletCount,
+            score: 0,
+        };
+        players[socket.id].player.id = socket.id;
+        players[socket.id].player.type = "player";
+    }
 
-        // Receives player controls
-        socket.on('movement', function (data) {
-            if (Object.keys(players).length > 0 && players[socket.id]) {
-                var player = players[socket.id].player;
-                var tangent = { x: -player.vy, y: player.vx };
-                var speed = Math.sqrt(Math.pow(player.vx, 2) + Math.pow(player.vy, 2));
-                players[socket.id].controls = { x: 0, y: 0 };
-                if (data.right) {
-                    players[socket.id].controls.x -= tangent.x / speed * thrust;
-                    players[socket.id].controls.y -= tangent.y / speed * thrust;
+    // Receives player controls
+    var movement = function (data) {
+        var socket = this;
+        if (Object.keys(players).length > 0 && players[socket.id]) {
+            var player = players[socket.id].player;
+            var tangent = { x: -player.vy, y: player.vx };
+            var speed = Math.sqrt(Math.pow(player.vx, 2) + Math.pow(player.vy, 2));
+            players[socket.id].controls = { x: 0, y: 0 };
+            if (data.right) {
+                players[socket.id].controls.x -= tangent.x / speed * thrust;
+                players[socket.id].controls.y -= tangent.y / speed * thrust;
+            }
+            if (data.left) {
+                players[socket.id].controls.x += tangent.x / speed * thrust;
+                players[socket.id].controls.y += tangent.y / speed * thrust;
+            }
+            if (data.forward) {
+                players[socket.id].controls.x += player.vx / speed * thrust;
+                players[socket.id].controls.y += player.vy / speed * thrust;
+            }
+            if (data.backward) {
+                players[socket.id].controls.x -= player.vx / speed * thrust;
+                players[socket.id].controls.y -= player.vy / speed * thrust;
+            }
+        }
+
+    }
+
+    // Adjusts player shot power whenever they scroll
+    var wheelMove = function (data) {
+        var id = this.id;
+        if (players[id]) {
+            if (players[id].player) {
+                var player = players[id];
+                if (data < 0) {
+                    player.shotPower += shotPowerChangeRate;
                 }
-                if (data.left) {
-                    players[socket.id].controls.x += tangent.x / speed * thrust;
-                    players[socket.id].controls.y += tangent.y / speed * thrust;
+
+                if (data > 0) {
+                    player.shotPower -= shotPowerChangeRate;
                 }
-                if (data.forward) {
-                    players[socket.id].controls.x += player.vx / speed * thrust;
-                    players[socket.id].controls.y += player.vy / speed * thrust;
+                // Clamp values between shotPowerMin and shotPowerMax
+                if (player.shotPower < shotPowerMin) {
+                    player.shotPower = shotPowerMin;
                 }
-                if (data.backward) {
-                    players[socket.id].controls.x -= player.vx / speed * thrust;
-                    players[socket.id].controls.y -= player.vy / speed * thrust;
+                if (player.shotPower > shotPowerMax) {
+                    player.shotPower = shotPowerMax;
                 }
             }
-        });
+        }
+    }
 
-        socket.on('keyup', function (data) {
-        });
-
-        // Adjusts player shot power whenever they scroll
-        socket.on('wheel', function (data) {
-            var id = socket.id;
-            if (players[id]) {
-                if (players[id].player) {
-                    var player = players[id];
-                    if (data < 0) {
-                        player.shotPower += shotPowerChangeRate;
-                    }
-
-                    if (data > 0) {
-                        player.shotPower -= shotPowerChangeRate;
-                    }
-                    // Clamp values between shotPowerMin and shotPowerMax
-                    if (player.shotPower < shotPowerMin) {
-                        player.shotPower = shotPowerMin;
-                    }
-                    if (player.shotPower > shotPowerMax) {
-                        player.shotPower = shotPowerMax;
-                    }
+    // Calculates shooting orbit while mouse is down
+    var mousedown = function (data) {
+        var id = this.id;
+        if (players[id]) {
+            if (players[id].player) {
+                var player = players[id].player;
+                if (data.button === 0) {
+                    player.leftMouseDown = true;
+                }
+                if (data.button === 2) {
+                    player.rightMouseDown = true;
                 }
             }
-        });
+        }
+    }
 
-        socket.on('mousedown', function (data) {
-            var id = socket.id;
-            if (players[id]) {
-                if (players[id].player) {
+    // Fires the bullet when the mouse is released
+    var mouseup = function (data) {
+        var socket = this;
+        var id = socket.id;
+        if (players[id]) {
+            if (players[id].player) {
+                if (data.button === 0) {
                     var player = players[id].player;
-                    if (data.button === 0) {
-                        player.leftMouseDown = true;
+                    var shotPower = players[id].shotPower;
+                    player.leftMouseDown = false;
+                    var currentTime = (new Date()).getTime();
+                    if (player.lastMouseUpTime === undefined) {
+                        player.lastMouseUpTime = 0;
                     }
-                    if (data.button === 2) {
-                        player.rightMouseDown = true;
+                    if (players[id].bulletCount === undefined) {
+                        players[id].bulletCount = startingBulletCount;
                     }
-                }
-            }
-        });
-
-        // Fires the bullet when the mouse is released
-        socket.on('mouseup', function (data) {
-            var id = socket.id;
-            if (players[id]) {
-                if (players[id].player) {
-                    if (data.button === 0) {
-                        var player = players[id].player;
-                        var shotPower = players[id].shotPower;
-                        player.leftMouseDown = false;
-                        var currentTime = (new Date()).getTime();
-                        if (player.lastMouseUpTime === undefined) {
-                            player.lastMouseUpTime = 0;
-                        }
-                        if (players[id].bulletCount === undefined) {
-                            players[id].bulletCount = startingBulletCount;
-                        }
-                        if (currentTime - player.lastMouseUpTime > fireRate && players[id].bulletCount !== 0) {
-                            players[id].bulletCount -= 1;
-                            player.lastMouseUpTime = currentTime;
-                            var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
-                            calculateShootingOrbit(shotPower, player, bullet);
-                            bullet.id = socket.id;
-                            bullet.type = "bullet"
-                            bullets.push(deepCopy(bullet));
-                        }
-                    } else if (data.button === 2) {
-                        var player = players[id].player;
-                        player.rightMouseDown = false;
+                    if (currentTime - player.lastMouseUpTime > fireRate && players[id].bulletCount !== 0) {
+                        players[id].bulletCount -= 1;
+                        player.lastMouseUpTime = currentTime;
+                        var bullet = new orbit.Mass(player.x, player.y, bulletRadius);
+                        calculateShootingOrbit(shotPower, player, bullet);
+                        bullet.id = socket.id;
+                        bullet.type = "bullet"
+                        bullets.push(deepCopy(bullet));
                     }
-                }
-            }
-        });
-
-        // Update the player's clientX and clientY position when they move their mouse
-        socket.on('mousemove', function (data) {
-            var id = socket.id;
-            if (players[id]) {
-                if (players[id].player) {
+                } else if (data.button === 2) {
                     var player = players[id].player;
-                    if (player.leftMouseDown === true) {
-                        player.clientX = data.clientX;
-                        player.clientY = -data.clientY;
-                    }
-                    if (player.rightMouseDown === true) {
-                        player.clientX = data.clientX;
-                        player.clientY = -data.clientY;
-                    }
+                    player.rightMouseDown = false;
                 }
             }
-        });
+        }
+    }
 
-        // TODO: USE THIS FOR SOMETHING
+    // Update the player's clientX and clientY position when they move their mouse
+    var mousemove = function (data) {
+        var id = this.id;
+        if (players[id]) {
+            if (players[id].player) {
+                var player = players[id].player;
+                if (player.leftMouseDown === true) {
+                    player.clientX = data.clientX;
+                    player.clientY = -data.clientY;
+                }
+                if (player.rightMouseDown === true) {
+                    player.clientX = data.clientX;
+                    player.clientY = -data.clientY;
+                }
+            }
+        }
+    }
+
+    var joinGame = function (socket) {
+        socket.join(gameId);
+        // Server connection
+        socket.on('new player', newPlayer);
+
+        // Player controls
+        socket.on('movement', movement);
+        socket.on('wheel', wheelMove);
+        socket.on('mousedown', mousedown);
+        socket.on('mouseup', mouseup);
+        socket.on('mousemove', mousemove);
+
+        // TODO: USE THESE FOR STUFF
         socket.on('mouseout', function (data) {
         });
-    });
+        socket.on('keyup', function (data) {
+        });
+    }
+
+    console.log("player sockets: "+playerSockets);
+    for(var i = 0; i++; i < playerSockets.length){
+        console.log(playerSockets[i]);
+        joinGame(playerSockets[i]);
+    }
 
     // Update the game state every 15 ms
     setInterval(function () {
@@ -290,8 +312,9 @@ module.exports = function (io) {
             // Delete the player if they got hit
             if (collisions[i].type === 'player') {
                 if (collisions[i].hitBy) {
-                    players[collisions[i].hitBy].score += 1;
-                    console.log(players[collisions[i].hitBy].score);
+                    if (players[collisions[i].hitBy]) {
+                        players[collisions[i].hitBy].score += 1;
+                    }
                 }
                 var id = collisions[i].id;
                 io.to(id).emit('youdied', 'You Died');
@@ -306,7 +329,9 @@ module.exports = function (io) {
         };
 
         // Send the game state to the client to be rendered
-        io.sockets.emit('gameState', gameState);
+        io.sockets.in(gameId).emit('gameState', gameState);
 
     }, 15);
 }
+
+module.exports = startGame;

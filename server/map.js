@@ -57,7 +57,6 @@ class Grid {
                 if (this.collisions.indexOf(this.objects[n + 1]) === -1) {
                     if (this.objects[iteration].id) {
                         this.objects[n + 1].hitBy = this.objects[iteration].id;
-                        console.log(this.objects[n + 1].hitBy);
                     }
                     this.collisions.push(this.objects[n + 1]);
                 }
