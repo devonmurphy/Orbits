@@ -1,4 +1,4 @@
-function startGame(io, gameId) {
+function startGame(io, gameId, playerSockets) {
     // Spawn a new player when the join
     var orbit = require('./orbits.js');
     var map = require('./map.js');
@@ -229,17 +229,11 @@ function startGame(io, gameId) {
         });
     }
 
-    // Setup handlers to catch players joining and control input
-    var playerCount = 0;
-    io.on('connection', function (socket) {
-        if (playerCount % 2 === 0 && gameId === "1") {
-            joinGame(socket);
-        }
-        if (playerCount % 2 === 1 && gameId === "2") {
-            joinGame(socket);
-        }
-        playerCount += 1;
-    });
+    console.log("player sockets: "+playerSockets);
+    for(var i = 0; i++; i < playerSockets.length){
+        console.log(playerSockets[i]);
+        joinGame(playerSockets[i]);
+    }
 
     // Update the game state every 15 ms
     setInterval(function () {
