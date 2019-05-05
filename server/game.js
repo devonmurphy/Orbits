@@ -1,4 +1,4 @@
-module.exports = function (io) {
+exports.startGame = function (io) {
     var orbit = require('./orbits.js');
     var map = require('./map.js');
 

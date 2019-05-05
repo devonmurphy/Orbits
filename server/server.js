@@ -10,7 +10,8 @@ var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
-var game = require('./game.js')(io);
+var game = require('./game.js');
+game.startGame(io);
 
 // Setup server to serve the client folder
 app.set('port', 5000);
