@@ -1,4 +1,5 @@
 exports.startGame = function (io) {
+    // Spawn a new player when the join
     var orbit = require('./orbits.js');
     var map = require('./map.js');
 
@@ -62,6 +63,7 @@ exports.startGame = function (io) {
         return thrust;
     }
 
+    // Create a new player
     var newPlayer = function () {
         var socket = this;
         // Spawn player either at (-startingDist,0) or (startingDist,0)
@@ -88,6 +90,7 @@ exports.startGame = function (io) {
         players[socket.id].player.type = "player";
     }
 
+    // Receives player controls
     var movement = function (data) {
         var socket = this;
         if (Object.keys(players).length > 0 && players[socket.id]) {
@@ -115,6 +118,7 @@ exports.startGame = function (io) {
 
     }
 
+    // Adjusts player shot power whenever they scroll
     var wheelMove = function (data) {
         var id = this.id;
         if (players[id]) {
@@ -138,6 +142,7 @@ exports.startGame = function (io) {
         }
     }
 
+    // Calculates shooting orbit while mouse is down
     var mousedown = function (data) {
         var id = this.id;
         if (players[id]) {
@@ -153,6 +158,7 @@ exports.startGame = function (io) {
         }
     }
 
+    // Fires the bullet when the mouse is released
     var mouseup = function (data) {
         var socket = this;
         var id = socket.id;
@@ -186,6 +192,7 @@ exports.startGame = function (io) {
         }
     }
 
+    // Update the player's clientX and clientY position when they move their mouse
     var mousemove = function (data) {
         var id = this.id;
         if (players[id]) {
@@ -205,21 +212,14 @@ exports.startGame = function (io) {
 
     // Setup handlers to catch players joining and control input
     io.on('connection', function (socket) {
+        // Server connection
         socket.on('new player', newPlayer);
 
-        // Receives player controls
+        // Player controls
         socket.on('movement', movement);
-
-        // Adjusts player shot power whenever they scroll
         socket.on('wheel', wheelMove);
-
-        // Calculates shooting orbit while mouse is down
         socket.on('mousedown', mousedown);
-
-        // Fires the bullet when the mouse is released
         socket.on('mouseup', mouseup);
-
-        // Update the player's clientX and clientY position when they move their mouse
         socket.on('mousemove', mousemove);
 
         // TODO: USE THESE FOR STUFF
