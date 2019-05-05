@@ -225,7 +225,6 @@ function startGame(io, gameId, playerSockets) {
         socket.on('keyup', function (data) {
         });
         newPlayer(socket);
-        console.log(socket);
     }
 
     for(var i = 0; i < playerSockets.length; i++){

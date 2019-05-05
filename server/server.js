@@ -12,6 +12,8 @@ var io = require('socket.io')(server);
 
 var game = require('./game.js');
 
+var PLAYERS_PER_GAME = 2;
+
 // Setup server to serve the client folder
 app.set('port', 5000);
 app.use('/client', express.static(path.join(__dirname, '../client')));
@@ -33,15 +35,8 @@ var playerSockets = [];
 io.on('connection', function (socket) {
     playerSockets.push(socket);
     playerCount += 1;
-    if (playerCount === 2) {
-        var gamePlayers = [
-            playerSockets[0],
-            playerSockets[1]
-        ];
-        var game1 = new game(io, "1", gamePlayers);
-    }
-    if (playerCount === 4) {
-        var game2 = new game(io, "2", [playerSockets[2], playerSockets[3]]);
+    if (playerCount % PLAYERS_PER_GAME === 0) {
+        var theGame = new game(io, playerCount, playerSockets.slice(playerCount - PLAYERS_PER_GAME, playerCount));
     }
 });
 
