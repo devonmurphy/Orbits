@@ -123,9 +123,6 @@ canvas.addEventListener('contextmenu', function (e) {
     }
 });
 
-// On connection notify the server of a new player
-socket.emit('new player');
-
 // Receive game state from server and then render it
 socket.on('gameState', function (gameState) {
     render(gameState);
@@ -140,6 +137,29 @@ socket.on('youdied', function (data) {
 socket.on('youwon', function (data) {
     playerWon = true;
 });
+
+var waitingForGame = function () {
+    // Reset canvas and draw background
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = backgroundColor;
+    context.beginPath();
+    context.rect(0, 0, canvas.width, canvas.height);
+    context.fill();
+
+    // Move canvas origin to center and zoom out
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.scale(gameScale, gameScale);
+
+    context.font = "2000px Garamond Pro";
+    context.fillStyle = "white";
+    canvas.style.letterSpacing = -10;
+    context.textAlign = "center";
+    context.fillText("WAITING FOR OPPONENT...", 0, -5000);
+}
+
+// Render waiting for opponent
+waitingForGame();
 
 var drawEarth = function () {
     // Draw Earth
