@@ -227,12 +227,12 @@ function startGame(io, gameId, playerSockets) {
         newPlayer(socket);
     }
 
-    for(var i = 0; i < playerSockets.length; i++){
+    for (var i = 0; i < playerSockets.length; i++) {
         joinGame(playerSockets[i]);
     }
 
     // Update the game state every 15 ms
-    setInterval(function () {
+    var gameLoop = setInterval(function () {
         // Loop through the player list and update their position and velocity
         var allObjects = [];
         for (var id in players) {
@@ -313,8 +313,18 @@ function startGame(io, gameId, playerSockets) {
                     }
                 }
                 var id = collisions[i].id;
+
                 io.to(id).emit('youdied', 'You Died');
                 delete players[id];
+
+                if (Object.keys(players).length === 1) {
+                    var lastId = Object.keys(players)[0];
+                    io.to(lastId).emit('youwon', 'You Won');
+
+                    // Game has ended clean up
+                    delete players[lastId];
+                    clearInterval(gameLoop);
+                }
             }
         }
 

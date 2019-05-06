@@ -28,6 +28,8 @@ var enemyOrbitLineColor = "#ffcc00";
 var enemyBulletColor = "#ff0066";
 
 var playerDead = false;
+var playerWon = false;
+
 var DEBUG_LINE = false;
 var DEBUG_MAP = false;
 
@@ -132,6 +134,11 @@ socket.on('gameState', function (gameState) {
 // Receive you died 
 socket.on('youdied', function (data) {
     playerDead = true;
+});
+
+// Receive you won
+socket.on('youwon', function (data) {
+    playerWon = true;
 });
 
 var drawEarth = function () {
@@ -309,4 +316,11 @@ var render = function (gameState) {
         context.fillText("YOU DIED", 0, -5000);
     }
 
+    if (playerWon === true) {
+        context.font = "3000px Garamond Pro";
+        context.fillStyle = "green";
+        canvas.style.letterSpacing = -30;
+        context.textAlign = "center";
+        context.fillText("YOU WON", 0, -5000);
+    }
 }
