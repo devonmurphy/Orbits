@@ -343,4 +343,24 @@ var render = function (gameState) {
         context.textAlign = "center";
         context.fillText("YOU WON", 0, -5000);
     }
+
+    if (playerWon || playerDead) {
+
+        var btn = document.createElement("button")
+        btn.style.color = "white";
+        btn.style.font = "48px Garamond Pro";
+        btn.style.textAlign = "center";
+        btn.style.height = 100;
+        btn.style.width = 400;
+        btn.style.top = offsetTop - parseInt(btn.style.height) / 2 + 200;
+        btn.style.left = offsetLeft - parseInt(btn.style.width) / 2;
+        btn.style.position = "absolute";
+        btn.style.background = playerColor;
+        btn.style.border = "none";
+        btn.onclick = function () { window.location.reload(); }
+        btn.innerHTML = "PLAY AGAIN?";
+        btn.style.borderRadius = "10px";
+
+        document.body.appendChild(btn);
+    }
 }
