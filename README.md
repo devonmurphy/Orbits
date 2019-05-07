@@ -1,5 +1,5 @@
 # Orbits
-2D multiplayer game written in Node.js 
+2D multiplayer game written in javascript 
 
 ## How to build/run
 ```
