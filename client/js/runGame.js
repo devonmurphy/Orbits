@@ -14,6 +14,21 @@ var gameScale = .03;
 var uiX = 11500;
 var uiY = 12000;
 
+var playAgainBtn = document.createElement("button")
+playAgainBtn.style.color = "white";
+playAgainBtn.style.font = "36px Garamond Pro";
+playAgainBtn.style.textAlign = "center";
+playAgainBtn.style.height = 50;
+playAgainBtn.style.width = 300;
+playAgainBtn.style.top = offsetTop - parseInt(playAgainBtn.style.height) / 2 + 200;
+playAgainBtn.style.left = offsetLeft - parseInt(playAgainBtn.style.width) / 2;
+playAgainBtn.style.position = "absolute";
+playAgainBtn.style.background = "#262626";
+//playAgainBtn.style.border = "none";
+playAgainBtn.onclick = function () { window.location.reload(); }
+playAgainBtn.innerHTML = "PLAY AGAIN?";
+playAgainBtn.style.borderRadius = "10px";
+
 // Colors
 var backgroundColor = "#000022";
 var earthColor = "#a6ff99";
@@ -32,6 +47,14 @@ var playerWon = false;
 
 var DEBUG_LINE = false;
 var DEBUG_MAP = false;
+
+// Recalculate offsets when window is resized
+window.addEventListener('resize', function () {
+    offsetLeft = canvas.offsetLeft + canvas.width / 2;
+    offsetTop = canvas.offsetTop + canvas.height / 2;
+    playAgainBtn.style.top = offsetTop - parseInt(playAgainBtn.style.height) / 2 + 200;
+    playAgainBtn.style.left = offsetLeft - parseInt(playAgainBtn.style.width) / 2;
+});
 
 // Start movement when keys are pressed down
 document.addEventListener('keydown', function (event) {
@@ -345,22 +368,6 @@ var render = function (gameState) {
     }
 
     if (playerWon || playerDead) {
-
-        var btn = document.createElement("button")
-        btn.style.color = "white";
-        btn.style.font = "36px Garamond Pro";
-        btn.style.textAlign = "center";
-        btn.style.height = 50;
-        btn.style.width = 300;
-        btn.style.top = offsetTop - parseInt(btn.style.height) / 2 + 200;
-        btn.style.left = offsetLeft - parseInt(btn.style.width) / 2;
-        btn.style.position = "absolute";
-        btn.style.background = "#262626";
-        //btn.style.border = "none";
-        btn.onclick = function () { window.location.reload(); }
-        btn.innerHTML = "PLAY AGAIN?";
-        btn.style.borderRadius = "10px";
-
-        document.body.appendChild(btn);
+        document.body.appendChild(playAgainBtn);
     }
 }
