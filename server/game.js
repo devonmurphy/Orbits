@@ -322,7 +322,6 @@ function startGame(io, gameId, playerSockets) {
                     io.to(lastId).emit('youwon', 'You Won');
 
                     // Game has ended clean up
-                    delete players[lastId];
                     clearInterval(gameLoop);
                 }
             }
