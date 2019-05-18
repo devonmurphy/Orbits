@@ -180,7 +180,6 @@ class Game {
                         bullet.id = socket.id;
                         bullet.type = "bullet"
                         bullets.push(utils.deepCopy(bullet));
-                        console.log(bullets);
                     }
                 } else if (data.button === 2) {
                     var player = players[id].player;
