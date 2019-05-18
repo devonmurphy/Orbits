@@ -224,24 +224,8 @@ class Game {
     }
 
     connectPlayer(socket) {
+        Object.assign(socket, this);
         socket.join(this.gameId);
-        socket.players = this.players;
-
-        socket.movement = this.mousemove;
-        socket.wheelMove = this.wheelMove;
-        socket.mousedown = this.mousedown;
-        socket.mouseup = this.mouseup;
-        socket.mousemove = this.mousemove;
-        socket.thrust = this.thrust
-
-        // Player shooting constants
-        socket.fireRate = this.fireRate;
-        socket.bulletRadius = this.bulletRadius;
-        socket.startingBulletCount = this.startingBulletCount;
-        socket.startingShotPower = this.startingShotPower;
-        socket.shotPowerChangeRate = this.shotPowerChangeRate;
-        socket.shotPowerMin = this.shotPowerMin;
-        socket.shotPowerMax =this.shotPowerMax;
 
         // Player controls
         socket.on('movement', this.movement);
@@ -266,7 +250,7 @@ class Game {
 
     // Update the game state every 15 ms
     runGame() {
-        setInterval(function () {
+        var gameLoop = setInterval(() => {
             // Loop through the player list and update their position and velocity
             var allObjects = [];
             var players = this.players;
@@ -353,12 +337,12 @@ class Game {
                     }
                     var id = collisions[i].id;
 
-                    io.to(id).emit('youdied', 'You Died');
+                    this.io.to(id).emit('youdied', 'You Died');
                     delete players[id];
 
                     if (Object.keys(players).length === 1) {
                         var lastId = Object.keys(players)[0];
-                        io.to(lastId).emit('youwon', 'You Won');
+                        this.io.to(lastId).emit('youwon', 'You Won');
 
                         // Game has ended clean up
                         clearInterval(gameLoop);
@@ -374,8 +358,7 @@ class Game {
 
             // Send the game state to the client to be rendered
             this.io.sockets.in(this.gameId).emit('gameState', gameState);
-
-        }.bind(this), 15);
+        }, 15)
     }
 }
 
