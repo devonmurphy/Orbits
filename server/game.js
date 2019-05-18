@@ -1,5 +1,6 @@
 var orbit = require('./orbits.js');
 var map = require('./map.js');
+var utils = require('./utils.js');
 
 class Game {
     constructor(io, gameId, playerSockets) {
@@ -42,22 +43,6 @@ class Game {
         this.connectAllPlayers();
     }
 
-    deepCopy(obj) {
-        var copy = Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
-        return copy;
-    }
-
-    calculateShootingOrbit(shotPower, player, bullet) {
-        var shootX = (player.clientX - player.x);
-        var shootY = (player.clientY - player.y);
-        var dist = Math.sqrt(Math.pow(shootX, 2) + Math.pow(shootY, 2));
-
-        // Calculate the bullet velocity by adding the player's vel with their shot
-        bullet.vx = player.vx + shotPower * shootX / dist;
-        bullet.vy = player.vy + shotPower * shootY / dist;
-        return bullet.calculateOrbit(this.planet.mass);
-    }
-
     calculateThrustForce(thrustPower, player) {
         var thrustX = (player.clientX - player.x);
         var thrustY = (player.clientY - player.y);
@@ -86,8 +71,8 @@ class Game {
         // Initial calculation of orbit parameters
         var orbitParams = sharedPlayer.calculateOrbit(this.planet.mass);
         this.players[socket.id] = {
-            player: this.deepCopy(sharedPlayer),
-            orbitParams: this.deepCopy(orbitParams),
+            player: utils.deepCopy(sharedPlayer),
+            orbitParams: utils.deepCopy(orbitParams),
             controls: { x: 0, y: 0 },
             shotPower: this.startingShotPower,
             bulletCount: this.startingBulletCount,
@@ -155,7 +140,6 @@ class Game {
     mousedown(data) {
         var id = this.id;
         var players = this.players;
-        console.log(players);
         if (players[id]) {
             if (players[id].player) {
                 var player = players[id].player;
@@ -192,10 +176,11 @@ class Game {
                         players[id].bulletCount -= 1;
                         player.lastMouseUpTime = currentTime;
                         var bullet = new orbit.Mass(player.x, player.y, this.bulletRadius);
-                        this.calculateShootingOrbit(shotPower, player, bullet);
+                        bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                         bullet.id = socket.id;
                         bullet.type = "bullet"
-                        bullets.push(this.deepCopy(bullet));
+                        bullets.push(utils.deepCopy(bullet));
+                        console.log(bullets);
                     }
                 } else if (data.button === 2) {
                     var player = players[id].player;
@@ -206,8 +191,9 @@ class Game {
     }
 
     // Update the player's clientX and clientY position when they move their mouse
-    mousemove(players) {
+    mousemove(data) {
         var id = this.id
+        var players = this.players;
         if (players[id]) {
             if (players[id].player) {
                 var player = players[id].player;
@@ -292,14 +278,14 @@ class Game {
                 // Player is pressing a movement control - recalculate the player orbit
                 if (controls.x || controls.y || player.rightMouseDown) {
                     var orbitParams = player.calculateOrbit(this.planet.mass);
-                    players[id].orbitParams = this.deepCopy(orbitParams);
+                    players[id].orbitParams = utils.deepCopy(orbitParams);
                 }
 
                 // Player mouse is down - calculate the shooting orbit
                 if (player.leftMouseDown === true) {
                     var bullet = new orbit.Mass(player.x, player.y, this.bulletRadius);
-                    var orbitParams = this.calculateShootingOrbit(shotPower, player, bullet);
-                    shootingOrbits[id] = this.deepCopy(orbitParams);
+                    var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
+                    shootingOrbits[id] = utils.deepCopy(orbitParams);
                 }
                 allObjects.push(player);
             }
