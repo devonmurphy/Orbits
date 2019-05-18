@@ -37,6 +37,7 @@ io.on('connection', function (socket) {
     playerCount += 1;
     if (playerCount % PLAYERS_PER_GAME === 0) {
         var theGame = new game(io, playerCount, playerSockets.slice(playerCount - PLAYERS_PER_GAME, playerCount));
+        theGame.runGame();
     }
 });
 
