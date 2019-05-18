@@ -57,15 +57,21 @@ class Game {
     }
 
     // Create a new player
-    newPlayer(socket) {
-        // Spawn player either at (-startingDist,0) or (startingDist,0)
-        var sign = (Object.keys(this.players).length % 2 === 0 ? -1 : 1);
-        var sharedPlayer = new orbit.Mass(sign * this.startingDist, 0, this.playerRadius);
+    spawnPlayer(socket) {
+        // Spawn player in a circlular orbit based on which player they are in game
+        var playerCount = Object.keys(this.playerSockets).length;
+        var playerNumber = Object.keys(this.players).length;
+        var playerOffsetX = Math.cos(2 * Math.PI * playerNumber / playerCount);
+        var playerOffsetY = Math.sin(2 * Math.PI * playerNumber / playerCount);
+        var sharedPlayer = new orbit.Mass(this.startingDist * playerOffsetX, this.startingDist * playerOffsetY, this.playerRadius);
 
         // Calculate velocity for circular orbit
         var dist = Math.sqrt(Math.pow(sharedPlayer.x, 2) + Math.pow(sharedPlayer.y, 2));
         var circularOrbitVel = Math.sqrt(this.planet.mass / dist);
-        sharedPlayer.vy = -sign * circularOrbitVel;
+
+        // Here we took the derivitive of the offsets when they were multplied by the velocity
+        sharedPlayer.vx = circularOrbitVel * playerOffsetY;
+        sharedPlayer.vy = -circularOrbitVel * playerOffsetX;
         sharedPlayer.fuel = this.startingFuel;
 
         // Initial calculation of orbit parameters
@@ -224,7 +230,9 @@ class Game {
         });
         socket.on('keyup', function (data) {
         });
-        this.newPlayer(socket);
+
+        // Spawn the player on the map
+        this.spawnPlayer(socket);
     }
 
     connectAllPlayers() {
