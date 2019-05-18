@@ -22,7 +22,7 @@ class Game {
         // Player constants
         this.playerRadius = 250;
         this.thrust = 200;
-        this.startingDist = 4000;
+        this.startingDist = 8000;
         this.startingFuel = 2000;
         this.fuelDrainRate = 1;
 
