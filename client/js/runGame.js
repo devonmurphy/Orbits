@@ -390,5 +390,11 @@ var render = function (gameState) {
 
     if (playerWon || playerDead) {
         document.body.appendChild(playAgainBtn);
+
+        offsetLeft = canvas.offsetLeft + canvas.width / 2;
+        offsetTop = canvas.offsetTop + canvas.height / 2;
+
+        playAgainBtn.style.top = offsetTop - parseInt(playAgainBtn.style.height) / 2 + 200;
+        playAgainBtn.style.left = offsetLeft - parseInt(playAgainBtn.style.width) / 2;
     }
 }
