@@ -28,7 +28,7 @@ class Game {
 
         // Player shooting constants
         this.fireRate = 500;
-        this.bulletRadius = 125;
+        this.bulletRadius = 175;
         this.startingBulletCount = 20;
         this.startingShotPower = 500;
         this.shotPowerChangeRate = 30;
