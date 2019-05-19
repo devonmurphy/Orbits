@@ -11,7 +11,7 @@ var orbitLineWidth = "50";
 var earthRadius = 1500;
 var gameScale = .03;
 
-var uiX = 11500;
+var uiX = 12500;
 var uiY = 12000;
 
 // Resize canvas to window size
