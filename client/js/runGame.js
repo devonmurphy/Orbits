@@ -14,6 +14,10 @@ var gameScale = .03;
 var uiX = 11500;
 var uiY = 12000;
 
+// Resize canvas to window size
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight
+
 var playAgainBtn = document.createElement("button")
 playAgainBtn.style.color = "white";
 playAgainBtn.style.font = "36px Garamond Pro";
@@ -319,6 +323,11 @@ var render = function (gameState) {
     var bullets = gameState.bullets;
     var shootingOrbits = gameState.shootingOrbits;
     var localPlayer = players[socket.id];
+
+    // Resize canvas to window size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight
+
     // Reset canvas and draw background
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);

@@ -36,7 +36,7 @@ class Game {
         this.shotPowerMax = 2240;
 
         // Map constants
-        this.mapSize = 1;
+        this.mapSize = 3;
         this.gridSize = 10000;
         this.map = new map.Map(this.mapSize, this.gridSize);
 
@@ -343,10 +343,12 @@ class Game {
                 }
             }
 
+            var map = this.map;
             var gameState = {
                 players,
                 bullets,
                 shootingOrbits,
+                map,
             };
 
             // Send the game state to the client to be rendered
