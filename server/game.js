@@ -20,7 +20,7 @@ class Game {
         this.planet = new orbit.Planet(0, 0, this.earthRadius, this.mass);
 
         // Player constants
-        this.playerRadius = 250;
+        this.playerRadius = 350;
         this.thrust = 200;
         this.startingDist = 8000;
         this.startingFuel = 2000;
