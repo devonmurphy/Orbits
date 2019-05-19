@@ -73,10 +73,9 @@ class Grid {
 
 // Class used to check the hit boxes
 class Map {
-    constructor(mapSize, gridSize, mapRadius) {
-        this.mapSize = mapSize;
+    constructor(gridSize, gridCount) {
         this.gridSize = gridSize;
-        this.mapRadius = mapRadius;
+        this.gridCount = gridCount;
         this.map = [];
         this.objects = [];
         this.createMap();
@@ -84,9 +83,9 @@ class Map {
 
     createMap() {
         var overlap = 0.95;
-        // Create Map grid square that has sides of mapSize
-        for (var x = -this.mapSize; x <= this.mapSize; x++) {
-            for (var y = -this.mapSize; y <= this.mapSize; y++) {
+        // Create Map grid square that has sides of gridCount
+        for (var x = -this.gridCount; x <= this.gridCount; x++) {
+            for (var y = -this.gridCount; y <= this.gridCount; y++) {
                 var grid = new Grid(overlap * x * this.gridSize - this.gridSize / 2, overlap * y * this.gridSize - this.gridSize / 2, this.gridSize);
                 this.map.push(grid);
             }

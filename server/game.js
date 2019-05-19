@@ -40,7 +40,7 @@ class Game {
         this.gridSize = 10000;
         this.mapRadius = 15000;
 
-        this.map = new map.Map(this.mapSize, this.gridCount, this.mapRadius);
+        this.map = new map.Map(this.gridSize, this.gridCount);
 
         this.connectAllPlayers();
     }
@@ -298,7 +298,7 @@ class Game {
                 }
 
                 var dist = Math.sqrt(Math.pow(player.x, 2) + Math.pow(player.y, 2))
-                if (dist + this.playerRadius >= this.map.mapRadius) {
+                if (dist + this.playerRadius >= this.mapRadius) {
                     this.io.to(id).emit('youdied', 'You Died');
                     delete players[id]
 
