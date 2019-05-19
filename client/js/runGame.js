@@ -34,7 +34,8 @@ playAgainBtn.innerHTML = "PLAY AGAIN?";
 playAgainBtn.style.borderRadius = "10px";
 
 // Colors
-var backgroundColor = "#000022";
+var backgroundColor = "#000011";
+var gameBackgroundColor = "#000022";
 var earthColor = "#a6ff99";
 
 var playerColor = "#1f9fef";
@@ -331,6 +332,7 @@ var render = function (gameState) {
     // Reset canvas and draw background
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
+
     context.fillStyle = backgroundColor;
     context.beginPath();
     context.rect(0, 0, canvas.width, canvas.height);
@@ -339,6 +341,11 @@ var render = function (gameState) {
     // Move canvas origin to center and zoom out
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
+
+    context.fillStyle = gameBackgroundColor;
+    context.beginPath();
+    context.arc(0, 0, 15000, 0, 2 * Math.PI);
+    context.fill();
 
     if (gameState.map && DEBUG_MAP) {
         var map = gameState.map.map;
