@@ -73,9 +73,10 @@ class Grid {
 
 // Class used to check the hit boxes
 class Map {
-    constructor(gridSize, gridCount) {
+    constructor(gridSize, gridCount, mapRadius) {
         this.gridSize = gridSize;
         this.gridCount = gridCount;
+        this.mapRadius = mapRadius;
         this.map = [];
         this.objects = [];
         this.createMap();
@@ -102,6 +103,16 @@ class Map {
             grid.getObjectsInRange(this.objects);
             grid.getCollisions();
             this.collisions = this.collisions.concat(grid.collisions);
+        }
+    }
+
+    // Check if a player is out of bound of map radius
+    checkOutOfBounds(player) {
+        var dist = Math.sqrt(Math.pow(player.x, 2) + Math.pow(player.y, 2))
+        if (dist + player.radius >= this.mapRadius) {
+            return true;
+        } else {
+            return false;
         }
     }
 }

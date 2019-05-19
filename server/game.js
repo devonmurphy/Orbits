@@ -40,7 +40,7 @@ class Game {
         this.gridSize = 10000;
         this.mapRadius = 15000;
 
-        this.map = new map.Map(this.gridSize, this.gridCount);
+        this.map = new map.Map(this.gridSize, this.gridCount, this.mapRadius);
 
         this.connectAllPlayers();
     }
@@ -243,6 +243,19 @@ class Game {
         }
     }
 
+    killPlayer(io, id, gameLoop) {
+        io.to(id).emit('youdied', 'You Died');
+        delete this.players[id]
+
+        if (Object.keys(this.players).length === 1) {
+            var lastId = Object.keys(this.players)[0];
+            this.io.to(lastId).emit('youwon', 'You Won');
+
+            // Game has ended clean up
+            clearInterval(gameLoop);
+        }
+    }
+
     // Update the game state every 15 ms
     runGame() {
         var gameLoop = setInterval(() => {
@@ -297,18 +310,9 @@ class Game {
                     shootingOrbits[id] = utils.deepCopy(orbitParams);
                 }
 
-                var dist = Math.sqrt(Math.pow(player.x, 2) + Math.pow(player.y, 2))
-                if (dist + this.playerRadius >= this.mapRadius) {
-                    this.io.to(id).emit('youdied', 'You Died');
-                    delete players[id]
-
-                    if (Object.keys(players).length === 1) {
-                        var lastId = Object.keys(players)[0];
-                        this.io.to(lastId).emit('youwon', 'You Won');
-
-                        // Game has ended clean up
-                        clearInterval(gameLoop);
-                    }
+                if (this.map.checkOutOfBounds(player)) {
+                    console.log("OUT OF BNOUNDS");
+                    this.killPlayer(this.io, id, gameLoop);
                 } else {
                     allObjects.push(player);
                 }
@@ -348,16 +352,7 @@ class Game {
                     }
                     var id = collisions[i].id;
 
-                    this.io.to(id).emit('youdied', 'You Died');
-                    delete players[id];
-
-                    if (Object.keys(players).length === 1) {
-                        var lastId = Object.keys(players)[0];
-                        this.io.to(lastId).emit('youwon', 'You Won');
-
-                        // Game has ended clean up
-                        clearInterval(gameLoop);
-                    }
+                    this.killPlayer(this.io, id, gameLoop);
                 }
             }
 
