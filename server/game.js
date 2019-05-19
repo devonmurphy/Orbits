@@ -36,9 +36,11 @@ class Game {
         this.shotPowerMax = 2240;
 
         // Map constants
-        this.mapSize = 3;
+        this.gridCount = 3;
         this.gridSize = 10000;
-        this.map = new map.Map(this.mapSize, this.gridSize);
+        this.mapRadius = 15000;
+
+        this.map = new map.Map(this.mapSize, this.gridCount, this.mapRadius);
 
         this.connectAllPlayers();
     }
@@ -294,7 +296,23 @@ class Game {
                     var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                     shootingOrbits[id] = utils.deepCopy(orbitParams);
                 }
-                allObjects.push(player);
+
+                var dist = Math.sqrt(Math.pow(player.x, 2) + Math.pow(player.y, 2))
+                if (dist + this.playerRadius >= this.map.mapRadius) {
+                    this.io.to(id).emit('youdied', 'You Died');
+                    delete players[id]
+
+                    if (Object.keys(players).length === 1) {
+                        var lastId = Object.keys(players)[0];
+                        this.io.to(lastId).emit('youwon', 'You Won');
+
+                        // Game has ended clean up
+                        clearInterval(gameLoop);
+                    }
+                } else {
+                    allObjects.push(player);
+                }
+
             }
 
             // Calculate the bullet trajectories
@@ -343,7 +361,7 @@ class Game {
                 }
             }
 
-            var map = this.map;
+            var map = utils.deepCopy(this.map);
             var gameState = {
                 players,
                 bullets,

@@ -73,9 +73,10 @@ class Grid {
 
 // Class used to check the hit boxes
 class Map {
-    constructor(mapSize, gridSize) {
+    constructor(mapSize, gridSize, mapRadius) {
         this.mapSize = mapSize;
         this.gridSize = gridSize;
+        this.mapRadius = mapRadius;
         this.map = [];
         this.objects = [];
         this.createMap();

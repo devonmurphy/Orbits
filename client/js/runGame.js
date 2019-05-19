@@ -34,7 +34,7 @@ playAgainBtn.innerHTML = "PLAY AGAIN?";
 playAgainBtn.style.borderRadius = "10px";
 
 // Colors
-var backgroundColor = "#000011";
+var outOfBoundsColor = "#000011";
 var gameBackgroundColor = "#000022";
 var earthColor = "#a6ff99";
 
@@ -170,7 +170,7 @@ var waitingForGame = function () {
     // Reset canvas and draw background
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = backgroundColor;
+    context.fillStyle = outOfBoundsColor;
     context.beginPath();
     context.rect(0, 0, canvas.width, canvas.height);
     context.fill();
@@ -333,7 +333,8 @@ var render = function (gameState) {
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    context.fillStyle = backgroundColor;
+    // Render out of bounds area
+    context.fillStyle = outOfBoundsColor;
     context.beginPath();
     context.rect(0, 0, canvas.width, canvas.height);
     context.fill();
@@ -342,10 +343,14 @@ var render = function (gameState) {
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
 
-    context.fillStyle = gameBackgroundColor;
-    context.beginPath();
-    context.arc(0, 0, 15000, 0, 2 * Math.PI);
-    context.fill();
+    if (gameState.map) {
+        var map = gameState.map;
+        // Render game area
+        context.fillStyle = gameBackgroundColor;
+        context.beginPath();
+        context.arc(0, 0, map.mapRadius, 0, 2 * Math.PI);
+        context.fill();
+    }
 
     if (gameState.map && DEBUG_MAP) {
         var map = gameState.map.map;
