@@ -23,10 +23,6 @@ app.get('/', function (request, response) {
     response.sendFile(path.join(__dirname, '../client/html/index.html'));
 });
 
-app.get('/#news', function (request, response) {
-    response.sendFile(path.join(__dirname, '../client/html/news.html'));
-});
-
 // Routing to game
 app.get('/game', function (request, response) {
     response.sendFile(path.join(__dirname, '../client/html/game.html'));
