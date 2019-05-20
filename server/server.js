@@ -18,9 +18,18 @@ var PLAYERS_PER_GAME = 2;
 app.set('port', 5000);
 app.use('/client', express.static(path.join(__dirname, '../client')));
 
-// Routing to index.html
+// Routing to main page
 app.get('/', function (request, response) {
     response.sendFile(path.join(__dirname, '../client/html/index.html'));
+});
+
+app.get('/#news', function (request, response) {
+    response.sendFile(path.join(__dirname, '../client/html/news.html'));
+});
+
+// Routing to game
+app.get('/game', function (request, response) {
+    response.sendFile(path.join(__dirname, '../client/html/game.html'));
 });
 
 // Starts the server
