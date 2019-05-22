@@ -3,8 +3,10 @@
 var express = require('express');
 var path = require('path');
 var reload = require('reload');
+
 var orbit = require('./orbits.js');
 var map = require('./map.js');
+var googleapi = require('./google-utils')
 
 var app = require('express')();
 var server = require('http').Server(app);
@@ -13,9 +15,10 @@ var io = require('socket.io')(server);
 var game = require('./game.js');
 
 var PLAYERS_PER_GAME = 2;
+var PORT = 8080;
 
 // Setup server to serve the client folder
-app.set('port', 5000);
+app.set('port', PORT);
 app.use('/client', express.static(path.join(__dirname, '../client')));
 
 // Routing to main page
@@ -28,9 +31,21 @@ app.get('/game', function (request, response) {
     response.sendFile(path.join(__dirname, '../client/html/game.html'));
 });
 
+// Routing to game
+app.get('/login', function (request, response) {
+    response.redirect(googleapi.urlGoogle());
+});
+
+app.get('/auth/google/callback', function (request, response) {
+    if(request.query){
+        var result = (googleapi.getGoogleAccountFromCode(request.query.code));
+    } 
+    response.sendFile(path.join(__dirname, '../client/html/login.html'));
+});
+
 // Starts the server
-server.listen(5000, function () {
-    console.log('Starting server on port 5000');
+server.listen(PORT, function () {
+    console.log('Starting server on port ' + PORT);
 });
 
 // Setup handlers to catch players joining and control input
