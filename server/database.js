@@ -35,7 +35,7 @@ class DatabaseController {
         this.knex('users').insert({
             email: inputEmail
         }).then(()=>{
-            console.log('added user ' + inputEmail)
+            console.log('added user ');
         }).catch((error) => {
             console.log(error);
         });

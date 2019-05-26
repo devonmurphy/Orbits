@@ -3,6 +3,8 @@
 var express = require('express');
 var path = require('path');
 var reload = require('reload');
+var url = require('url');
+var https = require('https')
 
 // Server dependencies
 var googleapi = require('./google-utils')
@@ -13,6 +15,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
 var game = require('./game.js');
+var utils = require('./utils');
 
 var PLAYERS_PER_GAME = 2;
 var PORT = 8080;
@@ -31,7 +34,27 @@ app.get('/', function (request, response) {
 
 // Routing to game
 app.get('/game', function (request, response) {
-    response.sendFile(path.join(__dirname, '../client/html/game.html'));
+    if (request.query) {
+        var checkUser ='https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='+request.query.user;
+        https.get(checkUser,(resp)=>{
+            // Continuously update stream with data
+            var body = '';
+            resp.on('data', function(d) {
+                body += d;
+            });
+            resp.on('end', function() {
+                // Data reception is done, do whatever with it!
+                var parsed = JSON.parse(body);
+                if(parsed.expires_in > 0){
+                    response.sendFile(path.join(__dirname, '../client/html/game.html'));
+                } else {
+                    response.redirect('/login');
+                }
+            });
+        });
+    } else {
+        response.redirect('/login');
+    }
 });
 
 // Routing to game
@@ -40,13 +63,18 @@ app.get('/login', function (request, response) {
 });
 
 app.get('/auth/google/callback', function (request, response) {
-    if(request.query){
+    if (request.query) {
         var result = googleapi.getGoogleAccountFromCode(request.query.code);
-    } 
-    result.then((result)=>{
-        db.checkUserExists(result.email);
-        response.redirect('/game');
-    });
+        result.then((result) => {
+            db.checkUserExists(result.email);
+            response.redirect(url.format({
+                pathname: '/game',
+                query: {
+                    user: result.tokens.access_token
+                }
+            }));
+        });
+    }
 });
 
 // Starts the server
