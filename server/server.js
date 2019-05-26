@@ -4,9 +4,9 @@ var express = require('express');
 var path = require('path');
 var reload = require('reload');
 
-var orbit = require('./orbits.js');
-var map = require('./map.js');
+// Server dependencies
 var googleapi = require('./google-utils')
+var database = require('./database')
 
 var app = require('express')();
 var server = require('http').Server(app);
@@ -16,6 +16,9 @@ var game = require('./game.js');
 
 var PLAYERS_PER_GAME = 2;
 var PORT = 8080;
+
+var db = new database();
+db.connect();
 
 // Setup server to serve the client folder
 app.set('port', PORT);
@@ -38,9 +41,12 @@ app.get('/login', function (request, response) {
 
 app.get('/auth/google/callback', function (request, response) {
     if(request.query){
-        var result = (googleapi.getGoogleAccountFromCode(request.query.code));
+        var result = googleapi.getGoogleAccountFromCode(request.query.code);
     } 
-    response.sendFile(path.join(__dirname, '../client/html/login.html'));
+    result.then((result)=>{
+        db.checkUserExists(result.email);
+        response.redirect('/game');
+    });
 });
 
 // Starts the server
