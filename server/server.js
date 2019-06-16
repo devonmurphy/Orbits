@@ -5,6 +5,8 @@ var path = require('path');
 var reload = require('reload');
 var url = require('url');
 var https = require('https')
+var session = require('express-session')
+var uid = require('uid-safe')
 
 // Server dependencies
 var googleapi = require('./google-utils')
@@ -27,25 +29,42 @@ db.connect();
 app.set('port', PORT);
 app.use('/client', express.static(path.join(__dirname, '../client')));
 
+var sess = {
+    secret: 'keyboard cat',
+    genid: function (req) {
+        return uid.sync(24);
+    },
+    resave: false,
+    saveUninitialized: true,
+}
+
+if (app.get('env') === 'production') {
+    app.set('trust proxy', 1) // trust first proxy
+    sess.cookie.secure = true // serve secure cookies
+}
+
+app.use(session(sess));
+
 // Routing to main page
 app.get('/', function (request, response) {
+    console.log("sessionid: " + request.sessionID);
     response.sendFile(path.join(__dirname, '../client/html/index.html'));
 });
 
 // Routing to game
 app.get('/game', function (request, response) {
     if (request.query) {
-        var checkUser ='https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='+request.query.user;
-        https.get(checkUser,(resp)=>{
+        var checkUser = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=' + request.query.user;
+        https.get(checkUser, (resp) => {
             // Continuously update stream with data
             var body = '';
-            resp.on('data', function(d) {
+            resp.on('data', function (d) {
                 body += d;
             });
-            resp.on('end', function() {
+            resp.on('end', function () {
                 // Data reception is done, do whatever with it!
                 var parsed = JSON.parse(body);
-                if(parsed.expires_in > 0){
+                if (parsed.expires_in > 0) {
                     response.sendFile(path.join(__dirname, '../client/html/game.html'));
                 } else {
                     response.redirect('/login');
@@ -76,6 +95,8 @@ app.get('/auth/google/callback', function (request, response) {
         });
     }
 });
+
+
 
 // Starts the server
 server.listen(PORT, function () {
