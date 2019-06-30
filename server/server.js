@@ -20,7 +20,7 @@ var game = require('./game.js');
 var utils = require('./utils');
 
 var PLAYERS_PER_GAME = 2;
-var PORT = 8080;
+var PORT = 5000;
 
 var db = new database();
 db.connect();
