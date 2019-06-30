@@ -5,7 +5,19 @@ var path = require('path');
 var reload = require('reload');
 var url = require('url');
 var https = require('https')
-var session = require('express-session')
+var session = require('express-session')({
+    secret: 'keyboard cat',
+    genid: function (req) {
+        return uid.sync(24);
+    },
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 86400000
+    }
+});
+
+var sharedsession = require("express-socket.io-session");
 var uid = require('uid-safe')
 
 // Server dependencies
@@ -29,30 +41,26 @@ db.connect();
 app.set('port', PORT);
 app.use('/client', express.static(path.join(__dirname, '../client')));
 
-var sess = {
-    secret: 'keyboard cat',
-    genid: function (req) {
-        return uid.sync(24);
-    },
-    resave: false,
-    saveUninitialized: true,
-}
-
 if (app.get('env') === 'production') {
     app.set('trust proxy', 1) // trust first proxy
     sess.cookie.secure = true // serve secure cookies
 }
 
-app.use(session(sess));
+app.use(session);
 
 // Routing to main page
 app.get('/', function (request, response) {
-    console.log("sessionid: " + request.sessionID);
     response.sendFile(path.join(__dirname, '../client/html/index.html'));
 });
 
 // Routing to game
 app.get('/game', function (request, response) {
+    if (app.get('env') !== 'production') {
+        if (request.sessionID) {
+            response.sendFile(path.join(__dirname, '../client/html/game.html'));
+            return;
+        }
+    }
     if (request.query) {
         var checkUser = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=' + request.query.user;
         https.get(checkUser, (resp) => {
@@ -78,6 +86,10 @@ app.get('/game', function (request, response) {
 
 // Routing to game
 app.get('/login', function (request, response) {
+    if (app.get('env') !== 'production') {
+        response.redirect('/game');
+        return;
+    }
     response.redirect(googleapi.urlGoogle());
 });
 
@@ -103,16 +115,59 @@ server.listen(PORT, function () {
     console.log('Starting server on port ' + PORT);
 });
 
-// Setup handlers to catch players joining and control input
+// These variables are for storing all players and games
 var playerCount = 0;
-var playerSockets = [];
+var sessions = {};
+var games = {};
+
+// Setup handlers to catch players joining and control input
+io.use(sharedsession(session, {
+    autoSave: true
+}));
 
 io.on('connection', function (socket) {
-    playerSockets.push(socket);
-    playerCount += 1;
-    if (playerCount % PLAYERS_PER_GAME === 0) {
-        var theGame = new game(io, playerCount, playerSockets.slice(playerCount - PLAYERS_PER_GAME, playerCount));
-        theGame.runGame();
+
+    socket.on("logout", function (userdata) {
+        if (socket.handshake.session.userdata) {
+            delete socket.handshake.session.userdata;
+            socket.handshake.session.save();
+        }
+    });
+
+    if (socket.handshake) {
+        var sessionID = socket.handshake.sessionID;
+
+        // Player has just connected
+        if (!(sessionID in sessions)) {
+            playerCount += 1;
+            console.log('logged in ' + sessionID);
+            sessions[sessionID] = { socket: socket, gameId: undefined };
+
+            if (playerCount % PLAYERS_PER_GAME === 0) {
+                var players = [];
+                Object.keys(sessions).forEach(function (key, index) {
+                    if (!sessions[key].gameId) {
+                        players.push(sessions[key].socket);
+                        sessions[key].gameId = playerCount;
+                    }
+                });
+                var theGame = new game(io, playerCount, players);
+                theGame.runGame();
+                games[playerCount] = theGame;
+            }
+        } else {
+            // Player is reconnecting
+            console.log('reconnected ' + sessionID);
+            if (sessions[sessionID].gameId) {
+                console.log('player already in game - reconnecting ' + sessionID);
+                var oldSocket = sessions[sessionID].socket;
+                sessions[sessionID].socket = socket;
+                games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
+            } else {
+                console.log('player still waiting for game ' + sessionID);
+                sessions[sessionID].socket = socket;
+            }
+        }
     }
 });
 

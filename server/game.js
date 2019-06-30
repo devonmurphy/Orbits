@@ -237,6 +237,38 @@ class Game {
         this.spawnPlayer(socket);
     }
 
+    reconnectPlayer(socket, oldSocket) {
+        Object.assign(socket, this);
+        socket.join(this.gameId);
+
+        // Player controls
+        socket.on('movement', this.movement);
+        socket.on('wheel', this.wheelMove);
+        socket.on('mousedown', this.mousedown);
+        socket.on('mouseup', this.mouseup);
+        socket.on('mousemove', this.mousemove);
+
+        // TODO: USE THESE FOR STUFF
+        socket.on('mouseout', function (data) {
+        });
+        socket.on('keyup', function (data) {
+        });
+
+        // Copy old player object and reset the player id
+        this.players[socket.id] = utils.deepCopy(this.players[oldSocket.id]);
+        this.players[socket.id].player.id = socket.id;
+
+        // Update all of the old bullet ids to the new id
+        for (var bullet = 0; bullet < this.bullets.length; bullet++) {
+            if (this.bullets[bullet].id === oldSocket.id) {
+                this.bullets[bullet].id = socket.id;
+            }
+        }
+
+        // Delete the old player
+        delete this.players[oldSocket.id];
+    }
+
     connectAllPlayers() {
         for (var i = 0; i < this.playerSockets.length; i++) {
             this.connectPlayer(this.playerSockets[i]);
