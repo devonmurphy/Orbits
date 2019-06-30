@@ -126,15 +126,13 @@ io.use(sharedsession(session, {
 }));
 
 io.on('connection', function (socket) {
-
-    socket.on("logout", function (userdata) {
-        if (socket.handshake.session.userdata) {
-            delete socket.handshake.session.userdata;
-            socket.handshake.session.save();
-        }
-    });
-
     if (socket.handshake) {
+        socket.on("logout", function (userdata) {
+            if (socket.handshake.session.userdata) {
+                delete socket.handshake.session.userdata;
+                socket.handshake.session.save();
+            }
+        });
         var sessionID = socket.handshake.sessionID;
 
         // Player has just connected
