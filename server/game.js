@@ -3,11 +3,12 @@ var map = require('./map.js');
 var utils = require('./utils.js');
 
 class Game {
-    constructor(io, gameId, playerSockets) {
+    constructor(io, gameId, playerSockets, gameEnded) {
         // Server side constants
         this.io = io;
         this.gameId = gameId;
         this.playerSockets = playerSockets;
+        this.gameEnded = gameEnded;
 
         // Containers used for game state
         this.players = {};
@@ -275,17 +276,22 @@ class Game {
         }
     }
 
-    killPlayer(io, id, gameLoop) {
-        io.to(id).emit('youdied', 'You Died');
-        delete this.players[id]
-
+    checkIfGameEnds(gameLoop) {
         if (Object.keys(this.players).length === 1) {
             var lastId = Object.keys(this.players)[0];
             this.io.to(lastId).emit('youwon', 'You Won');
 
             // Game has ended clean up
             clearInterval(gameLoop);
+            this.gameEnded(this.gameId);
         }
+    }
+
+    killPlayer(io, id, gameLoop) {
+        io.to(id).emit('youdied', 'You Died');
+        delete this.players[id]
+
+        this.checkIfGameEnds(gameLoop);
     }
 
     // Update the game state every 15 ms

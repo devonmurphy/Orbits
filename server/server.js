@@ -151,7 +151,19 @@ io.on('connection', function (socket) {
                         sessions[key].gameId = playerCount;
                     }
                 });
-                var theGame = new game(io, playerCount, players);
+
+                var gameEnded = function (gameId) {
+                    console.log('game id ended: ' + gameId);
+                    Object.keys(sessions).forEach(function (key, index) {
+                        if (sessions[key].gameId === gameId) {
+                            console.log('cleaning up session ' + key);
+                            delete sessions[key];
+                        }
+                    });
+                    delete games[gameId];
+                }
+
+                var theGame = new game(io, playerCount, players, gameEnded);
                 theGame.runGame();
                 games[playerCount] = theGame;
             }
