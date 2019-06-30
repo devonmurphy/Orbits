@@ -5,18 +5,6 @@ var path = require('path');
 var reload = require('reload');
 var url = require('url');
 var https = require('https')
-var session = require('express-session')({
-    secret: 'keyboard cat',
-    genid: function (req) {
-        return uid.sync(24);
-    },
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        maxAge: 86400000
-    }
-});
-
 var sharedsession = require("express-socket.io-session");
 var uid = require('uid-safe')
 
@@ -41,9 +29,23 @@ db.connect();
 app.set('port', PORT);
 app.use('/client', express.static(path.join(__dirname, '../client')));
 
+var session = require('express-session')({
+    secret: 'keyboard cat',
+    genid: function (req) {
+        return uid.sync(24);
+    },
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 86400000,
+        secure: app.get('env') === 'production' ? true : false
+    }
+});
+
+
+
 if (app.get('env') === 'production') {
     app.set('trust proxy', 1) // trust first proxy
-    sess.cookie.secure = true // serve secure cookies
 }
 
 app.use(session);
