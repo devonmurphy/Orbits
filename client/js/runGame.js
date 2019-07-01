@@ -18,20 +18,43 @@ var uiY = 12000;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight
 
-var playAgainBtn = document.createElement("button")
-playAgainBtn.style.color = "white";
-playAgainBtn.style.font = "36px Garamond Pro";
-playAgainBtn.style.textAlign = "center";
-playAgainBtn.style.height = 50;
-playAgainBtn.style.width = 300;
-playAgainBtn.style.top = offsetTop - parseInt(playAgainBtn.style.height) / 2 + 200;
-playAgainBtn.style.left = offsetLeft - parseInt(playAgainBtn.style.width) / 2;
-playAgainBtn.style.position = "absolute";
-playAgainBtn.style.background = "#262626";
-//playAgainBtn.style.border = "none";
-playAgainBtn.onclick = function () { window.location.reload(); }
-playAgainBtn.innerHTML = "PLAY AGAIN?";
-playAgainBtn.style.borderRadius = "10px";
+var createButton = function (x, y, text, onClickCb) {
+    var btn = document.createElement("button")
+
+    btn.id = text;
+
+    btn.style.color = "white";
+    btn.style.font = "36px Garamond Pro";
+    btn.style.textAlign = "center";
+    btn.style.height = 50;
+    btn.style.width = 300;
+    btn.style.position = "absolute";
+    btn.style.background = "Transparent";
+    btn.style.outline = "none";
+    btn.style.border = "none";
+
+    // Set button settings
+    btn.style.top = offsetTop - parseInt(btn.style.height) / 2 + y;
+    btn.style.left = offsetLeft - parseInt(btn.style.width) / 2 + x;
+    btn.innerHTML = text;
+    btn.onclick = onClickCb;
+
+    // Recalculate offsets when window is resized
+    window.addEventListener('resize', function () {
+        offsetLeft = canvas.offsetLeft + canvas.width / 2;
+        offsetTop = canvas.offsetTop + canvas.height / 2;
+        btn.style.top = offsetTop - parseInt(btn.style.height) / 2 + y;
+        btn.style.left = offsetLeft - parseInt(btn.style.width) / 2 + x;
+    });
+    return btn;
+}
+
+var quickMatchBtn = createButton(0, 0, 'Quick Match', function () {
+    socket.emit('quickmatch');
+    waitingForGame();
+});
+
+var playAgainBtn = createButton(0, 200, 'PLAY AGAIN?', function () { window.location.reload(); });
 
 // Colors
 var outOfBoundsColor = "#000011";
@@ -53,13 +76,6 @@ var playerWon = false;
 var DEBUG_LINE = false;
 var DEBUG_MAP = false;
 
-// Recalculate offsets when window is resized
-window.addEventListener('resize', function () {
-    offsetLeft = canvas.offsetLeft + canvas.width / 2;
-    offsetTop = canvas.offsetTop + canvas.height / 2;
-    playAgainBtn.style.top = offsetTop - parseInt(playAgainBtn.style.height) / 2 + 200;
-    playAgainBtn.style.left = offsetLeft - parseInt(playAgainBtn.style.width) / 2;
-});
 
 // Start movement when keys are pressed down
 document.addEventListener('keydown', function (event) {
@@ -184,10 +200,38 @@ var waitingForGame = function () {
     canvas.style.letterSpacing = -10;
     context.textAlign = "center";
     context.fillText("WAITING FOR OPPONENT...", 0, -5000);
+    document.getElementById("Quick Match").outerHTML = "";
 }
 
+var gameModeSelection = function () {
+    // Reset canvas and draw background
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = outOfBoundsColor;
+    context.beginPath();
+    context.rect(0, 0, canvas.width, canvas.height);
+    context.fill();
+
+    // Move canvas origin to center and zoom out
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.scale(gameScale, gameScale);
+
+    /*
+    context.font = "1000px Garamond Pro";
+    context.fillStyle = "white";
+    canvas.style.letterSpacing = -10;
+    context.textAlign = "center";
+    context.fillText("Quick Match", 0, -5000);
+    context.fillText("Create Game", 0, -3000);
+    context.fillText("Join Game", 0, -1000);
+    */
+
+    document.body.appendChild(quickMatchBtn);
+}
+
+gameModeSelection();
 // Render waiting for opponent
-waitingForGame();
+//waitingForGame();
 
 var drawEarth = function () {
     // Draw Earth
@@ -329,7 +373,7 @@ var render = function (gameState) {
     // Resize canvas to window size
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight
-    
+
     // Recalculate offset
     offsetLeft = canvas.offsetLeft + canvas.width / 2;
     offsetTop = canvas.offsetTop + canvas.height / 2;

@@ -135,51 +135,66 @@ io.on('connection', function (socket) {
                 socket.handshake.session.save();
             }
         });
-        var sessionID = socket.handshake.sessionID;
 
-        // Player has just connected
-        if (!(sessionID in sessions)) {
-            playerCount += 1;
-            console.log('logged in ' + sessionID);
-            sessions[sessionID] = { socket: socket, gameId: undefined };
+        // Logic to handle quickmatch
+        socket.on("quickmatch", function () {
+            var sessionID = socket.handshake.sessionID;
 
-            if (playerCount % PLAYERS_PER_GAME === 0) {
-                var players = [];
-                Object.keys(sessions).forEach(function (key, index) {
-                    if (!sessions[key].gameId) {
-                        players.push(sessions[key].socket);
-                        sessions[key].gameId = playerCount;
-                    }
-                });
+            // If their sessionID is not in sessions - the player has just connected
+            if (!(sessionID in sessions)) {
+                // Increase the total player count since a new player arrived
+                playerCount += 1;
+                //Add the new player to the sessions object
+                sessions[sessionID] = { socket: socket, gameId: undefined };
 
-                var gameEnded = function (gameId) {
-                    console.log('game id ended: ' + gameId);
+                // Check if there enough players for a new quickmatch game
+                if (playerCount % PLAYERS_PER_GAME === 0) {
+
+                    // Create a list of all the players who are not in a game
+                    var players = [];
                     Object.keys(sessions).forEach(function (key, index) {
-                        if (sessions[key].gameId === gameId) {
-                            console.log('cleaning up session ' + key);
-                            delete sessions[key];
+                        if (!sessions[key].gameId) {
+                            // Add them to the players list and store them in the sessions object
+                            players.push(sessions[key].socket);
+                            sessions[key].gameId = playerCount;
                         }
                     });
-                    delete games[gameId];
-                }
 
-                var theGame = new game(io, playerCount, players, gameEnded);
-                theGame.runGame();
-                games[playerCount] = theGame;
-            }
-        } else {
-            // Player is reconnecting
-            console.log('reconnected ' + sessionID);
-            if (sessions[sessionID].gameId) {
-                console.log('player already in game - reconnecting ' + sessionID);
-                var oldSocket = sessions[sessionID].socket;
-                sessions[sessionID].socket = socket;
-                games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
+                    // This callback function is ran when the game ends
+                    var gameEnded = function (gameId) {
+                        console.log('game id ended: ' + gameId);
+                        Object.keys(sessions).forEach(function (key, index) {
+                            // Delete the sessions so they can rejoin other games
+                            if (sessions[key].gameId === gameId) {
+                                delete sessions[key];
+                            }
+                        });
+                        // Remove the game from the games object
+                        delete games[gameId];
+                    }
+
+                    // Create a new game with the players who are not in a game
+                    var theGame = new game(io, playerCount, players, gameEnded);
+
+                    // Start the game and add it to the games object
+                    theGame.runGame();
+                    games[playerCount] = theGame;
+                }
             } else {
-                console.log('player still waiting for game ' + sessionID);
-                sessions[sessionID].socket = socket;
+                // If a player already has a session in sessions they are reconnecting
+                if (sessions[sessionID].gameId) {
+                    // Store their old socket to a variable to be used to reconnect
+                    var oldSocket = sessions[sessionID].socket;
+                    // Update their socket
+                    sessions[sessionID].socket = socket;
+                    // Player is in a game currently - reconnect them
+                    games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
+                } else {
+                    // Player is not in a game, just update their socket 
+                    sessions[sessionID].socket = socket;
+                }
             }
-        }
+        });
     }
 });
 
