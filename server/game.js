@@ -348,8 +348,8 @@ class Game {
                     shootingOrbits[id] = utils.deepCopy(orbitParams);
                 }
 
+                // If a player is out of the map destroy them
                 if (this.map.checkOutOfBounds(player)) {
-                    console.log("OUT OF BNOUNDS");
                     this.killPlayer(this.io, id, gameLoop);
                 } else {
                     allObjects.push(player);
@@ -360,6 +360,14 @@ class Game {
             // Calculate the bullet trajectories
             for (var i = 0; i < bullets.length; i++) {
                 var bullet = bullets[i];
+                // First check if a bullet is out of bounds
+                if (this.map.checkOutOfBounds(bullet, 2*this.mapRadius)) {
+                    // Remove it if it is too far away
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                // Update the bullet's trajectory
                 this.planet.addForce(bullets[i]);
                 bullet.update();
                 allObjects.push(bullet);

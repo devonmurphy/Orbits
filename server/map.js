@@ -106,10 +106,10 @@ class Map {
         }
     }
 
-    // Check if a player is out of bound of map radius
-    checkOutOfBounds(player) {
-        var dist = Math.sqrt(Math.pow(player.x, 2) + Math.pow(player.y, 2))
-        if (dist + player.radius >= this.mapRadius) {
+    // Check if a mass is out of bounds
+    checkOutOfBounds(mass, radius = this.mapRadius) {
+        var dist = Math.sqrt(Math.pow(mass.x, 2) + Math.pow(mass.y, 2))
+        if (dist + mass.radius >= radius) {
             return true;
         } else {
             return false;
