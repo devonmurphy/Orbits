@@ -110,8 +110,6 @@ app.get('/auth/google/callback', function (request, response) {
     }
 });
 
-
-
 // Starts the server
 server.listen(PORT, function () {
     console.log('Starting server on port ' + PORT);
@@ -136,10 +134,28 @@ io.on('connection', function (socket) {
             }
         });
 
+        var sessionID = socket.handshake.sessionID;
+        // If their sessionID is in sessions - the player is reconnecting
+        if (sessionID in sessions) {
+            // If a player already has a session in sessions they are reconnecting
+            if (sessions[sessionID].gameId) {
+                // Store their old socket to a variable to be used to reconnect
+                var oldSocket = sessions[sessionID].socket;
+                // Update their socket
+                sessions[sessionID].socket = socket;
+                // Player is in a game currently - reconnect them
+                games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
+            } else {
+                // Player is not in a game, just update their socket 
+                sessions[sessionID].socket = socket;
+                socket.emit('waiting for game');
+            }
+        } else {
+            socket.emit('game mode selection');
+        }
+
         // Logic to handle quickmatch
         socket.on("quickmatch", function () {
-            var sessionID = socket.handshake.sessionID;
-
             // If their sessionID is not in sessions - the player has just connected
             if (!(sessionID in sessions)) {
                 // Increase the total player count since a new player arrived

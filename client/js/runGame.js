@@ -200,7 +200,10 @@ var waitingForGame = function () {
     canvas.style.letterSpacing = -10;
     context.textAlign = "center";
     context.fillText("WAITING FOR OPPONENT...", 0, -5000);
-    document.getElementById("Quick Match").outerHTML = "";
+    // Remove the quick match button if it exists
+    if (document.getElementById("Quick Match")) {
+        document.getElementById("Quick Match").outerHTML = "";
+    }
 }
 
 var gameModeSelection = function () {
@@ -229,9 +232,15 @@ var gameModeSelection = function () {
     document.body.appendChild(quickMatchBtn);
 }
 
-gameModeSelection();
-// Render waiting for opponent
-//waitingForGame();
+// Render waiting for game screen
+socket.on('game mode selection', function () {
+    gameModeSelection();
+});
+
+// Render waiting for game screen
+socket.on('waiting for game', function () {
+    waitingForGame();
+});
 
 var drawEarth = function () {
     // Draw Earth
