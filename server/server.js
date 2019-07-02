@@ -42,8 +42,6 @@ var session = require('express-session')({
     }
 });
 
-
-
 if (app.get('env') === 'production') {
     app.set('trust proxy', 1) // trust first proxy
 }
@@ -153,6 +151,37 @@ io.on('connection', function (socket) {
         } else {
             socket.emit('game mode selection');
         }
+        // This callback function is ran when the game ends
+        var gameEnded = function (gameId) {
+            console.log('game id ended: ' + gameId);
+            Object.keys(sessions).forEach(function (key, index) {
+                // Delete the sessions so they can rejoin other games
+                if (sessions[key].gameId === gameId) {
+                    delete sessions[key];
+                }
+            });
+            // Remove the game from the games object
+            delete games[gameId];
+        }
+
+        socket.on("create game", function (gameName) {
+            //Add the new player to the sessions object
+            sessions[sessionID] = { socket: socket, gameId: undefined };
+            // Create a new game and with the player who created it
+            var gameId = uid.sync(24);
+            var theGame = new game(io, uid.sync(24), [socket], gameEnded);
+            theGame.type = 'create game';
+            games[gameId] = theGame;
+        });
+
+        socket.on("join game", function (gameId) {
+            if (gameId in games && games[gameId].type === 'create game') {
+                //Add the new player to the sessions object and connect them to the game
+                sessions[sessionID] = { socket: socket, gameId: gameId };
+                var theGame = games[gameId];
+                theGame.connectPlayer(socket);
+            }
+        });
 
         // Logic to handle quickmatch
         socket.on("quickmatch", function () {
@@ -176,21 +205,9 @@ io.on('connection', function (socket) {
                         }
                     });
 
-                    // This callback function is ran when the game ends
-                    var gameEnded = function (gameId) {
-                        console.log('game id ended: ' + gameId);
-                        Object.keys(sessions).forEach(function (key, index) {
-                            // Delete the sessions so they can rejoin other games
-                            if (sessions[key].gameId === gameId) {
-                                delete sessions[key];
-                            }
-                        });
-                        // Remove the game from the games object
-                        delete games[gameId];
-                    }
-
                     // Create a new game with the players who are not in a game
                     var theGame = new game(io, playerCount, players, gameEnded);
+                    theGame.type = 'quickmatch';
 
                     // Start the game and add it to the games object
                     theGame.runGame();

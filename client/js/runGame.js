@@ -54,6 +54,16 @@ var quickMatchBtn = createButton(0, 0, 'Quick Match', function () {
     waitingForGame();
 });
 
+var createGameBtn = createButton(0, 100, 'Create Game', function () {
+    socket.emit('create game');
+    createGame();
+});
+
+var joinGameBtn = createButton(0, 200, 'Join Game', function () {
+    socket.emit('join game');
+    waitingForGame();
+});
+
 var playAgainBtn = createButton(0, 200, 'PLAY AGAIN?', function () { window.location.reload(); });
 
 // Colors
@@ -200,9 +210,50 @@ var waitingForGame = function () {
     canvas.style.letterSpacing = -10;
     context.textAlign = "center";
     context.fillText("WAITING FOR OPPONENT...", 0, -5000);
-    // Remove the quick match button if it exists
+    // Remove the old menu
     if (document.getElementById("Quick Match")) {
         document.getElementById("Quick Match").outerHTML = "";
+    }
+    if (document.getElementById("Create Game")) {
+        document.getElementById("Create Game").outerHTML = "";
+    }
+    if (document.getElementById("Join Game")) {
+        document.getElementById("Join Game").outerHTML = "";
+    }
+}
+
+var createGame = function () {
+    // Reset canvas and draw background
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = outOfBoundsColor;
+    context.beginPath();
+    context.rect(0, 0, canvas.width, canvas.height);
+    context.fill();
+
+    // Move canvas origin to center and zoom out
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.scale(gameScale, gameScale);
+
+    var textBox = document.createElement("INPUT");
+    textBox.setAttribute("type", "text");
+    textBox.id = "game name";
+    document.body.appendChild(textBox);
+
+    var submitGameName = createButton(0, 200, 'Submit', function () {
+        var gameName = document.getElementById("Submit").value;
+        socket.emit('create game', gameName);
+    });
+
+    // Remove the old menu
+    if (document.getElementById("Quick Match")) {
+        document.getElementById("Quick Match").outerHTML = "";
+    }
+    if (document.getElementById("Create Game")) {
+        document.getElementById("Create Game").outerHTML = "";
+    }
+    if (document.getElementById("Join Game")) {
+        document.getElementById("Join Game").outerHTML = "";
     }
 }
 
@@ -230,6 +281,8 @@ var gameModeSelection = function () {
     */
 
     document.body.appendChild(quickMatchBtn);
+    document.body.appendChild(createGameBtn);
+    document.body.appendChild(joinGameBtn);
 }
 
 // Render waiting for game screen
