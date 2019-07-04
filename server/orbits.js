@@ -221,6 +221,7 @@ class Planet {
         this.y = y;
         this.radius = radius;
         this.mass = mass;
+        this.id = 'planet';
     }
 
     addForce(player) {

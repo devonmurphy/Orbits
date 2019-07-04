@@ -437,10 +437,12 @@ class Game {
                             if (players[collisions[i].hitBy]) {
                                 players[collisions[i].hitBy].score += 1;
                             } else {
-                                this.strikes += 1;
-                                if (this.strikes >= this.maxStrikes) {
-                                    this.io.to(this.playerSockets[0].id).emit('youdied', 'Your Planet Died');
-                                    this.endGame();
+                                if (collisions[i].hitBy === 'planet') {
+                                    this.strikes += 1;
+                                    if (this.strikes >= this.maxStrikes) {
+                                        this.io.to(this.playerSockets[0].id).emit('youdied', 'Your Planet Died');
+                                        this.endGame();
+                                    }
                                 }
                             }
                         }
