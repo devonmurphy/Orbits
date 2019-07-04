@@ -46,25 +46,12 @@ var createButton = function (x, y, text, onClickCb) {
         btn.style.top = offsetTop - parseInt(btn.style.height) / 2 + y;
         btn.style.left = offsetLeft - parseInt(btn.style.width) / 2 + x;
     });
-    return btn;
+
+    document.body.appendChild(btn);
 }
 
-var quickMatchBtn = createButton(0, 0, 'Quick Match', function () {
-    socket.emit('quickmatch');
-    waitingForGame();
-});
 
-var createGameBtn = createButton(0, 100, 'Create Game', function () {
-    socket.emit('create game');
-    createGame();
-});
 
-var joinGameBtn = createButton(0, 200, 'Join Game', function () {
-    socket.emit('join game');
-    waitingForGame();
-});
-
-var playAgainBtn = createButton(0, 200, 'PLAY AGAIN?', function () { window.location.reload(); });
 
 // Colors
 var outOfBoundsColor = "#000011";
@@ -210,16 +197,8 @@ var waitingForGame = function () {
     canvas.style.letterSpacing = -10;
     context.textAlign = "center";
     context.fillText("WAITING FOR OPPONENT...", 0, -5000);
-    // Remove the old menu
-    if (document.getElementById("Quick Match")) {
-        document.getElementById("Quick Match").outerHTML = "";
-    }
-    if (document.getElementById("Create Game")) {
-        document.getElementById("Create Game").outerHTML = "";
-    }
-    if (document.getElementById("Join Game")) {
-        document.getElementById("Join Game").outerHTML = "";
-    }
+
+    removeGameModeSelection();
 }
 
 var createGame = function () {
@@ -245,16 +224,7 @@ var createGame = function () {
         socket.emit('create game', gameName);
     });
 
-    // Remove the old menu
-    if (document.getElementById("Quick Match")) {
-        document.getElementById("Quick Match").outerHTML = "";
-    }
-    if (document.getElementById("Create Game")) {
-        document.getElementById("Create Game").outerHTML = "";
-    }
-    if (document.getElementById("Join Game")) {
-        document.getElementById("Join Game").outerHTML = "";
-    }
+    removeGameModeSelection();
 }
 
 var gameModeSelection = function () {
@@ -270,19 +240,41 @@ var gameModeSelection = function () {
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
 
-    /*
-    context.font = "1000px Garamond Pro";
-    context.fillStyle = "white";
-    canvas.style.letterSpacing = -10;
-    context.textAlign = "center";
-    context.fillText("Quick Match", 0, -5000);
-    context.fillText("Create Game", 0, -3000);
-    context.fillText("Join Game", 0, -1000);
-    */
+    createButton(0, -100, 'Single Player', function () {
+        socket.emit('single player');
+        waitingForGame();
+    });
 
-    document.body.appendChild(quickMatchBtn);
-    document.body.appendChild(createGameBtn);
-    document.body.appendChild(joinGameBtn);
+    createButton(0, 0, 'Quick Match', function () {
+        socket.emit('quickmatch');
+        waitingForGame();
+    });
+
+    createButton(0, 100, 'Create Game', function () {
+        socket.emit('create game');
+        createGame();
+    });
+
+    createButton(0, 200, 'Join Game', function () {
+        socket.emit('join game');
+        waitingForGame();
+    });
+}
+
+var removeGameModeSelection = function () {
+    // Remove the old menu
+    if (document.getElementById("Single Player")) {
+        document.getElementById("Single Player").outerHTML = "";
+    }
+    if (document.getElementById("Quick Match")) {
+        document.getElementById("Quick Match").outerHTML = "";
+    }
+    if (document.getElementById("Create Game")) {
+        document.getElementById("Create Game").outerHTML = "";
+    }
+    if (document.getElementById("Join Game")) {
+        document.getElementById("Join Game").outerHTML = "";
+    }
 }
 
 // Render waiting for game screen
@@ -406,7 +398,7 @@ var drawShootingOrbits = function (shootingOrbits) {
 
 }
 
-var drawGameUI = function (localPlayer) {
+var drawGameUI = function (localPlayer, strikes, maxStrikes) {
 
     context.font = "600px Verdana";
     context.fillStyle = "white";
@@ -416,12 +408,26 @@ var drawGameUI = function (localPlayer) {
     context.font = "600px Verdana";
     context.fillStyle = "white";
     context.textAlign = "center";
-    context.fillText("bullets: " + localPlayer.bulletCount, uiX - 850, uiY);
+
+    if (localPlayer.bulletCount !== null) {
+        context.fillText("bullets: " + localPlayer.bulletCount, uiX - 850, uiY);
+    }
 
     context.font = "600px Verdana";
     context.fillStyle = "white";
     context.textAlign = "center";
-    context.fillText("fuel: " + localPlayer.player.fuel, uiX, uiY + 600);
+
+    if (strikes !== null) {
+        context.fillText("strikes: " + strikes + "/" + maxStrikes, uiX - 720, uiY);
+    }
+
+    context.font = "600px Verdana";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+
+    if (localPlayer.player.fuel !== null) {
+        context.fillText("fuel: " + localPlayer.player.fuel, uiX, uiY + 600);
+    }
 }
 
 //  Render based on game state received from server
@@ -430,6 +436,8 @@ var render = function (gameState) {
     var bullets = gameState.bullets;
     var shootingOrbits = gameState.shootingOrbits;
     var localPlayer = players[socket.id];
+    var strikes = gameState.strikes;
+    var maxStrikes = gameState.maxStrikes;
 
 
     // Resize canvas to window size
@@ -481,7 +489,7 @@ var render = function (gameState) {
     drawShootingOrbits(shootingOrbits);
 
     if (localPlayer) {
-        drawGameUI(localPlayer);
+        drawGameUI(localPlayer, strikes, maxStrikes);
     }
     if (playerDead === true) {
         context.font = "3000px Garamond Pro";
@@ -500,10 +508,6 @@ var render = function (gameState) {
     }
 
     if (playerWon || playerDead) {
-        document.body.appendChild(playAgainBtn);
-
-
-        playAgainBtn.style.top = offsetTop - parseInt(playAgainBtn.style.height) / 2 + 200;
-        playAgainBtn.style.left = offsetLeft - parseInt(playAgainBtn.style.width) / 2;
+        createButton(0, 200, 'PLAY AGAIN?', function () { window.location.reload(); });
     }
 }

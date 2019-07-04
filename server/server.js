@@ -16,7 +16,7 @@ var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
-var game = require('./game.js');
+var Game = require('./game.js');
 var utils = require('./utils');
 
 var PLAYERS_PER_GAME = 2;
@@ -169,8 +169,13 @@ io.on('connection', function (socket) {
             sessions[sessionID] = { socket: socket, gameId: undefined };
             // Create a new game and with the player who created it
             var gameId = uid.sync(24);
-            var theGame = new game(io, uid.sync(24), [socket], gameEnded);
-            theGame.type = 'create game';
+            var theGame = new Game({
+                io: io,
+                type: 'create game',
+                gameId: uid.sync(24),
+                playerSockets: [socket],
+                gameEnded: gameEnded
+            });
             games[gameId] = theGame;
         });
 
@@ -181,6 +186,22 @@ io.on('connection', function (socket) {
                 var theGame = games[gameId];
                 theGame.connectPlayer(socket);
             }
+        });
+
+        socket.on("single player", function (gameId) {
+            //Add the new player to the sessions object
+            // Create a new game and with the player who created it
+            var gameId = uid.sync(24);
+            sessions[sessionID] = { socket: socket, gameId: gameId };
+            var theGame = new Game({
+                io: io,
+                type: 'single player',
+                gameId: gameId,
+                playerSockets: [socket],
+                gameEnded: gameEnded
+            });
+            theGame.start();
+            games[gameId] = theGame;
         });
 
         // Logic to handle quickmatch
@@ -206,11 +227,16 @@ io.on('connection', function (socket) {
                     });
 
                     // Create a new game with the players who are not in a game
-                    var theGame = new game(io, playerCount, players, gameEnded);
-                    theGame.type = 'quickmatch';
+                    var theGame = new Game({
+                        io: io,
+                        type: 'quick match',
+                        gameId: playerCount,
+                        playerSockets: players,
+                        gameEnded: gameEnded
+                    });
 
                     // Start the game and add it to the games object
-                    theGame.runGame();
+                    theGame.start();
                     games[playerCount] = theGame;
                 }
             } else {

@@ -3,12 +3,13 @@ var map = require('./map.js');
 var utils = require('./utils.js');
 
 class Game {
-    constructor(io, gameId, playerSockets, gameEnded) {
+    constructor(opts) {
         // Server side constants
-        this.io = io;
-        this.gameId = gameId;
-        this.playerSockets = playerSockets;
-        this.gameEnded = gameEnded;
+        this.io = opts.io;
+        this.gameId = opts.gameId;
+        this.playerSockets = opts.playerSockets;
+        this.gameEnded = opts.gameEnded;
+        this.type = opts.type;
 
         // Containers used for game state
         this.players = {};
@@ -24,13 +25,13 @@ class Game {
         this.playerRadius = 350;
         this.thrust = 200;
         this.startingDist = 8000;
-        this.startingFuel = 2000;
+        this.startingFuel = (this.type === 'single player' ? Infinity : 2000);
         this.fuelDrainRate = 1;
 
         // Player shooting constants
         this.fireRate = 500;
         this.bulletRadius = 175;
-        this.startingBulletCount = 20;
+        this.startingBulletCount = (this.type === 'single player' ? Infinity : 20);
         this.startingShotPower = 500;
         this.shotPowerChangeRate = 30;
         this.shotPowerMin = 0;
@@ -40,6 +41,13 @@ class Game {
         this.gridCount = 3;
         this.gridSize = 10000;
         this.mapRadius = 15000;
+
+        // Single Player constats
+        this.asteroidRadius = this.playerRadius;
+        this.asteroidSpawnRate = (this.type === 'single player' ? 10000 : Infinity);
+        this.lastAsteroidSpawnTime = (new Date()).getTime();
+        this.strikes = (this.type === 'single player' ? 0 : null);
+        this.maxStrikes = (this.type === 'single player' ? 3 : null);
 
         this.map = new map.Map(this.gridSize, this.gridCount, this.mapRadius);
 
@@ -57,6 +65,34 @@ class Game {
             y: thrustPower * thrustY / dist,
         }
         return thrust;
+    }
+
+    checkIfAsteroidSpawns() {
+        var currentTime = (new Date()).getTime();
+        if (currentTime - this.lastAsteroidSpawnTime >= this.asteroidSpawnRate) {
+
+
+            var startingDist = Math.random() * 10000 + 20000;
+            var XYRatio = Math.random();
+            var startingDistX = (Math.random() >= .5 ? -1 : 1) * startingDist * (XYRatio);
+            var startingDistY = (Math.random() >= .5 ? -1 : 1) * startingDist * (1 - XYRatio);
+
+            var asteroid = new orbit.Mass(
+                startingDistX,
+                startingDistY,
+                this.asteroidRadius);
+
+            var dist = Math.sqrt(Math.pow(asteroid.x, 2) + Math.pow(asteroid.y, 2));
+            var speed = Math.random() * 500;
+            var speedSpread = 1 + 5 * Math.random();
+            asteroid.vx = -asteroid.x / dist * speed * speedSpread;
+            asteroid.vy = -asteroid.y / dist * speed;
+
+            asteroid.id = "asteroid";
+            asteroid.type = "bullet";
+            this.bullets.push(utils.deepCopy(asteroid));
+            this.lastAsteroidSpawnTime = (new Date()).getTime();
+        }
     }
 
     // Create a new player
@@ -276,27 +312,36 @@ class Game {
         }
     }
 
-    checkIfGameEnds(gameLoop) {
+    checkIfGameEnds() {
         if (Object.keys(this.players).length === 1) {
             var lastId = Object.keys(this.players)[0];
             this.io.to(lastId).emit('youwon', 'You Won');
+            this.endGame();
+        }
 
-            // Game has ended clean up
-            clearInterval(gameLoop);
-            this.gameEnded(this.gameId);
+        if (Object.keys(this.players).length === 0) {
+            this.endGame();
         }
     }
 
-    killPlayer(io, id, gameLoop) {
+    endGame() {
+        // Game has ended clean up
+        clearInterval(this.gameLoop);
+        this.gameEnded(this.gameId)
+    }
+
+    killPlayer(io, id) {
         io.to(id).emit('youdied', 'You Died');
         delete this.players[id]
 
-        this.checkIfGameEnds(gameLoop);
+        this.checkIfGameEnds();
     }
 
     // Update the game state every 15 ms
-    runGame() {
-        var gameLoop = setInterval(() => {
+    start() {
+        this.gameLoop = setInterval(() => {
+            this.checkIfAsteroidSpawns();
+
             // Loop through the player list and update their position and velocity
             var allObjects = [];
             var players = this.players;
@@ -350,7 +395,7 @@ class Game {
 
                 // If a player is out of the map destroy them
                 if (this.map.checkOutOfBounds(player)) {
-                    this.killPlayer(this.io, id, gameLoop);
+                    this.killPlayer(this.io, id);
                 } else {
                     allObjects.push(player);
                 }
@@ -361,7 +406,7 @@ class Game {
             for (var i = 0; i < bullets.length; i++) {
                 var bullet = bullets[i];
                 // First check if a bullet is out of bounds
-                if (this.map.checkOutOfBounds(bullet, 2*this.mapRadius)) {
+                if (this.map.checkOutOfBounds(bullet, 2 * this.mapRadius)) {
                     // Remove it if it is too far away
                     bullets.splice(i, 1);
                     continue;
@@ -386,6 +431,19 @@ class Game {
                 if (collisions[i].type === 'bullet') {
                     if (bullets.indexOf(collisions[i]) > -1) {
                         bullets.splice(bullets.indexOf(collisions[i]), 1);
+
+                        // if Single player mode increase score or decrease strikes
+                        if (this.type === 'single player') {
+                            if (players[collisions[i].hitBy]) {
+                                players[collisions[i].hitBy].score += 1;
+                            } else {
+                                this.strikes += 1;
+                                if (this.strikes >= this.maxStrikes) {
+                                    this.io.to(this.playerSockets[0].id).emit('youdied', 'Your Planet Died');
+                                    this.endGame();
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -398,16 +456,20 @@ class Game {
                     }
                     var id = collisions[i].id;
 
-                    this.killPlayer(this.io, id, gameLoop);
+                    this.killPlayer(this.io, id);
                 }
             }
 
             var map = utils.deepCopy(this.map);
+            var strikes = this.strikes;
+            var maxStrikes = this.maxStrikes;
             var gameState = {
                 players,
                 bullets,
                 shootingOrbits,
                 map,
+                strikes,
+                maxStrikes,
             };
 
             // Send the game state to the client to be rendered
