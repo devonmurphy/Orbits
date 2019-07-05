@@ -25,7 +25,8 @@ class Grid {
 
     // Checks if there is a collision between two objects
     checkCollision(obj1, obj2) {
-        if (obj1.id === obj2.id) {
+        // Do not count collisions between a player's own bullets and themselves
+        if (obj1.id === obj2.id && obj1.type !== obj2.type) {
             return false;
         }
         var dx = obj1.x - obj2.x;

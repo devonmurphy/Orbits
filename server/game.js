@@ -434,7 +434,7 @@ class Game {
 
                         // if Single player mode increase score or decrease strikes
                         if (this.type === 'single player') {
-                            if (players[collisions[i].hitBy]) {
+                            if (players[collisions[i].hitBy] && collisions[i].type !== 'bullet' ) {
                                 players[collisions[i].hitBy].score += 1;
                             } else {
                                 if (collisions[i].hitBy === 'planet') {
