@@ -74,8 +74,8 @@ class Game {
 
             var startingDist = Math.random() * 10000 + 20000;
             var XYRatio = Math.random();
-            var startingDistX = (Math.random() >= .5 ? -1 : 1) * startingDist * (XYRatio);
-            var startingDistY = (Math.random() >= .5 ? -1 : 1) * startingDist * (1 - XYRatio);
+            var startingDistX = (Math.random() > .5 ? -1 : 1) * startingDist * (XYRatio);
+            var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio*XYRatio));
 
             var asteroid = new orbit.Mass(
                 startingDistX,
@@ -83,10 +83,10 @@ class Game {
                 this.asteroidRadius);
 
             var dist = Math.sqrt(Math.pow(asteroid.x, 2) + Math.pow(asteroid.y, 2));
-            var speed = Math.random() * 500;
-            var speedSpread = 1 + 5 * Math.random();
-            asteroid.vx = -asteroid.x / dist * speed * speedSpread;
-            asteroid.vy = -asteroid.y / dist * speed;
+            var speedSpreadX = (Math.random() > .5 ? -1 : 1) * 500 * Math.random();
+            var speedSpreadY = (Math.random() > .5 ? -1 : 1) * 500 * Math.random();
+            asteroid.vx = -asteroid.x / dist * 500 + speedSpreadX;
+            asteroid.vy = -asteroid.y / dist * 500 + speedSpreadY;
 
             asteroid.id = "asteroid";
             asteroid.type = "bullet";

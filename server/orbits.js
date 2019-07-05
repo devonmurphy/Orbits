@@ -95,7 +95,7 @@ class Mass {
     calculateHyperbolicOrbit(a, Ecc, theta, w, mass) {
         var maxDrawSteps = 500;
         var drawStep = .1;
-        var maxNewtonSteps = 100;
+        var maxNewtonSteps = 10;
         var maxDrawDist = 50000;
 
         var W = (Ecc + Math.cos(theta)) / (1 + Ecc * Math.cos(theta));
