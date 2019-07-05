@@ -44,7 +44,7 @@ class Game {
 
         // Single Player constats
         this.asteroidRadius = this.playerRadius;
-        this.asteroidSpawnRate = (this.type === 'single player' ? 10000 : Infinity);
+        this.asteroidSpawnRate = (this.type === 'single player' ? 5000 : Infinity);
         this.lastAsteroidSpawnTime = (new Date()).getTime();
         this.strikes = (this.type === 'single player' ? 0 : null);
         this.maxStrikes = (this.type === 'single player' ? 3 : null);
@@ -434,13 +434,13 @@ class Game {
 
                         // if Single player mode increase score or decrease strikes
                         if (this.type === 'single player') {
-                            if (players[collisions[i].hitBy] && collisions[i].type !== 'bullet') {
+                            if (players[collisions[i].hitBy] && collisions[i].id === 'asteroid' ){
                                 players[collisions[i].hitBy].score += 1;
                             } else {
                                 if (collisions[i].hitBy === 'planet') {
                                     this.strikes += 1;
                                     if (this.strikes >= this.maxStrikes) {
-                                        for ( var playerId in this.players){
+                                        for (var playerId in this.players) {
                                             this.io.to(playerId).emit('youdied', 'Your Planet Died');
                                         }
                                         this.endGame();
