@@ -75,7 +75,7 @@ class Game {
             var startingDist = Math.random() * 10000 + 20000;
             var XYRatio = Math.random();
             var startingDistX = (Math.random() > .5 ? -1 : 1) * startingDist * (XYRatio);
-            var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio*XYRatio));
+            var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio * XYRatio));
 
             var asteroid = new orbit.Mass(
                 startingDistX,
@@ -434,13 +434,15 @@ class Game {
 
                         // if Single player mode increase score or decrease strikes
                         if (this.type === 'single player') {
-                            if (players[collisions[i].hitBy] && collisions[i].type !== 'bullet' ) {
+                            if (players[collisions[i].hitBy] && collisions[i].type !== 'bullet') {
                                 players[collisions[i].hitBy].score += 1;
                             } else {
                                 if (collisions[i].hitBy === 'planet') {
                                     this.strikes += 1;
                                     if (this.strikes >= this.maxStrikes) {
-                                        this.io.to(this.playerSockets[0].id).emit('youdied', 'Your Planet Died');
+                                        for ( var playerId in this.players){
+                                            this.io.to(playerId).emit('youdied', 'Your Planet Died');
+                                        }
                                         this.endGame();
                                     }
                                 }
