@@ -2,7 +2,7 @@ const path = require("path");
 const webpack = require("webpack");
 
 module.exports = {
-  entry: "./src/index.js",
+  entry: "./client/js/runGame.js",
   mode: "development",
   module: {
     rules: [
@@ -23,12 +23,6 @@ module.exports = {
     path: path.resolve(__dirname, "dist/"),
     publicPath: "/dist/",
     filename: "bundle.js"
-  },
-  devServer: {
-    contentBase: path.join(__dirname, "public/"),
-    port: 5000,
-    publicPath: "http://localhost:5000/dist/",
-    hotOnly: true
   },
   plugins: [new webpack.HotModuleReplacementPlugin()]
 };

@@ -1,5 +1,10 @@
 // Intiates client connection and sets up controls 
 var socket = io();
+
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App.js";
+
 var movement = { right: false, left: false, forward: false, backward: false }
 var canvas = document.getElementById('renderer');
 var context = canvas.getContext("2d");
@@ -19,39 +24,8 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight
 
 var createButton = function (x, y, text, onClickCb) {
-    var btn = document.createElement("button")
-
-    btn.id = text;
-
-    btn.style.color = "white";
-    btn.style.font = "36px Garamond Pro";
-    btn.style.textAlign = "center";
-    btn.style.height = 50;
-    btn.style.width = 300;
-    btn.style.position = "absolute";
-    btn.style.background = "Transparent";
-    btn.style.outline = "none";
-    btn.style.border = "none";
-
-    // Set button settings
-    btn.style.top = offsetTop - parseInt(btn.style.height) / 2 + y;
-    btn.style.left = offsetLeft - parseInt(btn.style.width) / 2 + x;
-    btn.innerHTML = text;
-    btn.onclick = onClickCb;
-
-    // Recalculate offsets when window is resized
-    window.addEventListener('resize', function () {
-        offsetLeft = canvas.offsetLeft + canvas.width / 2;
-        offsetTop = canvas.offsetTop + canvas.height / 2;
-        btn.style.top = offsetTop - parseInt(btn.style.height) / 2 + y;
-        btn.style.left = offsetLeft - parseInt(btn.style.width) / 2 + x;
-    });
-
-    document.body.appendChild(btn);
+    ReactDOM.render(<App />, document.getElementById("root"))
 }
-
-
-
 
 // Colors
 var outOfBoundsColor = "#000011";
@@ -154,9 +128,6 @@ canvas.addEventListener('wheel', function (event) {
     event.preventDefault();
 });
 
-/**
- * Disables the right click menu for the given element.
- */
 canvas.addEventListener('contextmenu', function (e) {
     if (e.button == 2) {
         // Block right-click menu thru preventing default action.

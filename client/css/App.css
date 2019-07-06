@@ -1,0 +1,13 @@
+button {
+    margin: 1rem;
+    background : Transparent;
+    outline : none;
+    border : none;
+    box-sizing: border-box;
+    text-decoration:none;
+    font-family:'Garamond Pro';
+    font-size : 36;
+    color:#FFFFFF;
+    text-align:center;
+    transition: all 0.2s;
+}

@@ -28,6 +28,7 @@ db.connect();
 // Setup server to serve the client folder
 app.set('port', PORT);
 app.use('/client', express.static(path.join(__dirname, '../client')));
+app.use('/dist', express.static(path.join(__dirname, '../dist')));
 
 var session = require('express-session')({
     secret: 'keyboard cat',

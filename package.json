@@ -30,7 +30,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack-dev-server --mode development",
+    "start": "npm run build && node ./server/server.js",
     "watch": "nodemon ./server/server.js",
     "build": "webpack --node development"
   },
