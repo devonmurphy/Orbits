@@ -23,6 +23,7 @@ var createGameSelectBtns = function () {
         socket.emit('Quick Match');
         removeElementsByClass('GameSelectBtns')
         document.getElementById('renderer').style.display = 'block';
+        waitingForGame();
     }
 
     ReactDOM.render(
