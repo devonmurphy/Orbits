@@ -165,7 +165,7 @@ io.on('connection', function (socket) {
             delete games[gameId];
         }
 
-        socket.on("create game", function (gameName) {
+        socket.on("Create Game", function (gameName) {
             //Add the new player to the sessions object
             sessions[sessionID] = { socket: socket, gameId: undefined };
             // Create a new game and with the player who created it
@@ -180,7 +180,7 @@ io.on('connection', function (socket) {
             games[gameId] = theGame;
         });
 
-        socket.on("join game", function (gameId) {
+        socket.on("Join Game", function (gameId) {
             if (gameId in games && games[gameId].type === 'create game') {
                 //Add the new player to the sessions object and connect them to the game
                 sessions[sessionID] = { socket: socket, gameId: gameId };
@@ -189,7 +189,7 @@ io.on('connection', function (socket) {
             }
         });
 
-        socket.on("single player", function (gameId) {
+        socket.on("Single Player", function (gameId) {
             //Add the new player to the sessions object
             // Create a new game and with the player who created it
             var gameId = uid.sync(24);
@@ -206,7 +206,7 @@ io.on('connection', function (socket) {
         });
 
         // Logic to handle quickmatch
-        socket.on("quickmatch", function () {
+        socket.on("Quick Match", function () {
             // If their sessionID is not in sessions - the player has just connected
             if (!(sessionID in sessions)) {
                 // Increase the total player count since a new player arrived

@@ -10,4 +10,6 @@ button {
     color:#FFFFFF;
     text-align:center;
     transition: all 0.2s;
+    align-items: center;
+    justify-content: center;
 }

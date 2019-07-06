@@ -3,7 +3,33 @@ var socket = io();
 
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "./App.js";
+import GameSelectBtn from "./GameSelectBtn.js";
+
+var createGameSelectBtns = function () {
+    function removeElementsByClass(className) {
+        var elements = document.getElementsByClassName(className);
+        while (elements.length > 0) {
+            elements[0].parentNode.removeChild(elements[0]);
+        }
+    }
+
+    var singlePlayerOnClick = () => {
+        socket.emit('Single Player');
+        removeElementsByClass('GameSelectBtns')
+        document.getElementById('renderer').style.display = 'block';
+    }
+
+    var quickMatchOnClick = () => {
+        socket.emit('Quick Match');
+        removeElementsByClass('GameSelectBtns')
+        document.getElementById('renderer').style.display = 'block';
+    }
+
+    ReactDOM.render(
+        <GameSelectBtn quickMatchOnClick={quickMatchOnClick} singlePlayerOnClick={singlePlayerOnClick} />,
+        document.getElementById('root')
+    );
+}
 
 var movement = { right: false, left: false, forward: false, backward: false }
 var canvas = document.getElementById('renderer');
@@ -22,10 +48,6 @@ var uiY = 12000;
 // Resize canvas to window size
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight
-
-var createButton = function (x, y, text, onClickCb) {
-    ReactDOM.render(<App />, document.getElementById("root"))
-}
 
 // Colors
 var outOfBoundsColor = "#000011";
@@ -211,16 +233,11 @@ var gameModeSelection = function () {
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
 
+    /*
     createButton(0, -100, 'Single Player', function () {
         socket.emit('single player');
         waitingForGame();
     });
-
-    createButton(0, 0, 'Quick Match', function () {
-        socket.emit('quickmatch');
-        waitingForGame();
-    });
-
     createButton(0, 100, 'Create Game', function () {
         socket.emit('create game');
         createGame();
@@ -230,6 +247,9 @@ var gameModeSelection = function () {
         socket.emit('join game');
         waitingForGame();
     });
+    */
+
+    createGameSelectBtns();
 }
 
 var removeGameModeSelection = function () {
