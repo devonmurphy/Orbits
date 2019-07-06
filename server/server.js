@@ -144,6 +144,7 @@ io.on('connection', function (socket) {
                 sessions[sessionID].socket = socket;
                 // Player is in a game currently - reconnect them
                 games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
+                socket.emit('waiting for game');
             } else {
                 // Player is not in a game, just update their socket 
                 sessions[sessionID].socket = socket;

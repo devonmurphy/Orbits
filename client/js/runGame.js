@@ -5,24 +5,21 @@ import React from "react";
 import ReactDOM from "react-dom";
 import GameSelectBtn from "./GameSelectBtn.js";
 
-var createGameSelectBtns = function () {
-    function removeElementsByClass(className) {
-        var elements = document.getElementsByClassName(className);
-        while (elements.length > 0) {
-            elements[0].parentNode.removeChild(elements[0]);
-        }
+function removeElementsByClass(className) {
+    var elements = document.getElementsByClassName(className);
+    while (elements.length > 0) {
+        elements[0].parentNode.removeChild(elements[0]);
     }
+}
 
+var createGameSelectBtns = function () {
     var singlePlayerOnClick = () => {
         socket.emit('Single Player');
-        removeElementsByClass('GameSelectBtns')
-        document.getElementById('renderer').style.display = 'block';
+        waitingForGame();
     }
 
     var quickMatchOnClick = () => {
         socket.emit('Quick Match');
-        removeElementsByClass('GameSelectBtns')
-        document.getElementById('renderer').style.display = 'block';
         waitingForGame();
     }
 
@@ -174,6 +171,10 @@ socket.on('youwon', function (data) {
 });
 
 var waitingForGame = function () {
+    // Remove Game select btns and display canvas;
+    removeElementsByClass('GameSelectBtns')
+    document.getElementById('renderer').style.display = 'block';
+
     // Reset canvas and draw background
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
