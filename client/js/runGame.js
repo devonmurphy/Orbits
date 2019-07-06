@@ -3,7 +3,7 @@ var socket = io();
 
 import React from "react";
 import ReactDOM from "react-dom";
-import GameSelectBtn from "./GameSelectBtn.js";
+import GameSelectBtns from "./GameSelectBtns.js";
 
 function removeElementsByClass(className) {
     var elements = document.getElementsByClassName(className);
@@ -24,7 +24,7 @@ var createGameSelectBtns = function () {
     }
 
     ReactDOM.render(
-        <GameSelectBtn quickMatchOnClick={quickMatchOnClick} singlePlayerOnClick={singlePlayerOnClick} />,
+        <GameSelectBtns quickMatchOnClick={quickMatchOnClick} singlePlayerOnClick={singlePlayerOnClick} />,
         document.getElementById('root')
     );
 }

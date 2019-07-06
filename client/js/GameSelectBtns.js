@@ -2,14 +2,14 @@ import React, { Component } from "react";
 import { hot } from "react-hot-loader";
 import "../css/GameSelectBtn.css";
 
-class GameSelectBtn extends Component {
+class GameSelectBtns extends Component {
   constructor(props) {
     super(props);
   }
 
   render() {
     return (
-      <div className="GameSelectBtn">
+      <div className="GameSelectBtns">
         <div>
           <button onClick={this.props.quickMatchOnClick}><a>Quick Match</a></button>
         </div>
@@ -21,4 +21,4 @@ class GameSelectBtn extends Component {
   }
 }
 
-export default hot(module)(GameSelectBtn);
+export default hot(module)(GameSelectBtns);
