@@ -23,8 +23,21 @@ var createGameSelectBtns = function () {
         waitingForGame();
     }
 
+    var createGameOnClick = () => {
+        socket.emit('Create Game');
+        createGame();
+    }
+
+    var joinGameOnClick = () => {
+        socket.emit('Join Game');
+        waitingForGame();
+    }
+
     ReactDOM.render(
-        <GameSelectBtns quickMatchOnClick={quickMatchOnClick} singlePlayerOnClick={singlePlayerOnClick} />,
+        <GameSelectBtns
+            quickMatchOnClick={quickMatchOnClick}
+            singlePlayerOnClick={singlePlayerOnClick}
+        />,
         document.getElementById('root')
     );
 }
@@ -193,7 +206,6 @@ var waitingForGame = function () {
     context.textAlign = "center";
     context.fillText("WAITING FOR OPPONENT...", 0, -5000);
 
-    removeGameModeSelection();
 }
 
 var createGame = function () {
@@ -218,8 +230,6 @@ var createGame = function () {
         var gameName = document.getElementById("Submit").value;
         socket.emit('create game', gameName);
     });
-
-    removeGameModeSelection();
 }
 
 var gameModeSelection = function () {
@@ -235,40 +245,9 @@ var gameModeSelection = function () {
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
 
-    /*
-    createButton(0, -100, 'Single Player', function () {
-        socket.emit('single player');
-        waitingForGame();
-    });
-    createButton(0, 100, 'Create Game', function () {
-        socket.emit('create game');
-        createGame();
-    });
-
-    createButton(0, 200, 'Join Game', function () {
-        socket.emit('join game');
-        waitingForGame();
-    });
-    */
-
     createGameSelectBtns();
 }
 
-var removeGameModeSelection = function () {
-    // Remove the old menu
-    if (document.getElementById("Single Player")) {
-        document.getElementById("Single Player").outerHTML = "";
-    }
-    if (document.getElementById("Quick Match")) {
-        document.getElementById("Quick Match").outerHTML = "";
-    }
-    if (document.getElementById("Create Game")) {
-        document.getElementById("Create Game").outerHTML = "";
-    }
-    if (document.getElementById("Join Game")) {
-        document.getElementById("Join Game").outerHTML = "";
-    }
-}
 
 // Render waiting for game screen
 socket.on('game mode selection', function () {
