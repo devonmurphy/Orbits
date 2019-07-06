@@ -4,6 +4,7 @@ var socket = io();
 import React from "react";
 import ReactDOM from "react-dom";
 import GameSelectBtns from "./GameSelectBtns.js";
+import PlayAgainBtn from "./PlayAgainBtn.js";
 
 function removeElementsByClass(className) {
     var elements = document.getElementsByClassName(className);
@@ -480,6 +481,10 @@ var render = function (gameState) {
     }
 
     if (playerWon || playerDead) {
-        createButton(0, 200, 'PLAY AGAIN?', function () { window.location.reload(); });
+
+        ReactDOM.render(
+            <PlayAgainBtn />,
+            document.getElementById('playAgain')
+        );
     }
 }
