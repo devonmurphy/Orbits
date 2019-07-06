@@ -21,7 +21,8 @@
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.2",
     "css-loader": "^1.0.0",
-    "nodemon": "^1.18.10",
+    "nodemon": "^1.19.1",
+    "npm-run-all": "^4.1.5",
     "reload": "^2.4.0",
     "style-loader": "^0.23.0",
     "webpack": "^4.19.1",
@@ -31,8 +32,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run build && node ./server/server.js",
-    "watch": "nodemon ./server/server.js",
-    "build": "webpack --node development"
+    "nodemon": "nodemon --delay 2.5 ./server/server.js",
+    "watch:frontEnd": "webpack --watch --mode development",
+    "build": "webpack --node development",
+    "watch": "npm-run-all -p nodemon watch:frontEnd"
   },
   "author": "",
   "license": "ISC"
