@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { hot } from "react-hot-loader";
-import "../css/GameSelectBtn.css";
+import "../css/CreateGameUI.css";
 
 class CreateGameUI extends Component {
   constructor(props) {
@@ -9,18 +9,14 @@ class CreateGameUI extends Component {
 
   render() {
     return (
-      <div className="CreateGameUI">
-        <div>
-          <input id="gameName"><a>Game Name</a></input>
+      <form>
+        <div className="question">
+          <input id="playerCount" type="number" required min="2" max="100" defaultValue="2"/>
+          <label>Number Of Players</label>
         </div>
-        <div>
-          <input id="playerCount" type="number"><a>Number of Players</a></input>
-        </div>
-        <div>
-          <button onClick={this.props.submitOnClick}><a>Submit</a></button>
-        </div>
-      </div>
-    );
+        <button onClick={this.props.onClick}>Submit</button>
+      </form>
+    )
   }
 }
 

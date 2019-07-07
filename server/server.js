@@ -165,16 +165,18 @@ io.on('connection', function (socket) {
             delete games[gameId];
         }
 
-        socket.on("Create Game", function (gameName) {
+        socket.on("Create Game", function (playerCount) {
             //Add the new player to the sessions object
             sessions[sessionID] = { socket: socket, gameId: undefined };
             // Create a new game and with the player who created it
             var gameId = uid.sync(24);
+            console.log(playerCount);
             var theGame = new Game({
                 io: io,
                 type: 'create game',
                 gameId: uid.sync(24),
                 playerSockets: [socket],
+                playerCount: playerCount,
                 gameEnded: gameEnded
             });
             games[gameId] = theGame;
@@ -186,6 +188,9 @@ io.on('connection', function (socket) {
                 sessions[sessionID] = { socket: socket, gameId: gameId };
                 var theGame = games[gameId];
                 theGame.connectPlayer(socket);
+                if(theGame.players.length === theGame.playerCount){
+                    theGame.start();
+                }
             }
         });
 

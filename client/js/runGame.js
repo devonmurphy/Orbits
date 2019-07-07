@@ -26,7 +26,6 @@ var createGameSelectBtns = function () {
     }
 
     var createGameOnClick = () => {
-        socket.emit('Create Game');
         createGame();
     }
 
@@ -227,19 +226,17 @@ var createGame = function () {
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
 
-    var submitOnClick = function () {
-        var gameName = document.getElementById("gameName").value;
-        console.log(gameName);
-        socket.emit('Create Game', gameName);
+    var onClick = function () {
+        var playerCount = document.getElementById("playerCount").value;
+        socket.emit('Create Game', playerCount);
     };
 
     ReactDOM.render(
         <CreateGameUI
-            submitOnClick={submitOnClick}
+            onClick={onClick}
         />,
         document.getElementById('root')
     );
-
 }
 
 var gameModeSelection = function () {

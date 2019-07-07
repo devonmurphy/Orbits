@@ -8,6 +8,7 @@ class Game {
         this.io = opts.io;
         this.gameId = opts.gameId;
         this.playerSockets = opts.playerSockets;
+        this.playerCount = opts.playerCount;
         this.gameEnded = opts.gameEnded;
         this.type = opts.type;
 
