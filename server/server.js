@@ -142,9 +142,19 @@ io.on('connection', function (socket) {
                 // Update their socket
                 sessions[sessionID].socket = socket;
                 // Player is in a game currently - reconnect them
-                games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
-                socket.emit('waiting for game');
+                console.log('player in game');
+                var theGame = games[sessions[sessionID].gameId];
+                theGame.reconnectPlayer(socket, oldSocket);
+
+                var gameLink = "localhost:5000/game?" + theGame.gameId;
+                var data = {
+                    maxPlayers: theGame.playerCount,
+                    currentPlayers: theGame.playerSockets.length,
+                    gameLink: gameLink,
+                };
+                socket.emit('waiting for game', data);
             } else {
+                console.log('player not in game');
                 // Player is not in a game, just update their socket 
                 sessions[sessionID].socket = socket;
                 socket.emit('waiting for game');
@@ -166,20 +176,29 @@ io.on('connection', function (socket) {
         }
 
         socket.on("Create Game", function (playerCount) {
-            //Add the new player to the sessions object
-            sessions[sessionID] = { socket: socket, gameId: undefined };
             // Create a new game and with the player who created it
             var gameId = uid.sync(24);
-            console.log(playerCount);
+
+            //Add the new player to the sessions object
+            sessions[sessionID] = { socket: socket, gameId: gameId };
+
             var theGame = new Game({
                 io: io,
                 type: 'create game',
-                gameId: uid.sync(24),
+                gameId: gameId,
                 playerSockets: [socket],
                 playerCount: playerCount,
                 gameEnded: gameEnded
             });
             games[gameId] = theGame;
+
+            var gameLink = "localhost:5000/game?" + theGame.gameId;
+            var data = {
+                maxPlayers: theGame.playerCount,
+                currentPlayers: theGame.playerSockets.length,
+                gameLink: gameLink,
+            };
+            socket.emit('waiting for game', data);
         });
 
         socket.on("Join Game", function (gameId) {
@@ -188,7 +207,7 @@ io.on('connection', function (socket) {
                 sessions[sessionID] = { socket: socket, gameId: gameId };
                 var theGame = games[gameId];
                 theGame.connectPlayer(socket);
-                if(theGame.players.length === theGame.playerCount){
+                if (theGame.players.length === theGame.playerCount) {
                     theGame.start();
                 }
             }

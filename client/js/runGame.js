@@ -185,7 +185,12 @@ socket.on('youwon', function (data) {
     playerWon = true;
 });
 
-var waitingForGame = function () {
+var waitingForGame = function (data) {
+    if (data) {
+        var currentPlayers = data.currentPlayers;
+        var maxPlayers = data.maxPlayers;
+        var gameLink = data.gameLink;
+    }
     // Remove Game select btns and display canvas;
     removeElementsByClass('GameSelectBtns')
     document.getElementById('renderer').style.display = 'block';
@@ -206,7 +211,15 @@ var waitingForGame = function () {
     context.fillStyle = "white";
     canvas.style.letterSpacing = -10;
     context.textAlign = "center";
-    context.fillText("WAITING FOR OPPONENT...", 0, -5000);
+
+    if (!data) {
+        context.fillText("WAITING FOR OPPONENT...", 0, -5000);
+    } else {
+        context.fillText("WAITING FOR OPPONENTS...", 0, -5000);
+        context.fillText(currentPlayers + "/" + maxPlayers, 0, -3000);
+        context.font = "1000px Garamond Pro";
+        context.fillText(gameLink, 0, -1000);
+    }
 
 }
 
@@ -226,14 +239,14 @@ var createGame = function () {
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
 
-    var onClick = function () {
+    var onSubmit = function () {
         var playerCount = document.getElementById("playerCount").value;
         socket.emit('Create Game', playerCount);
     };
 
     ReactDOM.render(
         <CreateGameUI
-            onClick={onClick}
+            onSubmit={onSubmit}
         />,
         document.getElementById('root')
     );
@@ -262,8 +275,8 @@ socket.on('game mode selection', function () {
 });
 
 // Render waiting for game screen
-socket.on('waiting for game', function () {
-    waitingForGame();
+socket.on('waiting for game', function (data) {
+    waitingForGame(data);
 });
 
 var drawEarth = function () {
