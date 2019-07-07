@@ -14,11 +14,8 @@ var database = require('./database')
 var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+var ConnectionHandler = require('./ConnectionHandler.js');
 
-var Game = require('./game.js');
-var utils = require('./utils');
-
-var PLAYERS_PER_GAME = 2;
 var PORT = 5000;
 
 var db = new database();
@@ -127,177 +124,22 @@ server.listen(PORT, function () {
 });
 
 // These variables are for storing all players and games
-var playerCount = 0;
 var sessions = {};
 var games = {};
+
+var connectionHandler = new ConnectionHandler({
+    io:io,
+    sessions:sessions,
+    games:games,
+});
 
 // Setup handlers to catch players joining and control input
 io.use(sharedsession(session, {
     autoSave: true
 }));
 
-io.on('connection', function (socket) {
-    if (socket.handshake) {
-        socket.on("logout", function (userdata) {
-            if (socket.handshake.session.userdata) {
-                delete socket.handshake.session.userdata;
-                socket.handshake.session.save();
-            }
-        });
-
-        var sessionID = socket.handshake.sessionID;
-        // If their sessionID is in sessions - the player is reconnecting
-        if (sessionID in sessions) {
-            // If a player already has a session in sessions they are reconnecting
-            if (sessions[sessionID].gameId) {
-                // Store their old socket to a variable to be used to reconnect
-                var oldSocket = sessions[sessionID].socket;
-                // Update their socket
-                sessions[sessionID].socket = socket;
-                // Player is in a game currently - reconnect them
-                var theGame = games[sessions[sessionID].gameId];
-                theGame.reconnectPlayer(socket, oldSocket);
-
-                if (theGame.type === 'create game') {
-                    var gameLink = "localhost:5000/play?gameId=" + theGame.gameId;
-                    var data = {
-                        maxPlayers: theGame.playerCount,
-                        currentPlayers: theGame.playerSockets.length,
-                        gameLink: gameLink,
-                    };
-                    socket.emit('waiting for game', data);
-                } else {
-                    socket.emit('waiting for game');
-                }
-            } else {
-                console.log('player not in game');
-                // Player is not in a game, just update their socket 
-                sessions[sessionID].socket = socket;
-                socket.emit('waiting for game');
-            }
-        } else {
-            socket.emit('game mode selection');
-        }
-        // This callback function is ran when the game ends
-        var gameEnded = function (gameId) {
-            console.log('game id ended: ' + gameId);
-            Object.keys(sessions).forEach(function (key, index) {
-                // Delete the sessions so they can rejoin other games
-                if (sessions[key].gameId === gameId) {
-                    delete sessions[key];
-                }
-            });
-            // Remove the game from the games object
-            delete games[gameId];
-        }
-
-        socket.on("Create Game", function (playerCount) {
-            // Create a new game and with the player who created it
-            var gameId = uid.sync(24);
-
-            //Add the new player to the sessions object
-            sessions[sessionID] = { socket: socket, gameId: gameId };
-
-            var theGame = new Game({
-                io: io,
-                type: 'create game',
-                gameId: gameId,
-                playerSockets: [socket],
-                playerCount: parseInt(playerCount),
-                gameEnded: gameEnded,
-                autoStart: true
-            });
-            games[gameId] = theGame;
-
-            var gameLink = "localhost:5000/play?gameId=" + theGame.gameId;
-            var data = {
-                maxPlayers: theGame.playerCount,
-                currentPlayers: theGame.playerSockets.length,
-                gameLink: gameLink,
-            };
-            socket.emit('waiting for game', data);
-        });
-
-        socket.on("Join Game", function (gameId) {
-            if (gameId in games && games[gameId].type === 'create game') {
-                //Add the new player to the sessions object and connect them to the game
-                sessions[sessionID] = { socket: socket, gameId: gameId };
-                var theGame = games[gameId];
-                theGame.connectPlayer(socket);
-                if (theGame.players.length === theGame.playerCount) {
-                    theGame.start();
-                }
-            }
-        });
-
-        socket.on("Single Player", function (gameId) {
-            //Add the new player to the sessions object
-            // Create a new game and with the player who created it
-            var gameId = uid.sync(24);
-            sessions[sessionID] = { socket: socket, gameId: gameId };
-            var theGame = new Game({
-                io: io,
-                type: 'single player',
-                gameId: gameId,
-                playerSockets: [socket],
-                gameEnded: gameEnded
-            });
-            theGame.start();
-            games[gameId] = theGame;
-        });
-
-        // Logic to handle quickmatch
-        socket.on("Quick Match", function () {
-            // If their sessionID is not in sessions - the player has just connected
-            if (!(sessionID in sessions)) {
-                // Increase the total player count since a new player arrived
-                playerCount += 1;
-                //Add the new player to the sessions object
-                sessions[sessionID] = { socket: socket, gameId: undefined };
-
-                // Check if there enough players for a new quickmatch game
-                if (playerCount % PLAYERS_PER_GAME === 0) {
-
-                    // Create a list of all the players who are not in a game
-                    var players = [];
-                    Object.keys(sessions).forEach(function (key, index) {
-                        if (!sessions[key].gameId) {
-                            // Add them to the players list and store them in the sessions object
-                            players.push(sessions[key].socket);
-                            sessions[key].gameId = playerCount;
-                        }
-                    });
-
-                    // Create a new game with the players who are not in a game
-                    var theGame = new Game({
-                        io: io,
-                        type: 'quick match',
-                        gameId: playerCount,
-                        playerSockets: players,
-                        gameEnded: gameEnded
-                    });
-
-                    // Start the game and add it to the games object
-                    theGame.start();
-                    games[playerCount] = theGame;
-                }
-            } else {
-                // If a player already has a session in sessions they are reconnecting
-                if (sessions[sessionID].gameId) {
-                    // Store their old socket to a variable to be used to reconnect
-                    var oldSocket = sessions[sessionID].socket;
-                    // Update their socket
-                    sessions[sessionID].socket = socket;
-                    // Player is in a game currently - reconnect them
-                    games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
-                } else {
-                    // Player is not in a game, just update their socket 
-                    sessions[sessionID].socket = socket;
-                }
-            }
-        });
-    }
+io.on('connection', (socket) => {
+    connectionHandler.handleConnection(socket);
 });
 
-// Reload code here
 reload(app);
