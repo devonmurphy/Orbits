@@ -39,7 +39,7 @@ button {
     font-weight:lighter;
   }
 
-  c {
+  b.waitingForGameLink {
     color:#fff;
     font-size: 36px;
     font-weight:lighter;

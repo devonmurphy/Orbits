@@ -19,7 +19,7 @@ class WaitingForGame extends Component {
           </div>
           }
         <div>
-            <c>{this.props.gameLink}</c>
+            <b className="waitingForGameLink">{this.props.gameLink}</b>
           </div>
         </div>
       )

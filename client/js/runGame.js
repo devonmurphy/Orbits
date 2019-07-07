@@ -194,7 +194,7 @@ socket.on('starting game', function (data) {
 
 var waitingForGame = function (data) {
     // Remove Game select btns and display canvas;
-    removeElementsByClass('GameSelectBtns');
+    ReactDOM.unmountComponentAtNode(document.getElementById('root'));
 
     // Reset canvas and draw background
     context.setTransform(1, 0, 0, 1, 0, 0);
@@ -222,8 +222,6 @@ var waitingForGame = function (data) {
         if (currentPlayers === maxPlayers) {
             document.getElementById('renderer').style.display = 'block';
         } else {
-            // Remove Game select btns and display canvas;
-            removeElementsByClass('GameSelectBtns');
             ReactDOM.render(
                 <WaitingForGame
                     currentPlayers={currentPlayers}
@@ -241,7 +239,7 @@ var waitingForGame = function (data) {
 
 var createGame = function () {
     // Remove Game select btns and display canvas;
-    removeElementsByClass('GameSelectBtns');
+    ReactDOM.unmountComponentAtNode(document.getElementById('root'));
 
     var onSubmit = function () {
         var playerCount = document.getElementById("playerCount").value;
