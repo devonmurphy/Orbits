@@ -16,6 +16,9 @@ class GameSelectBtns extends Component {
         <div>
           <button onClick={this.props.singlePlayerOnClick}><a>Single Player</a></button>
         </div>
+        <div>
+          <button onClick={this.props.createGameOnClick}><a>Create Game</a></button>
+        </div>
       </div>
     );
   }

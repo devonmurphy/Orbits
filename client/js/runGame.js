@@ -5,6 +5,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import GameSelectBtns from "./GameSelectBtns.js";
 import PlayAgainBtn from "./PlayAgainBtn.js";
+import CreateGameUI from "./CreateGameUI.js";
 
 function removeElementsByClass(className) {
     var elements = document.getElementsByClassName(className);
@@ -38,6 +39,7 @@ var createGameSelectBtns = function () {
         <GameSelectBtns
             quickMatchOnClick={quickMatchOnClick}
             singlePlayerOnClick={singlePlayerOnClick}
+            createGameOnClick={createGameOnClick}
         />,
         document.getElementById('root')
     );
@@ -210,6 +212,9 @@ var waitingForGame = function () {
 }
 
 var createGame = function () {
+    // Remove Game select btns and display canvas;
+    removeElementsByClass('GameSelectBtns')
+
     // Reset canvas and draw background
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -222,15 +227,19 @@ var createGame = function () {
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(gameScale, gameScale);
 
-    var textBox = document.createElement("INPUT");
-    textBox.setAttribute("type", "text");
-    textBox.id = "game name";
-    document.body.appendChild(textBox);
+    var submitOnClick = function () {
+        var gameName = document.getElementById("gameName").value;
+        console.log(gameName);
+        socket.emit('Create Game', gameName);
+    };
 
-    var submitGameName = createButton(0, 200, 'Submit', function () {
-        var gameName = document.getElementById("Submit").value;
-        socket.emit('create game', gameName);
-    });
+    ReactDOM.render(
+        <CreateGameUI
+            submitOnClick={submitOnClick}
+        />,
+        document.getElementById('root')
+    );
+
 }
 
 var gameModeSelection = function () {
