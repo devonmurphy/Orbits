@@ -10,6 +10,8 @@
     "googleapis": "^40.0.0",
     "knex": "^0.16.5",
     "pg": "^7.11.0",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
     "react-hot-loader": "^4.12.3",
     "socket.io": "^2.2.0",
     "uid-safe": "^2.1.5"
