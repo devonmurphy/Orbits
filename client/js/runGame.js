@@ -6,6 +6,7 @@ import ReactDOM from "react-dom";
 import GameSelectBtns from "./GameSelectBtns.js";
 import PlayAgainBtn from "./PlayAgainBtn.js";
 import CreateGameUI from "./CreateGameUI.js";
+import WaitingForGame from "./WaitingForGame.js";
 
 function removeElementsByClass(className) {
     var elements = document.getElementsByClassName(className);
@@ -186,14 +187,8 @@ socket.on('youwon', function (data) {
 });
 
 var waitingForGame = function (data) {
-    if (data) {
-        var currentPlayers = data.currentPlayers;
-        var maxPlayers = data.maxPlayers;
-        var gameLink = data.gameLink;
-    }
     // Remove Game select btns and display canvas;
-    removeElementsByClass('GameSelectBtns')
-    document.getElementById('renderer').style.display = 'block';
+    removeElementsByClass('GameSelectBtns');
 
     // Reset canvas and draw background
     context.setTransform(1, 0, 0, 1, 0, 0);
@@ -212,32 +207,35 @@ var waitingForGame = function (data) {
     canvas.style.letterSpacing = -10;
     context.textAlign = "center";
 
-    if (!data) {
-        context.fillText("WAITING FOR OPPONENT...", 0, -5000);
+    if (data) {
+        var currentPlayers = data.currentPlayers;
+        var maxPlayers = data.maxPlayers;
+        var gameLink = data.gameLink;
+        console.log(maxPlayers);
+        console.log(currentPlayers);
+        if (currentPlayers === maxPlayers) {
+            document.getElementById('renderer').style.display = 'block';
+        } else {
+            // Remove Game select btns and display canvas;
+            removeElementsByClass('GameSelectBtns');
+            ReactDOM.render(
+                <WaitingForGame
+                    currentPlayers={currentPlayers}
+                    maxPlayers={maxPlayers}
+                    gameLink={gameLink}
+                />,
+                document.getElementById('root')
+            );
+        }
     } else {
-        context.fillText("WAITING FOR OPPONENTS...", 0, -5000);
-        context.fillText(currentPlayers + "/" + maxPlayers, 0, -3000);
-        context.font = "1000px Garamond Pro";
-        context.fillText(gameLink, 0, -1000);
+        document.getElementById('renderer').style.display = 'block';
+        context.fillText("WAITING FOR OPPONENT...", 0, -5000);
     }
-
 }
 
 var createGame = function () {
     // Remove Game select btns and display canvas;
-    removeElementsByClass('GameSelectBtns')
-
-    // Reset canvas and draw background
-    context.setTransform(1, 0, 0, 1, 0, 0);
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = outOfBoundsColor;
-    context.beginPath();
-    context.rect(0, 0, canvas.width, canvas.height);
-    context.fill();
-
-    // Move canvas origin to center and zoom out
-    context.translate(canvas.width / 2, canvas.height / 2);
-    context.scale(gameScale, gameScale);
+    removeElementsByClass('GameSelectBtns');
 
     var onSubmit = function () {
         var playerCount = document.getElementById("playerCount").value;
@@ -252,26 +250,9 @@ var createGame = function () {
     );
 }
 
-var gameModeSelection = function () {
-    // Reset canvas and draw background
-    context.setTransform(1, 0, 0, 1, 0, 0);
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = outOfBoundsColor;
-    context.beginPath();
-    context.rect(0, 0, canvas.width, canvas.height);
-    context.fill();
-
-    // Move canvas origin to center and zoom out
-    context.translate(canvas.width / 2, canvas.height / 2);
-    context.scale(gameScale, gameScale);
-
-    createGameSelectBtns();
-}
-
-
 // Render waiting for game screen
 socket.on('game mode selection', function () {
-    gameModeSelection();
+    createGameSelectBtns();
 });
 
 // Render waiting for game screen

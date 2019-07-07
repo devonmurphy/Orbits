@@ -142,17 +142,20 @@ io.on('connection', function (socket) {
                 // Update their socket
                 sessions[sessionID].socket = socket;
                 // Player is in a game currently - reconnect them
-                console.log('player in game');
                 var theGame = games[sessions[sessionID].gameId];
                 theGame.reconnectPlayer(socket, oldSocket);
 
-                var gameLink = "localhost:5000/game?" + theGame.gameId;
-                var data = {
-                    maxPlayers: theGame.playerCount,
-                    currentPlayers: theGame.playerSockets.length,
-                    gameLink: gameLink,
-                };
-                socket.emit('waiting for game', data);
+                if (theGame.type === 'create game') {
+                    var gameLink = "localhost:5000/game?" + theGame.gameId;
+                    var data = {
+                        maxPlayers: theGame.playerCount,
+                        currentPlayers: theGame.playerSockets.length,
+                        gameLink: gameLink,
+                    };
+                    socket.emit('waiting for game', data);
+                } else {
+                    socket.emit('waiting for game');
+                }
             } else {
                 console.log('player not in game');
                 // Player is not in a game, just update their socket 
