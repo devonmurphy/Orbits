@@ -11,6 +11,7 @@ class Game {
         this.playerCount = opts.playerCount;
         this.gameEnded = opts.gameEnded;
         this.type = opts.type;
+        this.autoStart = opts.autoStart;
 
         // Containers used for game state
         this.players = {};
@@ -99,7 +100,7 @@ class Game {
     // Create a new player
     spawnPlayer(socket) {
         // Spawn player in a circlular orbit based on which player they are in game
-        var playerCount = Object.keys(this.playerSockets).length;
+        var playerCount = this.playerSockets.length;
         var playerNumber = Object.keys(this.players).length;
         var playerOffsetX = Math.cos(2 * Math.PI * playerNumber / playerCount);
         var playerOffsetY = Math.sin(2 * Math.PI * playerNumber / playerCount);
@@ -255,6 +256,9 @@ class Game {
     }
 
     connectPlayer(socket) {
+        if (!this.playerSockets.includes(socket)) {
+            this.playerSockets.push(socket);
+        }
         Object.assign(socket, this);
         socket.join(this.gameId);
 
@@ -273,9 +277,16 @@ class Game {
 
         // Spawn the player on the map
         this.spawnPlayer(socket);
+        if (this.autoStart && this.playerCount === this.playerSockets.length) {
+            this.start();
+        }
     }
 
     reconnectPlayer(socket, oldSocket) {
+        if (!oldSocket) {
+            this.connectPlayer(socket);
+            return;
+        }
         Object.assign(socket, this);
         socket.join(this.gameId);
 
@@ -340,6 +351,7 @@ class Game {
 
     // Update the game state every 15 ms
     start() {
+        this.io.sockets.in(this.gameId).emit('starting game');
         this.gameLoop = setInterval(() => {
             this.checkIfAsteroidSpawns();
 
@@ -435,7 +447,7 @@ class Game {
 
                         // if Single player mode increase score or decrease strikes
                         if (this.type === 'single player') {
-                            if (players[collisions[i].hitBy] && collisions[i].id === 'asteroid' ){
+                            if (players[collisions[i].hitBy] && collisions[i].id === 'asteroid') {
                                 players[collisions[i].hitBy].score += 1;
                             } else {
                                 if (collisions[i].hitBy === 'planet') {

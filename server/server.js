@@ -54,6 +54,19 @@ app.get('/', function (request, response) {
 });
 
 // Routing to game
+app.get('/play', function (request, response) {
+    if (request.sessionID && request.query) {
+        var gameId = request.query.gameId;
+        if (games[gameId]) {
+            response.sendFile(path.join(__dirname, '../client/html/game.html'));
+            sessions[request.sessionID] = { socket: undefined, gameId: gameId };
+            return;
+        }
+    }
+    response.sendFile(path.join(__dirname, '../client/html/game.html'));
+});
+
+// Routing to game
 app.get('/game', function (request, response) {
     if (app.get('env') !== 'production') {
         if (request.sessionID) {
@@ -146,7 +159,7 @@ io.on('connection', function (socket) {
                 theGame.reconnectPlayer(socket, oldSocket);
 
                 if (theGame.type === 'create game') {
-                    var gameLink = "localhost:5000/game?" + theGame.gameId;
+                    var gameLink = "localhost:5000/play?gameId=" + theGame.gameId;
                     var data = {
                         maxPlayers: theGame.playerCount,
                         currentPlayers: theGame.playerSockets.length,
@@ -190,12 +203,13 @@ io.on('connection', function (socket) {
                 type: 'create game',
                 gameId: gameId,
                 playerSockets: [socket],
-                playerCount: playerCount,
-                gameEnded: gameEnded
+                playerCount: parseInt(playerCount),
+                gameEnded: gameEnded,
+                autoStart: true
             });
             games[gameId] = theGame;
 
-            var gameLink = "localhost:5000/game?" + theGame.gameId;
+            var gameLink = "localhost:5000/play?gameId=" + theGame.gameId;
             var data = {
                 maxPlayers: theGame.playerCount,
                 currentPlayers: theGame.playerSockets.length,

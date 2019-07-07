@@ -186,6 +186,12 @@ socket.on('youwon', function (data) {
     playerWon = true;
 });
 
+// Receive you won
+socket.on('starting game', function (data) {
+    document.getElementById('renderer').style.display = 'block';
+    console.log('staring game');
+});
+
 var waitingForGame = function (data) {
     // Remove Game select btns and display canvas;
     removeElementsByClass('GameSelectBtns');
