@@ -101,7 +101,7 @@ class Game {
     // Create a new player
     spawnPlayer(socket) {
         // Spawn player in a circlular orbit based on which player they are in game
-        var playerCount = this.playerSockets.length;
+        var playerCount = this.playerCount;
         var playerNumber = Object.keys(this.players).length;
         var playerOffsetX = Math.cos(2 * Math.PI * playerNumber / playerCount);
         var playerOffsetY = Math.sin(2 * Math.PI * playerNumber / playerCount);
