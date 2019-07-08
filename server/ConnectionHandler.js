@@ -127,6 +127,7 @@ class ConnectionHandler {
                         type: 'quick match',
                         gameId: gameId,
                         playerSockets: players,
+                        playerCount: 2,
                         gameEnded: gameEnded
                     });
 
