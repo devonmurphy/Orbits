@@ -162,17 +162,26 @@ class ConnectionHandler {
             if (sessionID in sessions) {
                 // If a player already has a session in sessions they are reconnecting
                 if (sessions[sessionID].gameId) {
-                    // Store their old socket to a variable to be used to reconnect
-                    var oldSocket = sessions[sessionID].socket;
-                    // Update their socket
-                    sessions[sessionID].socket = socket;
+
                     // Player is in a game currently - reconnect them
                     var theGame = games[sessions[sessionID].gameId];
-                    theGame.reconnectPlayer(socket, oldSocket);
 
                     if (theGame.type === 'create game') {
+                        var oldSocket = sessions[sessionID].socket;
+                        if(!oldSocket){
+                            sessions[sessionID].socket = socket;
+                            theGame.connectPlayer(socket);
+                        } else {
+                            sessions[sessionID].socket = socket;
+                            theGame.reconnectPlayer(socket, oldSocket);
+                        }
                         this.sendWaitingForGame(theGame);
                     } else {
+                        // Store their old socket to a variable to be used to reconnect
+                        var oldSocket = sessions[sessionID].socket;
+                        // Update their socket
+                        sessions[sessionID].socket = socket;
+                        theGame.reconnectPlayer(socket, oldSocket);
                         socket.emit('waiting for game');
                     }
                 } else {

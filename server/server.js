@@ -55,12 +55,12 @@ app.get('/play', function (request, response) {
     if (request.sessionID && request.query) {
         var gameId = request.query.gameId;
         if (games[gameId]) {
-            response.sendFile(path.join(__dirname, '../client/html/game.html'));
+            response.redirect('/game');
             sessions[request.sessionID] = { socket: undefined, gameId: gameId };
             return;
         }
     }
-    response.sendFile(path.join(__dirname, '../client/html/game.html'));
+    response.redirect('/game');
 });
 
 // Routing to game
@@ -128,9 +128,9 @@ var sessions = {};
 var games = {};
 
 var connectionHandler = new ConnectionHandler({
-    io:io,
-    sessions:sessions,
-    games:games,
+    io: io,
+    sessions: sessions,
+    games: games,
 });
 
 // Setup handlers to catch players joining and control input
