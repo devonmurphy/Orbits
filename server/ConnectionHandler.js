@@ -4,6 +4,7 @@ var uid = require('uid-safe')
 var Game = require('./Game.js');
 
 var PLAYERS_PER_GAME = 2;
+var DOMAIN = "192.168.0.29:5000"
 
 class ConnectionHandler {
     constructor(opts) {
@@ -13,7 +14,7 @@ class ConnectionHandler {
     }
 
     sendWaitingForGame(theGame) {
-        var gameLink = "localhost:5000/play?gameId=" + theGame.gameId;
+        var gameLink = DOMAIN + "/play?gameId=" + theGame.gameId;
         var data = {
             maxPlayers: theGame.playerCount,
             currentPlayers: theGame.playerSockets.length,
@@ -170,7 +171,7 @@ class ConnectionHandler {
 
                     if (theGame.type === 'create game') {
                         var oldSocket = sessions[sessionID].socket;
-                        if(!oldSocket){
+                        if (!oldSocket) {
                             sessions[sessionID].socket = socket;
                             theGame.connectPlayer(socket);
                         } else {

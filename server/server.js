@@ -17,6 +17,7 @@ var io = require('socket.io')(server);
 var ConnectionHandler = require('./ConnectionHandler.js');
 
 var PORT = 5000;
+var DOMAIN = '192.168.0.29';
 
 var db = new database();
 db.connect();
