@@ -11,13 +11,13 @@ class GameSelectBtns extends Component {
     return (
       <div className="GameSelectBtns">
         <div>
-          <button onClick={this.props.quickMatchOnClick}><a>Quick Match</a></button>
+          <button onClick={this.props.quickMatchOnClick}><a>QUICK MATCH</a></button>
         </div>
         <div>
-          <button onClick={this.props.singlePlayerOnClick}><a>Single Player</a></button>
+          <button onClick={this.props.singlePlayerOnClick}><a>SINGLE PLAYER</a></button>
         </div>
         <div>
-          <button onClick={this.props.createGameOnClick}><a>Create Game</a></button>
+          <button onClick={this.props.createGameOnClick}><a>CREATE GAME</a></button>
         </div>
       </div>
     );

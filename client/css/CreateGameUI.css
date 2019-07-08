@@ -23,7 +23,6 @@ form {
   min-width: 200px;
   box-sizing: border-box;
   padding: 30px 25px;
-  background-color: black;
   border-radius: 40px;
   margin: 40px 0;
   left: 50%;
@@ -125,7 +124,6 @@ form .question input:focus ~ label {
   transform: translate(0, -35px);
 }
 form .question input:valid ~ label {
-  font-style: italic;
   -moz-transform: translate(5px, -35px);
   -ms-transform: translate(5px, -35px);
   -webkit-transform: translate(5px, -35px);

@@ -12,9 +12,9 @@ class CreateGameUI extends Component {
       <form onSubmit={this.props.onSubmit}>
         <div className="question">
           <input id="playerCount" type="number" required min="2" max="100" defaultValue="2"/>
-          <label>Number Of Players</label>
+          <label>PLAYERS</label>
         </div>
-        <button>Submit</button>
+        <button>SUBMIT</button>
       </form>
     )
   }
