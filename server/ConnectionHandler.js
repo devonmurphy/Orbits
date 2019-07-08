@@ -90,6 +90,7 @@ class ConnectionHandler {
                 io: this.io,
                 type: 'single player',
                 gameId: gameId,
+                playerCount: 1,
                 playerSockets: [socket],
                 gameEnded: gameEnded
             });
