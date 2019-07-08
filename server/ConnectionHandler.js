@@ -12,11 +12,23 @@ class ConnectionHandler {
         this.io = opts.io;
     }
 
+    sendWaitingForGame(theGame) {
+        var gameLink = "localhost:5000/play?gameId=" + theGame.gameId;
+        var data = {
+            maxPlayers: theGame.playerCount,
+            currentPlayers: theGame.playerSockets.length,
+            gameLink: gameLink,
+        };
+        // Send the game state to the client to be rendered
+        this.io.sockets.in(theGame.gameId).emit('waiting for game', data);
+    }
+
     setupSocketHandlers(socket) {
         var games = this.games;
         var sessions = this.sessions;
         var sessionID = socket.handshake.sessionID;
         // This callback function is ran when the game ends
+
         var gameEnded = function (gameId) {
             console.log('game id ended: ' + gameId);
             Object.keys(sessions).forEach(function (key, index) {
@@ -28,6 +40,7 @@ class ConnectionHandler {
             // Remove the game from the games object
             delete games[gameId];
         }
+
         socket.on("logout", function (userdata) {
             if (socket.handshake.session.userdata) {
                 delete socket.handshake.session.userdata;
@@ -53,13 +66,7 @@ class ConnectionHandler {
             });
             games[gameId] = theGame;
 
-            var gameLink = "localhost:5000/play?gameId=" + theGame.gameId;
-            var data = {
-                maxPlayers: theGame.playerCount,
-                currentPlayers: theGame.playerSockets.length,
-                gameLink: gameLink,
-            };
-            socket.emit('waiting for game', data);
+            this.sendWaitingForGame(theGame);
         });
 
         socket.on("Join Game", (gameId) => {
@@ -164,13 +171,7 @@ class ConnectionHandler {
                     theGame.reconnectPlayer(socket, oldSocket);
 
                     if (theGame.type === 'create game') {
-                        var gameLink = "localhost:5000/play?gameId=" + theGame.gameId;
-                        var data = {
-                            maxPlayers: theGame.playerCount,
-                            currentPlayers: theGame.playerSockets.length,
-                            gameLink: gameLink,
-                        };
-                        socket.emit('waiting for game', data);
+                        this.sendWaitingForGame(theGame);
                     } else {
                         socket.emit('waiting for game');
                     }
