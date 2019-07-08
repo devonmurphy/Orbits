@@ -1,7 +1,7 @@
 // Dependencies
 var uid = require('uid-safe')
 // Server dependencies
-var Game = require('./game.js');
+var Game = require('./Game.js');
 
 var PLAYERS_PER_GAME = 2;
 

@@ -9,7 +9,7 @@ var uid = require('uid-safe')
 
 // Server dependencies
 var googleapi = require('./google-utils')
-var database = require('./database')
+var database = require('./DataBaseController')
 
 var app = require('express')();
 var server = require('http').Server(app);

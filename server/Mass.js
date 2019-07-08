@@ -214,27 +214,4 @@ class Mass {
     }
 
 };
-
-class Planet {
-    constructor(x, y, radius, mass) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.mass = mass;
-        this.id = 'planet';
-    }
-
-    addForce(player) {
-        var dist = Math.sqrt(Math.pow(player.x, 2) + Math.pow(player.y, 2));
-        var gravity = {
-            x: -this.mass * player.x / (dist * dist * dist),
-            y: -this.mass * player.y / (dist * dist * dist),
-        };
-
-        // Update the player state
-        player.addForce(gravity);
-    }
-
-};
-
-module.exports = { Planet, Mass }
+module.exports = Mass;

@@ -1,5 +1,6 @@
-var orbit = require('./orbits.js');
-var map = require('./map.js');
+var Mass = require('./Mass.js');
+var Planet = require('./Planet.js');
+var Map = require('./Map.js');
 var utils = require('./utils.js');
 
 class Game {
@@ -21,7 +22,7 @@ class Game {
         // Game constants
         this.earthRadius = 1500;
         this.mass = 5000000000;
-        this.planet = new orbit.Planet(0, 0, this.earthRadius, this.mass);
+        this.planet = new Planet(0, 0, this.earthRadius, this.mass);
 
         // Player constants
         this.playerRadius = 350;
@@ -51,7 +52,7 @@ class Game {
         this.strikes = (this.type === 'single player' ? 0 : null);
         this.maxStrikes = (this.type === 'single player' ? 3 : null);
 
-        this.map = new map.Map(this.gridSize, this.gridCount, this.mapRadius);
+        this.map = new Map(this.gridSize, this.gridCount, this.mapRadius);
 
         this.connectAllPlayers();
     }
@@ -79,7 +80,7 @@ class Game {
             var startingDistX = (Math.random() > .5 ? -1 : 1) * startingDist * (XYRatio);
             var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio * XYRatio));
 
-            var asteroid = new orbit.Mass(
+            var asteroid = new Mass(
                 startingDistX,
                 startingDistY,
                 this.asteroidRadius);
@@ -104,7 +105,7 @@ class Game {
         var playerNumber = Object.keys(this.players).length;
         var playerOffsetX = Math.cos(2 * Math.PI * playerNumber / playerCount);
         var playerOffsetY = Math.sin(2 * Math.PI * playerNumber / playerCount);
-        var sharedPlayer = new orbit.Mass(this.startingDist * playerOffsetX, this.startingDist * playerOffsetY, this.playerRadius);
+        var sharedPlayer = new Mass(this.startingDist * playerOffsetX, this.startingDist * playerOffsetY, this.playerRadius);
 
         // Calculate velocity for circular orbit
         var dist = Math.sqrt(Math.pow(sharedPlayer.x, 2) + Math.pow(sharedPlayer.y, 2));
@@ -222,7 +223,7 @@ class Game {
                     if (currentTime - player.lastMouseUpTime > this.fireRate && players[id].bulletCount !== 0) {
                         players[id].bulletCount -= 1;
                         player.lastMouseUpTime = currentTime;
-                        var bullet = new orbit.Mass(player.x, player.y, this.bulletRadius);
+                        var bullet = new Mass(player.x, player.y, this.bulletRadius);
                         bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                         bullet.id = socket.id;
                         bullet.type = "bullet"
@@ -401,7 +402,7 @@ class Game {
 
                 // Player mouse is down - calculate the shooting orbit
                 if (player.leftMouseDown === true) {
-                    var bullet = new orbit.Mass(player.x, player.y, this.bulletRadius);
+                    var bullet = new Mass(player.x, player.y, this.bulletRadius);
                     var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                     shootingOrbits[id] = utils.deepCopy(orbitParams);
                 }
