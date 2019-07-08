@@ -38,6 +38,6 @@
     "build": "webpack --node development",
     "watch": "npm-run-all -p nodemon watch:frontEnd"
   },
-  "author": "",
+  "author": "Devon Murphy",
   "license": "ISC"
 }
