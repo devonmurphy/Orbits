@@ -41,7 +41,6 @@ form h1 {
 form button {
   margin-top: 35px;
   background-color: black;
-  border: 1px solid white;
   line-height: 0;
   font-size: 17px;
   display: inline-block;
