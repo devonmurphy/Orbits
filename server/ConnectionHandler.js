@@ -7,7 +7,6 @@ var PLAYERS_PER_GAME = 2;
 
 class ConnectionHandler {
     constructor(opts) {
-        this.playerCount = 0;
         this.sessions = opts.sessions;
         this.games = opts.games;
         this.io = opts.io;
@@ -16,7 +15,6 @@ class ConnectionHandler {
     setupSocketHandlers(socket) {
         var games = this.games;
         var sessions = this.sessions;
-        var playerCount = this.playerCount;
         var sessionID = socket.handshake.sessionID;
         // This callback function is ran when the game ends
         var gameEnded = function (gameId) {
@@ -98,23 +96,21 @@ class ConnectionHandler {
             // If their sessionID is not in sessions - the player has just connected
             if (!(sessionID in sessions)) {
                 console.log('new player');
-                // Increase the total player count since a new player arrived
-                this.playerCount += 1;
                 //Add the new player to the sessions object
                 sessions[sessionID] = { socket: socket, gameId: undefined };
-                console.log(this.playerCount);
 
                 // Check if there enough players for a new quickmatch game
-                if (this.playerCount % PLAYERS_PER_GAME === 0) {
+                if (Object.keys(sessions).length % PLAYERS_PER_GAME === 0) {
                     console.log('starting game');
 
                     // Create a list of all the players who are not in a game
                     var players = [];
+                    var gameId = uid.sync(24);
                     Object.keys(sessions).forEach((key, index) => {
                         if (!sessions[key].gameId) {
                             // Add them to the players list and store them in the sessions object
                             players.push(sessions[key].socket);
-                            sessions[key].gameId = this.playerCount;
+                            sessions[key].gameId = gameId;
                         }
                     });
 
@@ -122,14 +118,14 @@ class ConnectionHandler {
                     var theGame = new Game({
                         io: this.io,
                         type: 'quick match',
-                        gameId: this.playerCount,
+                        gameId: gameId,
                         playerSockets: players,
                         gameEnded: gameEnded
                     });
 
                     // Start the game and add it to the games object
                     theGame.start();
-                    games[this.playerCount] = theGame;
+                    games[gameId] = theGame;
                 }
             } else {
                 console.log('old player');
