@@ -2,9 +2,11 @@
 var uid = require('uid-safe')
 // Server dependencies
 var Game = require('./Game.js');
+var utils = require('./utils.js');
 
 var PLAYERS_PER_GAME = 2;
-var DOMAIN = "192.168.0.29:5000"
+var DOMAIN = utils.getIPAddress();
+var PORT = 5000;
 
 class ConnectionHandler {
     constructor(opts) {
@@ -14,7 +16,7 @@ class ConnectionHandler {
     }
 
     sendWaitingForGame(theGame) {
-        var gameLink = DOMAIN + "/play?gameId=" + theGame.gameId;
+        var gameLink = DOMAIN + ":" + PORT + "/play?gameId=" + theGame.gameId;
         var data = {
             maxPlayers: theGame.playerCount,
             currentPlayers: theGame.playerSockets.length,
