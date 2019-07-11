@@ -5,11 +5,7 @@ var Game = require('./Game.js');
 var utils = require('./utils.js');
 
 var PLAYERS_PER_GAME = 2;
-if (app.get('env') !== 'production') {
-    var DOMAIN = utils.getIPAddress();
-} else {
-    var DOMAIN = process.env.DOMAIN;
-}
+var DOMAIN = utils.getIPAddress();
 var PORT = 5000;
 
 class ConnectionHandler {
