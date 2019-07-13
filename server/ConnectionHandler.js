@@ -34,10 +34,10 @@ class ConnectionHandler {
 
         var gameEnded = function (gameId) {
             console.log('game id ended: ' + gameId);
-            Object.keys(sessions).forEach(function (key, index) {
+            Object.keys(sessions).forEach(function (key) {
                 // Delete the sessions so they can rejoin other games
                 if (sessions[key].gameId === gameId) {
-                    delete sessions[key];
+                    sessions[key].gameId = undefined;
                 }
             });
             // Remove the game from the games object
