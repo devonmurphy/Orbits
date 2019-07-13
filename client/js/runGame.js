@@ -7,6 +7,7 @@ import GameSelectBtns from "./GameSelectBtns.js";
 import PlayAgainBtn from "./PlayAgainBtn.js";
 import CreateGameUI from "./CreateGameUI.js";
 import WaitingForGame from "./WaitingForGame.js";
+import Login from "./Login.js";
 
 function removeElementsByClass(className) {
     var elements = document.getElementsByClassName(className);
@@ -40,6 +41,22 @@ var createGameSelectBtns = function () {
             quickMatchOnClick={quickMatchOnClick}
             singlePlayerOnClick={singlePlayerOnClick}
             createGameOnClick={createGameOnClick}
+        />,
+        document.getElementById('root')
+    );
+}
+
+var createLogin = function () {
+
+    var onSubmit = () => {
+        var inGameName = document.getElementById("inGameName").value;
+        socket.emit('login', inGameName);
+        console.log(inGameName);
+    }
+
+    ReactDOM.render(
+        <Login
+            onSubmit={onSubmit}
         />,
         document.getElementById('root')
     );
@@ -253,6 +270,11 @@ var createGame = function () {
         document.getElementById('root')
     );
 }
+
+// Render waiting for game screen
+socket.on('login', function () {
+    createLogin();
+});
 
 // Render waiting for game screen
 socket.on('game mode selection', function () {
