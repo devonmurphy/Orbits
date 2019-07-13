@@ -13,6 +13,7 @@ class ConnectionHandler {
         this.sessions = opts.sessions;
         this.games = opts.games;
         this.io = opts.io;
+        this.quickMatchPlayers = 0;
     }
 
     sendWaitingForGame(theGame) {
@@ -114,7 +115,8 @@ class ConnectionHandler {
             console.log('quick match received');
 
             if ((sessionID in sessions) && (!sessions[sessionID].gameId)) {
-                if ((Object.keys(sessions).length - 1) % PLAYERS_PER_GAME === 0) {
+                this.quickMatchPlayers += 1;
+                if (this.quickMatchPlayers - 1 % PLAYERS_PER_GAME === 0) {
                     var gameId = uid.sync(24);
                     this.currentQuickMatch = gameId;
                     console.log('new player');
