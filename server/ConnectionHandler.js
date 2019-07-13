@@ -143,51 +143,16 @@ class ConnectionHandler {
                     theGame.connectPlayer(socket);
                 }
 
-                // Check if there enough players for a new quickmatch game
-                if (Object.keys(sessions).length % PLAYERS_PER_GAME === 0) {
-                    console.log('starting game');
-
-                    // Create a list of all the players who are not in a game
-                    var players = [];
-                    var gameId = uid.sync(24);
-                    Object.keys(sessions).forEach((key, index) => {
-                        if (!sessions[key].gameId) {
-                            // Add them to the players list and store them in the sessions object
-                            players.push(sessions[key].socket);
-                            sessions[key].gameId = gameId;
-                        }
-                    });
-
-                    // Create a new game with the players who are not in a game
-                    var theGame = new Game({
-                        io: this.io,
-                        type: 'quick match',
-                        gameId: gameId,
-                        playerSockets: players,
-                        playerCount: 2,
-                        gameEnded: gameEnded
-                    });
-
-                    // Start the game and add it to the games object
-                    theGame.start();
-                    games[gameId] = theGame;
-                }
-            } else {
+            } else if ((sessionID in sessions) && (sessions[sessionID].gameId)) {
                 console.log('old player');
-                // If a player already has a session in sessions they are reconnecting
-                if (sessions[sessionID].gameId) {
-                    // Store their old socket to a variable to be used to reconnect
-                    var oldSocket = sessions[sessionID].socket;
-                    // Update their socket
-                    sessions[sessionID].socket = socket;
-                    // Player is in a game currently - reconnect them
-                    games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
-                    console.log('in game reconncting');
-                } else {
-                    // Player is not in a game, just update their socket 
-                    sessions[sessionID].socket = socket;
-                    console.log('not in game!');
-                }
+                // If a player already has a gameId and session then they are reconnecting
+                // Store their old socket to a variable to be used to reconnect
+                var oldSocket = sessions[sessionID].socket;
+                // Update their socket
+                sessions[sessionID].socket = socket;
+                // Player is in a game currently - reconnect them
+                games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
+                console.log('in game reconnecting');
             }
         });
     }
