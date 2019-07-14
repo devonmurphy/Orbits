@@ -119,7 +119,8 @@ class ConnectionHandler {
 
             if ((sessionID in sessions) && (!sessions[sessionID].gameId)) {
                 this.quickMatchPlayers += 1;
-                if (this.quickMatchPlayers - 1 % PLAYERS_PER_GAME === 0) {
+                console.log(this.quickMatchPlayers);
+                if ((this.quickMatchPlayers - 1) % PLAYERS_PER_GAME === 0) {
                     var gameId = uid.sync(24);
                     this.currentQuickMatch = gameId;
                     console.log('new player');
