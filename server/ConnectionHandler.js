@@ -156,7 +156,7 @@ class ConnectionHandler {
                 // Update their socket
                 sessions[sessionID].socket = socket;
                 // Player is in a game currently - reconnect them
-                games[sessions[sessionID].gameId].reconnectPlayer(socket, oldSocket);
+                theGame.reconnectPlayer(socket, oldSocket, sessions[sessionID]);
                 console.log('in game reconnecting');
             }
         });
@@ -175,21 +175,22 @@ class ConnectionHandler {
                     if (!sessions[sessionID].name) {
                         // Player has not logged in yet
                         socket.emit('login');
-                        console.log('player hasnted logged in yet');
+                        console.log('player hasnt logged in yet');
                     } else {
                         // Player is in a game currently - reconnect them
                         var theGame = games[sessions[sessionID].gameId];
 
                         if (theGame.type === 'create game') {
                             var oldSocket = sessions[sessionID].socket;
+                            console.log(oldSocket.id);
                             if (!oldSocket) {
                                 sessions[sessionID].socket = socket;
                                 theGame.connectPlayer(sessions[sessionID]);
                             } else {
-                                if(theGame.playerSockets.includes(oldSocket)){
+                                if (oldSocket.id in theGame.players) {
                                     console.log('player in game already')
                                     sessions[sessionID].socket = socket;
-                                    theGame.reconnectPlayer(socket, oldSocket);
+                                    theGame.reconnectPlayer(socket, oldSocket, sessions[sessionID]);
                                 } else {
                                     console.log('player not in game yet')
                                     sessions[sessionID].socket = socket;
@@ -202,7 +203,7 @@ class ConnectionHandler {
                             var oldSocket = sessions[sessionID].socket;
                             // Update their socket
                             sessions[sessionID].socket = socket;
-                            theGame.reconnectPlayer(socket, oldSocket);
+                            theGame.reconnectPlayer(socket, oldSocket, sessions[sessionID]);
                             socket.emit('waiting for game');
                         }
                     }

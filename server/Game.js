@@ -284,11 +284,7 @@ class Game {
         }
     }
 
-    reconnectPlayer(socket, oldSocket) {
-        if (!oldSocket) {
-            console.log('THERE WAS NO OLD SOCKET ERROR!')
-            return;
-        }
+    reconnectPlayer(socket, oldSocket, player) {
         Object.assign(socket, this);
         socket.join(this.gameId);
 
@@ -306,8 +302,13 @@ class Game {
         });
 
         // Copy old player object and reset the player id
-        this.players[socket.id] = utils.deepCopy(this.players[oldSocket.id]);
-        this.players[socket.id].player.id = socket.id;
+        if (oldSocket.id in this.players) {
+            this.players[socket.id] = utils.deepCopy(this.players[oldSocket.id]);
+            this.players[socket.id].player.id = socket.id;
+        } else {
+            this.connectPlayer(player);
+            return;
+        }
 
         // Update all of the old bullet ids to the new id
         for (var bullet = 0; bullet < this.bullets.length; bullet++) {
