@@ -69,13 +69,12 @@ class ConnectionHandler {
                 io: this.io,
                 type: 'create game',
                 gameId: gameId,
-                playerSockets: [socket],
                 playerCount: parseInt(playerCount),
                 gameEnded: gameEnded,
                 autoStart: true
             });
             games[gameId] = theGame;
-
+            theGame.connectPlayer(sessions[sessionID]);
             this.sendWaitingForGame(theGame);
         });
 
@@ -85,7 +84,7 @@ class ConnectionHandler {
                 sessions[sessionID].socket = socket;
                 sessions[sessionID].gameId = gameId;
                 var theGame = games[gameId];
-                theGame.connectPlayer(socket);
+                theGame.connectPlayer(sessions[sessionID]);
                 if (theGame.players.length === theGame.playerCount) {
                     theGame.start();
                 }
@@ -103,9 +102,9 @@ class ConnectionHandler {
                 type: 'single player',
                 gameId: gameId,
                 playerCount: 1,
-                playerSockets: [socket],
                 gameEnded: gameEnded
             });
+            theGame.connectPlayer(sessions[sessionID]);
             theGame.start();
             games[gameId] = theGame;
         });
@@ -129,20 +128,20 @@ class ConnectionHandler {
                         io: this.io,
                         type: 'quick match',
                         gameId: gameId,
-                        playerSockets: [socket],
-                        playerCount: 2,
+                        playerCount: PLAYERS_PER_GAME,
                         gameEnded: gameEnded,
                         autoStart: true
                     });
 
                     games[gameId] = theGame;
+                    theGame.connectPlayer(sessions[sessionID]);
                 } else {
                     var theGame = games[this.currentQuickMatch];
                     var gameId = theGame.gameId;
 
                     sessions[sessionID].socket = socket;
                     sessions[sessionID].gameId = gameId;
-                    theGame.connectPlayer(socket);
+                    theGame.connectPlayer(sessions[sessionID]);
                 }
 
             } else if ((sessionID in sessions) && (sessions[sessionID].gameId)) {
@@ -175,7 +174,7 @@ class ConnectionHandler {
                         var oldSocket = sessions[sessionID].socket;
                         if (!oldSocket) {
                             sessions[sessionID].socket = socket;
-                            theGame.connectPlayer(socket);
+                            theGame.connectPlayer(sessions[sessionID]);
                         } else {
                             sessions[sessionID].socket = socket;
                             theGame.reconnectPlayer(socket, oldSocket);

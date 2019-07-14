@@ -8,7 +8,6 @@ class Game {
         // Server side constants
         this.io = opts.io;
         this.gameId = opts.gameId;
-        this.playerSockets = opts.playerSockets;
         this.playerCount = opts.playerCount;
         this.gameEnded = opts.gameEnded;
         this.type = opts.type;
@@ -16,6 +15,7 @@ class Game {
 
         // Containers used for game state
         this.players = {};
+        this.playerSockets = [];
         this.shootingOrbits = {};
         this.bullets = [];
 
@@ -54,7 +54,6 @@ class Game {
 
         this.map = new Map(this.gridSize, this.gridCount, this.mapRadius);
 
-        this.connectAllPlayers();
     }
 
     calculateThrustForce(thrustPower, player) {
@@ -256,7 +255,8 @@ class Game {
         }
     }
 
-    connectPlayer(socket) {
+    connectPlayer(player) {
+        var socket = player.socket;
         if (!this.playerSockets.includes(socket)) {
             this.playerSockets.push(socket);
         }
@@ -285,7 +285,7 @@ class Game {
 
     reconnectPlayer(socket, oldSocket) {
         if (!oldSocket) {
-            this.connectPlayer(socket);
+            console.log('THERE WAS NO OLD SOCKET ERROR!')
             return;
         }
         Object.assign(socket, this);
@@ -319,11 +319,6 @@ class Game {
         delete this.players[oldSocket.id];
     }
 
-    connectAllPlayers() {
-        for (var i = 0; i < this.playerSockets.length; i++) {
-            this.connectPlayer(this.playerSockets[i]);
-        }
-    }
 
     checkIfGameEnds() {
         if (Object.keys(this.players).length === 1) {
