@@ -54,13 +54,19 @@ app.get('/', function (request, response) {
 app.get('/play', function (request, response) {
     if (request.sessionID && request.query) {
         var gameId = request.query.gameId;
-        if (games[gameId] && games[gameId].type === 'create game' && !(request.sessionID in sessions)) {
-            response.redirect('/game');
-            sessions[request.sessionID] = { socket: undefined, gameId: gameId };
-            return;
+        if (games[gameId] && games[gameId].type === 'create game') {
+            if (!(request.sessionID in sessions)) {
+                response.redirect('/game');
+                sessions[request.sessionID] = { socket: undefined, gameId: gameId };
+                return;
+            } else {
+                response.redirect('/game');
+                sessions[request.sessionID].gameId = gameId;
+                return;
+            }
         }
+        response.redirect('/game');
     }
-    response.redirect('/game');
 });
 
 // Routing to game
