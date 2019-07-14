@@ -1,10 +1,3 @@
-.transition, form button, form .question label, form .question input {
-  -moz-transition: all 0.25s cubic-bezier(0.53, 0.01, 0.35, 1.5);
-  -o-transition: all 0.25s cubic-bezier(0.53, 0.01, 0.35, 1.5);
-  -webkit-transition: all 0.25s cubic-bezier(0.53, 0.01, 0.35, 1.5);
-  transition: all 0.25s cubic-bezier(0.53, 0.01, 0.35, 1.5);
-}
-
 * {
   font-family: Garamond Pro;
   text-align: center;
@@ -26,10 +19,6 @@ form {
   border-radius: 40px;
   margin: 40px 0;
   left: 50%;
-  -moz-transform: translate(-50%, 0);
-  -ms-transform: translate(-50%, 0);
-  -webkit-transform: translate(-50%, 0);
-  transform: translate(-50%, 0);
 }
 form h1 {
   color: white;
@@ -53,20 +42,12 @@ form button {
   position: initial;
   z-index: 1;
 }
+
 form button:hover, form button:focus {
   color: black;
   background-color: white;
 }
-form .question {
-  position: relative;
-  padding: 10px 0;
-}
-form .question:first-of-type {
-  padding-top: 0;
-}
-form .question:last-of-type {
-  padding-bottom: 0;
-}
+
 form .question label {
   transform-origin: center;
   color: white;
@@ -80,51 +61,5 @@ form .question label {
   margin-top: -40px;
   z-index: 2;
   pointer-events: none;
-}
-form .question input {
-  appearance: none;
-  background-color: black;
-  border: 1px solid white;
-  line-height: 0;
-  font-size: 17px;
-  width: 100%;
-  display: block;
-  box-sizing: border-box;
-  padding: 10px 15px;
-  border-radius: 60px;
-  color: white;
-  font-weight: 100;
-  letter-spacing: 0.01em;
-  position: relative;
-  z-index: 1;
-}
-form .question input:focus {
-  outline: none;
-  background: white;
-  color: black;
-  margin-top: 30px;
-}
-form .question input:valid {
-  margin-top: 30px;
-}
-
-form .question input:invalid ~ label {
-  color:red;
-  -moz-transform: translate(0, -35px);
-  -ms-transform: translate(0, -35px);
-  -webkit-transform: translate(0, -35px);
   transform: translate(0, -35px);
-}
-
-form .question input:focus ~ label {
-  -moz-transform: translate(0, -35px);
-  -ms-transform: translate(0, -35px);
-  -webkit-transform: translate(0, -35px);
-  transform: translate(0, -35px);
-}
-form .question input:valid ~ label {
-  -moz-transform: translate(5px, -35px);
-  -ms-transform: translate(5px, -35px);
-  -webkit-transform: translate(5px, -35px);
-  transform: translate(5px, -35px);
 }
