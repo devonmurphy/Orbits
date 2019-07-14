@@ -327,6 +327,14 @@ var drawPlayers = function (players) {
 
         // Draw player
         var player = players[id].player;
+        var name = players[id].name;
+
+        // Draw Player name
+        context.font = "600px Verdana";
+        context.fillStyle = "white";
+        context.textAlign = "center";
+        context.fillText(name, player.x, -player.y - 600);
+
         if (socket.id === id) {
             context.fillStyle = playerColor;
         } else {

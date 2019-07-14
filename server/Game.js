@@ -98,7 +98,7 @@ class Game {
     }
 
     // Create a new player
-    spawnPlayer(socket) {
+    spawnPlayer(socket, playerName) {
         // Spawn player in a circlular orbit based on which player they are in game
         var playerCount = this.playerCount;
         var playerNumber = Object.keys(this.players).length;
@@ -119,6 +119,7 @@ class Game {
         var orbitParams = sharedPlayer.calculateOrbit(this.planet.mass);
         this.players[socket.id] = {
             player: utils.deepCopy(sharedPlayer),
+            name: playerName,
             orbitParams: utils.deepCopy(orbitParams),
             controls: { x: 0, y: 0 },
             shotPower: this.startingShotPower,
@@ -277,7 +278,7 @@ class Game {
         });
 
         // Spawn the player on the map
-        this.spawnPlayer(socket);
+        this.spawnPlayer(socket, player.name);
         if (this.autoStart && this.playerCount === this.playerSockets.length) {
             this.start();
         }

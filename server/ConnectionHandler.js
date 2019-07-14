@@ -53,8 +53,12 @@ class ConnectionHandler {
         });
 
         socket.on("login", function (name) {
-            sessions[sessionID] = { socket: socket, gameId: undefined, name: name };
-            console.log(name);
+            if (sessionID in sessions) {
+                sessions[sessionID].socket = socket;
+                sessions[sessionID].name = name
+            } else {
+                sessions[sessionID] = { socket: socket, name: name };
+            }
         });
 
         socket.on("Create Game", (playerCount) => {
@@ -167,26 +171,40 @@ class ConnectionHandler {
                 // If a player already has a session in sessions they are reconnecting
                 if (sessions[sessionID].gameId) {
 
-                    // Player is in a game currently - reconnect them
-                    var theGame = games[sessions[sessionID].gameId];
+                    // Player hasn't logged in yet send them login screen
+                    if (!sessions[sessionID].name) {
+                        // Player has not logged in yet
+                        socket.emit('login');
+                        console.log('player hasnted logged in yet');
+                    } else {
+                        // Player is in a game currently - reconnect them
+                        var theGame = games[sessions[sessionID].gameId];
 
-                    if (theGame.type === 'create game') {
-                        var oldSocket = sessions[sessionID].socket;
-                        if (!oldSocket) {
-                            sessions[sessionID].socket = socket;
-                            theGame.connectPlayer(sessions[sessionID]);
+                        if (theGame.type === 'create game') {
+                            var oldSocket = sessions[sessionID].socket;
+                            if (!oldSocket) {
+                                sessions[sessionID].socket = socket;
+                                theGame.connectPlayer(sessions[sessionID]);
+                            } else {
+                                if(theGame.playerSockets.includes(oldSocket)){
+                                    console.log('player in game already')
+                                    sessions[sessionID].socket = socket;
+                                    theGame.reconnectPlayer(socket, oldSocket);
+                                } else {
+                                    console.log('player not in game yet')
+                                    sessions[sessionID].socket = socket;
+                                    theGame.connectPlayer(sessions[sessionID]);
+                                }
+                            }
+                            this.sendWaitingForGame(theGame);
                         } else {
+                            // Store their old socket to a variable to be used to reconnect
+                            var oldSocket = sessions[sessionID].socket;
+                            // Update their socket
                             sessions[sessionID].socket = socket;
                             theGame.reconnectPlayer(socket, oldSocket);
+                            socket.emit('waiting for game');
                         }
-                        this.sendWaitingForGame(theGame);
-                    } else {
-                        // Store their old socket to a variable to be used to reconnect
-                        var oldSocket = sessions[sessionID].socket;
-                        // Update their socket
-                        sessions[sessionID].socket = socket;
-                        theGame.reconnectPlayer(socket, oldSocket);
-                        socket.emit('waiting for game');
                     }
                 } else {
                     console.log('player not in game');
