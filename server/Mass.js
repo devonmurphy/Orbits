@@ -102,7 +102,11 @@ class Mass {
         var Eint = Math.log(W + Math.sqrt(W * W - 1));
         var Meanint = Ecc * Math.sinh(Eint) - Eint;
         var isClockwise = ((this.vx * this.y - this.vy * this.x) > 0 ? 1 : -1);
-        var timeInt = isClockwise * Meanint * Math.sqrt(-(a * a * a) / mass);
+        if( Ecc < 3) {
+            var timeInt = isClockwise * Meanint * Math.sqrt(-(a * a * a) / mass);
+        } else {
+            var timeInt = Math.asinh(Meanint/Ecc);
+        }
         var curTime = 0;
         var r, x = this.x, y = -this.y, EccAnom;
         var orbitPoints = [];
