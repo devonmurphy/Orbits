@@ -14,7 +14,7 @@ class PlayAgainBtn extends Component {
 
   render() {
     return (
-          <button onClick={this.onClick}><a>Play Again</a></button>
+          <button id="playAgainBtn" onClick={this.onClick}><a>Play Again</a></button>
     );
   }
 }
