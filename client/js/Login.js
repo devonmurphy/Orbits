@@ -14,7 +14,7 @@ class Login extends Component {
           <input id="inGameName" type="text" required />
           <label>IN GAME NAME</label>
         </div>
-        <button>SUBMIT</button>
+        <button id="submitInGameName">SUBMIT</button>
       </form>
     )
   }
