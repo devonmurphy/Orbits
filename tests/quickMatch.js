@@ -5,7 +5,11 @@ var expect = require('chai').expect;
 // puppeteer options
 const opts = {
   headless: false,
-  timeout: 20000
+  defaultViewport: {
+    width: 1000,
+    height: 1000,
+    timeout: 20000
+  }
 };
 
 var login = async function () {
