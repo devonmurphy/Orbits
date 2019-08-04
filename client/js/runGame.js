@@ -297,31 +297,8 @@ var drawEarth = function () {
 var drawPlayers = function (players) {
     for (var id in players) {
         if (socket.id === id) {
-            context.strokeStyle = orbitLineColor;
-
             if (players[id]) {
-                var ellipse = players[id].orbitParams.ellipse;
-                var points = players[id].orbitParams.points;
-
-            }
-            // Draw Elliptical orbit
-            if (ellipse) {
-
-                context.beginPath();
-                context.lineWidth = orbitLineWidth;
-                context.ellipse(ellipse.x, ellipse.y, ellipse.a, ellipse.b, ellipse.w, 0, 2 * Math.PI);
-                context.stroke();
-            }
-
-            // Draw Hyperbolic orbit
-            if (points) {
-                context.beginPath();
-                context.lineWidth = orbitLineWidth;
-                for (var pos = 0; pos < points.length - 1; pos++) {
-                    context.moveTo(points[pos].x, points[pos].y);
-                    context.lineTo(points[pos + 1].x, points[pos + 1].y);
-                }
-                context.stroke();
+                drawOrbit(players[id].orbitParams, orbitLineColor)
             }
         }
 
@@ -356,22 +333,25 @@ var drawBullets = function (bullets) {
         context.beginPath();
         context.arc(bullets[i].x, -bullets[i].y, bullets[i].radius, 0, 2 * Math.PI);
         context.fill();
+
+        /*
         if (bullets[i].id === 'asteroid') {
             console.log(bullets[i]);
-            drawOrbit(bullets[i].orbitParams);
+            drawOrbit(bullets[i].orbitParams, asteroidLineColor);
         }
+        */
     }
 
 }
 
-var drawOrbit = function (orbitParams) {
+var drawOrbit = function (orbitParams, lineColor) {
     var ellipse = orbitParams.ellipse;
     var points = orbitParams.points;
 
     // Draw Elliptical orbit
     if (ellipse) {
         context.beginPath();
-        context.strokeStyle = playerShootingLineColor;
+        context.strokeStyle = lineColor;
         context.lineWidth = orbitLineWidth;
         context.ellipse(ellipse.x, ellipse.y, ellipse.a, ellipse.b, ellipse.w, 0, 2 * Math.PI);
         context.stroke();
@@ -381,7 +361,7 @@ var drawOrbit = function (orbitParams) {
     if (points) {
         if (!DEBUG_LINE) {
             context.beginPath();
-            context.strokeStyle = playerShootingLineColor;
+            context.strokeStyle = lineColor;
             context.lineWidth = orbitLineWidth;
             for (var pos = 0; pos < points.length - 1; pos++) {
                 context.moveTo(points[pos].x, points[pos].y);
@@ -405,49 +385,12 @@ var drawOrbit = function (orbitParams) {
 
 }
 
-var drawShootingOrbits = function (shootingOrbits) {
+var drawShootingOrbit = function (shootingOrbits) {
     // Draw orbits
     if (!shootingOrbits[socket.id]) {
         return
     }
-    var ellipse = shootingOrbits[socket.id].ellipse;
-    var points = shootingOrbits[socket.id].points;
-
-    // Draw Elliptical orbit
-    if (ellipse) {
-        context.beginPath();
-        context.strokeStyle = playerShootingLineColor;
-        context.lineWidth = orbitLineWidth;
-        context.ellipse(ellipse.x, ellipse.y, ellipse.a, ellipse.b, ellipse.w, 0, 2 * Math.PI);
-        context.stroke();
-    }
-
-    // Draw Hyperbolic orbit
-    if (points) {
-        if (!DEBUG_LINE) {
-            context.beginPath();
-            context.strokeStyle = playerShootingLineColor;
-            context.lineWidth = orbitLineWidth;
-            for (var pos = 0; pos < points.length - 1; pos++) {
-                context.moveTo(points[pos].x, points[pos].y);
-                context.lineTo(points[pos + 1].x, points[pos + 1].y);
-            }
-            context.stroke();
-        } else {
-            // DEBUG LINE MODE TO SEE POINTS
-            context.strokeStyle = playerShootingLineColor;
-            context.lineWidth = orbitLineWidth;
-            var colors = ["green", "cyan", "purple", "red", "yellow", "orange"];
-            for (var pos = 0; pos < points.length - 1; pos++) {
-                context.beginPath();
-                context.strokeStyle = colors[pos % colors.length];
-                context.moveTo(points[pos].x, points[pos].y);
-                context.lineTo(points[pos + 1].x, points[pos + 1].y);
-                context.stroke();
-            }
-        }
-    }
-
+    drawOrbit(shootingOrbits[socket.id], playerShootingLineColor)
 }
 
 var drawGameUI = function (localPlayer, strikes, maxStrikes) {
@@ -538,7 +481,7 @@ var render = function (gameState) {
     drawPlayers(players);
     drawBullets(bullets);
     drawEarth();
-    drawShootingOrbits(shootingOrbits);
+    drawShootingOrbit(shootingOrbits);
 
     if (localPlayer) {
         drawGameUI(localPlayer, strikes, maxStrikes);

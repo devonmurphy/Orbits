@@ -69,6 +69,35 @@ class Game {
         return thrust;
     }
 
+    checkIfPowerUpSpawns() {
+        var currentTime = (new Date()).getTime();
+        if (currentTime - this.lastPowerUpSpawnTime >= this.powerUpSpawnRate) {
+
+
+            var startingDist = Math.random() * 10000 + 20000;
+            var XYRatio = Math.random();
+            var startingDistX = (Math.random() > .5 ? -1 : 1) * startingDist * (XYRatio);
+            var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio * XYRatio));
+
+            var powerUp = new Mass(
+                startingDistX,
+                startingDistY,
+                this.powerUpRadius);
+
+            var dist = Math.sqrt(Math.pow(powerUp.x, 2) + Math.pow(powerUp.y, 2));
+            var speedSpreadX = (Math.random() > .5 ? -1 : 1) * 500 * Math.random();
+            var speedSpreadY = (Math.random() > .5 ? -1 : 1) * 500 * Math.random();
+            powerUp.vx = -powerUp.x / dist * 500 + speedSpreadX;
+            powerUp.vy = -powerUp.y / dist * 500 + speedSpreadY;
+
+            powerUp.id = "powerUp";
+            powerUp.type = "powerUp";
+            this.bullets.push(utils.deepCopy(powerUp));
+            this.lastPowerUpSpawnTime = (new Date()).getTime();
+        }
+
+    }
+
     checkIfAsteroidSpawns() {
         var currentTime = (new Date()).getTime();
         if (currentTime - this.lastAsteroidSpawnTime >= this.asteroidSpawnRate) {
@@ -92,7 +121,7 @@ class Game {
 
             asteroid.id = "asteroid";
             asteroid.type = "bullet";
-            asteroid.orbitParams = asteroid.calculateOrbit(this.planet.mass);
+            // asteroid.orbitParams = asteroid.calculateOrbit(this.planet.mass);
             this.bullets.push(utils.deepCopy(asteroid));
             this.lastAsteroidSpawnTime = (new Date()).getTime();
         }
