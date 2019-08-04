@@ -92,6 +92,7 @@ class Game {
 
             asteroid.id = "asteroid";
             asteroid.type = "bullet";
+            asteroid.orbitParams = asteroid.calculateOrbit(this.planet.mass);
             this.bullets.push(utils.deepCopy(asteroid));
             this.lastAsteroidSpawnTime = (new Date()).getTime();
         }

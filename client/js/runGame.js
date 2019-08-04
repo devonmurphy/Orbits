@@ -356,6 +356,51 @@ var drawBullets = function (bullets) {
         context.beginPath();
         context.arc(bullets[i].x, -bullets[i].y, bullets[i].radius, 0, 2 * Math.PI);
         context.fill();
+        if (bullets[i].id === 'asteroid') {
+            console.log(bullets[i]);
+            drawOrbit(bullets[i].orbitParams);
+        }
+    }
+
+}
+
+var drawOrbit = function (orbitParams) {
+    var ellipse = orbitParams.ellipse;
+    var points = orbitParams.points;
+
+    // Draw Elliptical orbit
+    if (ellipse) {
+        context.beginPath();
+        context.strokeStyle = playerShootingLineColor;
+        context.lineWidth = orbitLineWidth;
+        context.ellipse(ellipse.x, ellipse.y, ellipse.a, ellipse.b, ellipse.w, 0, 2 * Math.PI);
+        context.stroke();
+    }
+
+    // Draw Hyperbolic orbit
+    if (points) {
+        if (!DEBUG_LINE) {
+            context.beginPath();
+            context.strokeStyle = playerShootingLineColor;
+            context.lineWidth = orbitLineWidth;
+            for (var pos = 0; pos < points.length - 1; pos++) {
+                context.moveTo(points[pos].x, points[pos].y);
+                context.lineTo(points[pos + 1].x, points[pos + 1].y);
+            }
+            context.stroke();
+        } else {
+            // DEBUG LINE MODE TO SEE POINTS
+            context.strokeStyle = playerShootingLineColor;
+            context.lineWidth = orbitLineWidth;
+            var colors = ["green", "cyan", "purple", "red", "yellow", "orange"];
+            for (var pos = 0; pos < points.length - 1; pos++) {
+                context.beginPath();
+                context.strokeStyle = colors[pos % colors.length];
+                context.moveTo(points[pos].x, points[pos].y);
+                context.lineTo(points[pos + 1].x, points[pos + 1].y);
+                context.stroke();
+            }
+        }
     }
 
 }
