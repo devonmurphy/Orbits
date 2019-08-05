@@ -323,6 +323,16 @@ var drawPlayers = function (players) {
     }
 }
 
+var drawPowerUps = function (powerUps) {
+    for (var i = 0; i < powerUps.length; i++) {
+        context.fillStyle = "white";
+        context.beginPath();
+        context.arc(powerUps[i].x, -powerUps[i].y, powerUps[i].radius, 0, 2 * Math.PI);
+        context.fill();
+    }
+
+}
+
 var drawBullets = function (bullets) {
     for (var i = 0; i < bullets.length; i++) {
         if (socket.id === bullets[i].id) {
@@ -429,6 +439,7 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes) {
 var render = function (gameState) {
     var players = gameState.players;
     var bullets = gameState.bullets;
+    var powerUps = gameState.powerUps;
     var shootingOrbits = gameState.shootingOrbits;
     var localPlayer = players[socket.id];
     var strikes = gameState.strikes;
@@ -480,6 +491,7 @@ var render = function (gameState) {
     // Draw everthing
     drawPlayers(players);
     drawBullets(bullets);
+    drawPowerUps(powerUps);
     drawEarth();
     drawShootingOrbit(shootingOrbits);
 

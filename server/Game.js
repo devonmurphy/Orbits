@@ -18,6 +18,7 @@ class Game {
         this.playerSockets = [];
         this.shootingOrbits = {};
         this.bullets = [];
+        this.powerUps = [];
 
         // Game constants
         this.earthRadius = 1500;
@@ -49,6 +50,11 @@ class Game {
         this.asteroidRadius = this.playerRadius;
         this.asteroidSpawnRate = (this.type === 'single player' ? 5000 : Infinity);
         this.lastAsteroidSpawnTime = (new Date()).getTime();
+
+        this.powerUpRadius = this.playerRadius;
+        this.powerUpSpawnRate = (this.type === 'single player' ? 5000 : Infinity);
+        this.lastPowerUpSpawnTime = (new Date()).getTime();
+
         this.strikes = (this.type === 'single player' ? 0 : null);
         this.maxStrikes = (this.type === 'single player' ? 3 : null);
 
@@ -92,7 +98,7 @@ class Game {
 
             powerUp.id = "powerUp";
             powerUp.type = "powerUp";
-            this.bullets.push(utils.deepCopy(powerUp));
+            this.powerUps.push(utils.deepCopy(powerUp));
             this.lastPowerUpSpawnTime = (new Date()).getTime();
         }
 
@@ -382,12 +388,14 @@ class Game {
         this.io.sockets.in(this.gameId).emit('starting game');
         this.gameLoop = setInterval(() => {
             this.checkIfAsteroidSpawns();
+            this.checkIfPowerUpSpawns();
 
             // Loop through the player list and update their position and velocity
             var allObjects = [];
             var players = this.players;
             var shootingOrbits = this.shootingOrbits;
             var bullets = this.bullets;
+            var powerUps = this.powerUps;
 
             // Loop through players and add forces of controls and planet
             for (var id in players) {
@@ -459,6 +467,22 @@ class Game {
                 allObjects.push(bullet);
             }
 
+            // Calculate the powerUp trajectories
+            for (var i = 0; i < powerUps.length; i++) {
+                var powerUp = powerUps[i];
+                // First check if a bullet is out of bounds
+                if (this.map.checkOutOfBounds(powerUp, 2 * this.mapRadius)) {
+                    // Remove it if it is too far away
+                    powerUps.splice(i, 1);
+                    continue;
+                }
+
+                // Update the bullet's trajectory
+                this.planet.addForce(powerUp);
+                powerUp.update();
+                allObjects.push(powerUp);
+            }
+
             // Add the earth as an object 
             allObjects.push(this.planet);
 
@@ -511,6 +535,7 @@ class Game {
             var gameState = {
                 players,
                 bullets,
+                powerUps,
                 shootingOrbits,
                 map,
                 strikes,
