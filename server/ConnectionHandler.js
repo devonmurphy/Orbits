@@ -116,15 +116,21 @@ class ConnectionHandler {
         socket.on("Quick Match", () => {
 
             if ((sessionID in sessions) && (!sessions[sessionID].gameId)) {
+                // A new quick match player has joined
                 this.quickMatchPlayers += 1;
+
+                // Create a new game if needed - this player will join
                 if ((this.quickMatchPlayers - 1) % PLAYERS_PER_GAME === 0) {
                     var gameId = uid.sync(24);
+
+                    // Set currentQuickMatch to the game id just created
                     this.currentQuickMatch = gameId;
+
                     //Add the new player to the sessions object
                     sessions[sessionID].socket = socket;
                     sessions[sessionID].gameId = gameId;
 
-                    // Create a new game with the players who are not in a game
+                    // Create a new game that will autostart when full
                     var theGame = new Game({
                         io: this.io,
                         type: 'quick match',
@@ -134,9 +140,11 @@ class ConnectionHandler {
                         autoStart: true
                     });
 
+                    // Join the player who just sent "Quick Match" 
                     games[gameId] = theGame;
                     theGame.connectPlayer(sessions[sessionID]);
                 } else {
+                    // New game did not need to made - join existing game
                     var theGame = games[this.currentQuickMatch];
                     var gameId = theGame.gameId;
 
