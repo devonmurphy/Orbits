@@ -499,10 +499,10 @@ class Game {
 
                         // if Single player mode increase score or decrease strikes
                         if (this.type === 'single player') {
-                            if (players[collisions[i].hitBy] && collisions[i].id === 'asteroid') {
-                                players[collisions[i].hitBy].score += 1;
+                            if (players[collisions[i].hitBy.id] && collisions[i].id === 'asteroid') {
+                                players[collisions[i].hitBy.id].score += 1;
                             } else {
-                                if (collisions[i].hitBy === 'planet') {
+                                if (collisions[i].hitBy.id === 'planet') {
                                     this.strikes += 1;
                                     if (this.strikes >= this.maxStrikes) {
                                         for (var playerId in this.players) {
@@ -517,15 +517,24 @@ class Game {
                 }
 
                 // Delete the player if they got hit
-                if (collisions[i].type === 'player') {
-                    if (collisions[i].hitBy) {
-                        if (players[collisions[i].hitBy]) {
-                            players[collisions[i].hitBy].score += 1;
+                if (collisions[i].type === 'player' && collisions[i].hitBy.id !== 'powerUp') {
+                    if (collisions[i].hitBy.id) {
+                        if (players[collisions[i].hitBy.id]) {
+                            players[collisions[i].hitBy.id].score += 1;
                         }
                     }
                     var id = collisions[i].id;
 
                     this.killPlayer(this.io, id);
+                }
+
+                if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'player') {
+                    if (powerUps.indexOf(collisions[i]) > -1) {
+                        //collisions[i].applyPowerUp();
+                        console.log("power up hit");
+                        console.log(collisions[i]);
+                        powerUps.splice(powerUps.indexOf(collisions[i]), 1);
+                    }
                 }
             }
 

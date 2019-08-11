@@ -1,3 +1,5 @@
+var utils = require('./utils.js');
+
 // Divide up the map into a grid class
 class Grid {
     constructor(x, y, size) {
@@ -51,13 +53,13 @@ class Grid {
                 // Only add them if they are not in already
                 if (this.collisions.indexOf(this.objects[iteration]) === -1) {
                     if (this.objects[n + 1].id) {
-                        this.objects[iteration].hitBy = this.objects[n + 1].id;
+                        this.objects[iteration].hitBy = utils.deepCopy(this.objects[n + 1]);
                     }
                     this.collisions.push(this.objects[iteration]);
                 }
                 if (this.collisions.indexOf(this.objects[n + 1]) === -1) {
                     if (this.objects[iteration].id) {
-                        this.objects[n + 1].hitBy = this.objects[iteration].id;
+                        this.objects[n + 1].hitBy = utils.deepCopy(this.objects[iteration]);
                     }
                     this.collisions.push(this.objects[n + 1]);
                 }
