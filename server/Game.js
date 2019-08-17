@@ -1,4 +1,5 @@
 var Mass = require('./Mass.js');
+var PowerUp = require('./PowerUp.js');
 var Planet = require('./Planet.js');
 var Map = require('./Map.js');
 var utils = require('./utils.js');
@@ -85,10 +86,7 @@ class Game {
             var startingDistX = (Math.random() > .5 ? -1 : 1) * startingDist * (XYRatio);
             var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio * XYRatio));
 
-            var powerUp = new Mass(
-                startingDistX,
-                startingDistY,
-                this.powerUpRadius);
+            var powerUp = new PowerUp(startingDistX, startingDistY, this.powerUpRadius, "fireRate");
 
             var dist = Math.sqrt(Math.pow(powerUp.x, 2) + Math.pow(powerUp.y, 2));
             var speedSpreadX = (Math.random() > .5 ? -1 : 1) * 500 * Math.random();
@@ -96,8 +94,6 @@ class Game {
             powerUp.vx = -powerUp.x / dist * 500 + speedSpreadX;
             powerUp.vy = -powerUp.y / dist * 500 + speedSpreadY;
 
-            powerUp.id = "powerUp";
-            powerUp.type = "powerUp";
             this.powerUps.push(utils.deepCopy(powerUp));
             this.lastPowerUpSpawnTime = (new Date()).getTime();
         }
@@ -528,11 +524,19 @@ class Game {
                     this.killPlayer(this.io, id);
                 }
 
+                if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'bullet') {
+                    if (powerUps.indexOf(collisions[i]) > -1 && collisions[i].hitBy.id !== 'asteroid') {
+                        const player = players[collisions[i].hitBy.id];
+                        console.log(collisions[i]);
+                        collisions[i].applyPowerUp(player);
+                        powerUps.splice(powerUps.indexOf(collisions[i]), 1);
+                    }
+                }
+
                 if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'player') {
                     if (powerUps.indexOf(collisions[i]) > -1) {
-                        //collisions[i].applyPowerUp();
-                        console.log("power up hit");
-                        console.log(collisions[i]);
+                        const player = players[collisions[i].hitBy.id];
+                        collisions[i].applyPowerUp(player);
                         powerUps.splice(powerUps.indexOf(collisions[i]), 1);
                     }
                 }

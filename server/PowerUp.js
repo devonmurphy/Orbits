@@ -1,11 +1,16 @@
+var Mass = require('./Mass.js');
+
 class PowerUp extends Mass {
-    constructor(x, y, radius, type) {
+    constructor(x, y, radius, power) {
         super(x, y, radius);
-        this.type = type;
+        this.type = "powerUp";
+        this.id = "powerUp";
+        this.power = power;
     }
 
     applyPowerUp(player, planet) {
-        switch (this.type) {
+        console.log('!!!!!!!!!!!!!!!power up applied!!!!!');
+        switch (this.power) {
             case 'fireRate':
                 player.fireRate *= 0.9;
                 break;
