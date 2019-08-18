@@ -9,7 +9,6 @@ class PowerUp extends Mass {
     }
 
     applyPowerUp(player, planet) {
-        console.log('!!!!!!!!!!!!!!!power up applied!!!!!');
         switch (this.power) {
             case 'fireRate':
                 player.fireRate *= 0.9;

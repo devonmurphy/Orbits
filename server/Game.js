@@ -34,7 +34,7 @@ class Game {
         this.fuelDrainRate = 1;
 
         // Player shooting constants
-        this.fireRate = 500;
+        this.startingFireRate = 500;
         this.bulletRadius = 175;
         this.startingBulletCount = (this.type === 'single player' ? Infinity : 20);
         this.startingShotPower = 500;
@@ -146,6 +146,7 @@ class Game {
         sharedPlayer.vx = circularOrbitVel * playerOffsetY;
         sharedPlayer.vy = -circularOrbitVel * playerOffsetX;
         sharedPlayer.fuel = this.startingFuel;
+        sharedPlayer.fireRate = this.startingFireRate;
 
         // Initial calculation of orbit parameters
         var orbitParams = sharedPlayer.calculateOrbit(this.planet.mass);
@@ -252,7 +253,7 @@ class Game {
                     if (players[id].bulletCount === undefined) {
                         players[id].bulletCount = this.startingBulletCount;
                     }
-                    if (currentTime - player.lastMouseUpTime > this.fireRate && players[id].bulletCount !== 0) {
+                    if (currentTime - player.lastMouseUpTime > player.fireRate && players[id].bulletCount !== 0) {
                         players[id].bulletCount -= 1;
                         player.lastMouseUpTime = currentTime;
                         var bullet = new Mass(player.x, player.y, this.bulletRadius);
@@ -527,8 +528,7 @@ class Game {
                 if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'bullet') {
                     if (powerUps.indexOf(collisions[i]) > -1 && collisions[i].hitBy.id !== 'asteroid') {
                         const player = players[collisions[i].hitBy.id];
-                        console.log(collisions[i]);
-                        collisions[i].applyPowerUp(player);
+                        collisions[i].applyPowerUp(player.player, this.planet);
                         powerUps.splice(powerUps.indexOf(collisions[i]), 1);
                     }
                 }
@@ -536,7 +536,7 @@ class Game {
                 if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'player') {
                     if (powerUps.indexOf(collisions[i]) > -1) {
                         const player = players[collisions[i].hitBy.id];
-                        collisions[i].applyPowerUp(player);
+                        collisions[i].applyPowerUp(player.player, this.planet);
                         powerUps.splice(powerUps.indexOf(collisions[i]), 1);
                     }
                 }
