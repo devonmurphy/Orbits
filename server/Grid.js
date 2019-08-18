@@ -53,13 +53,19 @@ class Grid {
                 // Only add them if they are not in already
                 if (this.collisions.indexOf(this.objects[iteration]) === -1) {
                     if (this.objects[n + 1].id) {
-                        this.objects[iteration].hitBy = utils.deepCopy(this.objects[n + 1]);
+                        var other = this.objects[n + 1];
+                        this.objects[iteration].hitBy = {};
+                        this.objects[iteration].hitBy.id = other.id;
+                        this.objects[iteration].hitBy.type = other.type;
                     }
                     this.collisions.push(this.objects[iteration]);
                 }
                 if (this.collisions.indexOf(this.objects[n + 1]) === -1) {
                     if (this.objects[iteration].id) {
-                        this.objects[n + 1].hitBy = utils.deepCopy(this.objects[iteration]);
+                        var other = this.objects[iteration];
+                        this.objects[n + 1].hitBy = {};
+                        this.objects[n + 1].hitBy.id = other.id;
+                        this.objects[n + 1].hitBy.type = other.type;
                     }
                     this.collisions.push(this.objects[n + 1]);
                 }
