@@ -28,7 +28,7 @@ class Game {
 
         // Player constants
         this.playerRadius = 350;
-        this.thrust = 200;
+        this.startingThrust = 200;
         this.startingDist = 8000;
         this.startingFuel = (this.type === 'single player' ? Infinity : 2000);
         this.fuelDrainRate = 1;
@@ -86,7 +86,7 @@ class Game {
             var startingDistX = (Math.random() > .5 ? -1 : 1) * startingDist * (XYRatio);
             var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio * XYRatio));
 
-            var powerUp = new PowerUp(startingDistX, startingDistY, this.powerUpRadius, "fireRate");
+            var powerUp = new PowerUp(startingDistX, startingDistY, this.powerUpRadius);
 
             var dist = Math.sqrt(Math.pow(powerUp.x, 2) + Math.pow(powerUp.y, 2));
             var speedSpreadX = (Math.random() > .5 ? -1 : 1) * 500 * Math.random();
@@ -147,6 +147,7 @@ class Game {
         sharedPlayer.vy = -circularOrbitVel * playerOffsetX;
         sharedPlayer.fuel = this.startingFuel;
         sharedPlayer.fireRate = this.startingFireRate;
+        sharedPlayer.thrust = this.startingThrust;
 
         // Initial calculation of orbit parameters
         var orbitParams = sharedPlayer.calculateOrbit(this.planet.mass);
@@ -173,20 +174,20 @@ class Game {
             var speed = Math.sqrt(Math.pow(player.vx, 2) + Math.pow(player.vy, 2));
             players[socket.id].controls = { x: 0, y: 0 };
             if (data.right) {
-                players[socket.id].controls.x -= tangent.x / speed * this.thrust;
-                players[socket.id].controls.y -= tangent.y / speed * this.thrust;
+                players[socket.id].controls.x -= tangent.x / speed * player.thrust;
+                players[socket.id].controls.y -= tangent.y / speed * player.thrust;
             }
             if (data.left) {
-                players[socket.id].controls.x += tangent.x / speed * this.thrust;
-                players[socket.id].controls.y += tangent.y / speed * this.thrust;
+                players[socket.id].controls.x += tangent.x / speed * player.thrust;
+                players[socket.id].controls.y += tangent.y / speed * player.thrust;
             }
             if (data.forward) {
-                players[socket.id].controls.x += player.vx / speed * this.thrust;
-                players[socket.id].controls.y += player.vy / speed * this.thrust;
+                players[socket.id].controls.x += player.vx / speed * player.thrust;
+                players[socket.id].controls.y += player.vy / speed * player.thrust;
             }
             if (data.backward) {
-                players[socket.id].controls.x -= player.vx / speed * this.thrust;
-                players[socket.id].controls.y -= player.vy / speed * this.thrust;
+                players[socket.id].controls.x -= player.vx / speed * player.thrust;
+                players[socket.id].controls.y -= player.vy / speed * player.thrust;
             }
         }
 
@@ -411,13 +412,13 @@ class Game {
 
                     var mouseThrustForce = { x: 0, y: 0 };
                     if (player.rightMouseDown === true && player.clientX && player.clientY) {
-                        mouseThrustForce = this.calculateThrustForce(this.thrust, player);
+                        mouseThrustForce = this.calculateThrustForce(player.thrust, player);
                     }
                     var controlForceMag = Math.sqrt(Math.pow(controls.x + mouseThrustForce.x, 2) + Math.pow(controls.y + mouseThrustForce.y, 2));
                     if (controlForceMag !== 0) {
                         var controlForce = {
-                            x: (controls.x + mouseThrustForce.x) / controlForceMag * this.thrust,
-                            y: (controls.y + mouseThrustForce.y) / controlForceMag * this.thrust
+                            x: (controls.x + mouseThrustForce.x) / controlForceMag * player.thrust,
+                            y: (controls.y + mouseThrustForce.y) / controlForceMag * player.thrust
                         };
                         player.addForce(controlForce);
                     }

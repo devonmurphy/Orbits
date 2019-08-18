@@ -6,9 +6,31 @@ class PowerUp extends Mass {
         this.type = "powerUp";
         this.id = "powerUp";
         this.power = power;
+        this.powers = [
+            'fireRate',
+            'thrust',
+            /*
+            'shield',
+            'turrets',
+            'bulletPen',
+            'bulletHoming',
+            'sidewinder',
+            'exlosiveAmmo',
+            'laser',
+            'railGun',
+            'orbitTracker',
+            */
+        ]
+    }
+
+    generateRandomPower() {
+         this.power = this.powers[Math.floor(Math.random()*this.powers.length)];
     }
 
     applyPowerUp(player, planet) {
+        if (this.power === undefined) {
+            this.generateRandomPower();
+        }
         switch (this.power) {
             case 'fireRate':
                 player.fireRate *= 0.9;
@@ -31,14 +53,14 @@ class PowerUp extends Mass {
             case 'sidewinder':
                 player.sidewinder += 1;
                 break;
-            case 'explode':
-                player.explode += 1;
+            case 'explosiveAmmo':
+                player.explosiveAmmo += 1;
                 break;
             case 'laser':
-                player.explode += 1;
+                player.laser += 1;
                 break;
-            case 'railgun':
-                player.explode += 1;
+            case 'railGun':
+                player.railGun += 1;
                 break;
             case 'orbitTracker':
                 player.orbitTracker += 1;
