@@ -9,10 +9,10 @@ class PowerUp extends Mass {
         this.powers = [
             'fireRate',
             'thrust',
+            'bulletPen',
             /*
             'shield',
             'turrets',
-            'bulletPen',
             'bulletHoming',
             'sidewinder',
             'exlosiveAmmo',

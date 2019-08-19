@@ -38,6 +38,7 @@ class Game {
         this.bulletRadius = 175;
         this.startingBulletCount = (this.type === 'single player' ? Infinity : 20);
         this.startingShotPower = 500;
+        this.startingBulletPen = 1;
         this.shotPowerChangeRate = 30;
         this.shotPowerMin = 0;
         this.shotPowerMax = 2240;
@@ -148,6 +149,7 @@ class Game {
         sharedPlayer.fuel = this.startingFuel;
         sharedPlayer.fireRate = this.startingFireRate;
         sharedPlayer.thrust = this.startingThrust;
+        sharedPlayer.bulletPen = this.startingBulletPen;
 
         // Initial calculation of orbit parameters
         var orbitParams = sharedPlayer.calculateOrbit(this.planet.mass);
@@ -261,6 +263,7 @@ class Game {
                         bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                         bullet.id = socket.id;
                         bullet.type = "bullet"
+                        bullet.penetration = players[id].player.bulletPen;
                         bullets.push(utils.deepCopy(bullet));
                     }
                 } else if (data.button === 2) {
@@ -493,7 +496,12 @@ class Game {
                 // Delete the bullet if they hit another object
                 if (collisions[i].type === 'bullet') {
                     if (bullets.indexOf(collisions[i]) > -1) {
-                        bullets.splice(bullets.indexOf(collisions[i]), 1);
+                        // Delete the bullet if ran out of penetration
+                        if (bullets[bullets.indexOf(collisions[i])].penetration === 1) {
+                            bullets.splice(bullets.indexOf(collisions[i]), 1);
+                        } else {
+                            bullets[bullets.indexOf(collisions[i])].penetration -= 1;
+                        }
 
                         // if Single player mode increase score or decrease strikes
                         if (this.type === 'single player') {
