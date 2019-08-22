@@ -8,8 +8,9 @@ class PowerUp extends Mass {
         this.power = power;
         this.powers = [
             'fireRate',
+            'shotPowerMax',
             'thrust',
-            'bulletPen',
+            'bulletHealth',
             /*
             'shield',
             'turrets',
@@ -25,6 +26,7 @@ class PowerUp extends Mass {
 
     generateRandomPower() {
          this.power = this.powers[Math.floor(Math.random()*this.powers.length)];
+         console.log("Power up created:" + this.power);
     }
 
     applyPowerUp(player, planet) {
@@ -38,14 +40,17 @@ class PowerUp extends Mass {
             case 'thrust':
                 player.thrust += 100;
                 break;
+            case 'shotPowerMax':
+                player.shotPowerMax += 100;
+                break;
             case 'shield':
                 planet.shield += 1;
                 break;
             case 'turrets':
                 planet.turrets += 1;
                 break;
-            case 'bulletPen':
-                player.bulletPen += 1;
+            case 'bulletHealth':
+                player.bulletHealth += 1;
                 break;
             case 'bulletHoming':
                 player.bulletHoming += 1;

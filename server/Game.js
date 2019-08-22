@@ -38,9 +38,8 @@ class Game {
         this.bulletRadius = 175;
         this.startingBulletCount = (this.type === 'single player' ? Infinity : 20);
         this.startingShotPower = 500;
-        this.startingBulletPen = 1;
-        this.shotPowerChangeRate = 30;
-        this.shotPowerMin = 0;
+        this.startingBulletHealth = 1;
+        this.startingShotPowerChangeRate = 30;
         this.shotPowerMax = 2240;
 
         // Map constants
@@ -124,6 +123,7 @@ class Game {
 
             asteroid.id = "asteroid";
             asteroid.type = "bullet";
+            asteroid.health = 1;
             // asteroid.orbitParams = asteroid.calculateOrbit(this.planet.mass);
             this.bullets.push(utils.deepCopy(asteroid));
             this.lastAsteroidSpawnTime = (new Date()).getTime();
@@ -149,7 +149,13 @@ class Game {
         sharedPlayer.fuel = this.startingFuel;
         sharedPlayer.fireRate = this.startingFireRate;
         sharedPlayer.thrust = this.startingThrust;
-        sharedPlayer.bulletPen = this.startingBulletPen;
+        sharedPlayer.bulletHealth = this.startingBulletHealth;
+
+        /*
+        sharedPlayer.shotPower = this.startingShotPower;
+        sharedPlayer.bulletCount = this.startingBulletCount;
+        sharedPlayer.score = 0;
+        */
 
         // Initial calculation of orbit parameters
         var orbitParams = sharedPlayer.calculateOrbit(this.planet.mass);
@@ -160,6 +166,8 @@ class Game {
             controls: { x: 0, y: 0 },
             shotPower: this.startingShotPower,
             bulletCount: this.startingBulletCount,
+            shotPowerMax : this.startingShotPowerMax,
+            shotPowerChangeRate : this.startingShotPowerChangeRate,
             score: 0,
         };
         this.players[socket.id].player.id = socket.id;
@@ -202,19 +210,23 @@ class Game {
         if (players[id]) {
             if (players[id].player) {
                 var player = players[id];
+
+                // Increase shot power on scroll up
                 if (data < 0) {
-                    player.shotPower += this.shotPowerChangeRate;
+                    player.shotPower += player.shotPowerChangeRate;
                 }
 
+                // Increase shot power on scroll down
                 if (data > 0) {
-                    player.shotPower -= this.shotPowerChangeRate;
+                    player.shotPower -= player.shotPowerChangeRate;
                 }
-                // Clamp values between shotPowerMin and shotPowerMax
-                if (player.shotPower < this.shotPowerMin) {
-                    player.shotPower = this.shotPowerMin;
+
+                // Clamp values between 0 and shotPowerMax
+                if (player.shotPower < 0) {
+                    player.shotPower = 0;
                 }
-                if (player.shotPower > this.shotPowerMax) {
-                    player.shotPower = this.shotPowerMax;
+                if (player.shotPower > player.shotPowerMax) {
+                    player.shotPower = player.shotPowerMax;
                 }
             }
         }
@@ -263,7 +275,7 @@ class Game {
                         bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                         bullet.id = socket.id;
                         bullet.type = "bullet"
-                        bullet.penetration = players[id].player.bulletPen;
+                        bullet.health = players[id].player.bulletHealth;
                         bullets.push(utils.deepCopy(bullet));
                     }
                 } else if (data.button === 2) {
@@ -496,11 +508,11 @@ class Game {
                 // Delete the bullet if they hit another object
                 if (collisions[i].type === 'bullet') {
                     if (bullets.indexOf(collisions[i]) > -1) {
-                        // Delete the bullet if ran out of penetration
-                        if (bullets[bullets.indexOf(collisions[i])].penetration === 1) {
+                        // Delete the bullet if ran out of health
+                        if (bullets[bullets.indexOf(collisions[i])].health <= 1) {
                             bullets.splice(bullets.indexOf(collisions[i]), 1);
                         } else {
-                            bullets[bullets.indexOf(collisions[i])].penetration -= 1;
+                            bullets[bullets.indexOf(collisions[i])].health -= 1;
                         }
 
                         // if Single player mode increase score or decrease strikes
