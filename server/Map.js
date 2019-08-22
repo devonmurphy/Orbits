@@ -1,4 +1,4 @@
-var Grid = require('./Grid.js');
+var CollisionGrid = require('./CollisionGrid.js');
 
 // Class used to check the hit boxes
 class Map {
@@ -16,7 +16,7 @@ class Map {
         // Create Map grid square that has sides of gridCount
         for (var x = -this.gridCount; x <= this.gridCount; x++) {
             for (var y = -this.gridCount; y <= this.gridCount; y++) {
-                var grid = new Grid(overlap * x * this.gridSize - this.gridSize / 2, overlap * y * this.gridSize - this.gridSize / 2, this.gridSize);
+                var grid = new CollisionGrid(overlap * x * this.gridSize - this.gridSize / 2, overlap * y * this.gridSize - this.gridSize / 2, this.gridSize);
                 this.map.push(grid);
             }
         }
