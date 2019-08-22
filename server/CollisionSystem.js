@@ -1,7 +1,7 @@
 var CollisionGrid = require('./CollisionGrid.js');
 
 // Class used to check the hit boxes
-class Map {
+class CollisionSystem {
     constructor(gridSize, gridCount, mapRadius) {
         this.gridSize = gridSize;
         this.gridCount = gridCount;
@@ -45,4 +45,4 @@ class Map {
         }
     }
 }
-module.exports = Map;
+module.exports = CollisionSystem;

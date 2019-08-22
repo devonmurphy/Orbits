@@ -1,7 +1,7 @@
 var Mass = require('./Mass.js');
 var PowerUp = require('./PowerUp.js');
 var Planet = require('./Planet.js');
-var Map = require('./Map.js');
+var CollisionSystem = require('./CollisionSystem.js');
 var utils = require('./utils.js');
 
 class Game {
@@ -59,7 +59,7 @@ class Game {
         this.strikes = (this.type === 'single player' ? 0 : null);
         this.maxStrikes = (this.type === 'single player' ? 3 : null);
 
-        this.map = new Map(this.gridSize, this.gridCount, this.mapRadius);
+        this.map = new CollisionSystem(this.gridSize, this.gridCount, this.mapRadius);
 
     }
 

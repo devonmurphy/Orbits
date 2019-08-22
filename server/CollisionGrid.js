@@ -1,7 +1,7 @@
 var utils = require('./utils.js');
 
 // Divide up the map into a grid class
-class Grid {
+class CollisionGrid {
     constructor(x, y, size) {
         this.x = x;
         this.y = y;
@@ -80,4 +80,4 @@ class Grid {
     }
 }
 
-module.exports = Grid;
+module.exports = CollisionGrid;
