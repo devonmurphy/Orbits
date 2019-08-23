@@ -333,6 +333,15 @@ var drawPowerUps = function (powerUps) {
 
 }
 
+var drawAsteroids = function (asteroids) {
+    for (var i = 0; i < asteroids.length; i++) {
+        context.fillStyle = enemyBulletColor;
+        context.beginPath();
+        context.arc(asteroids[i].x, -asteroids[i].y, asteroids[i].radius, 0, 2 * Math.PI);
+        context.fill();
+    }
+}
+
 var drawBullets = function (bullets) {
     for (var i = 0; i < bullets.length; i++) {
         if (socket.id === bullets[i].id) {
@@ -343,13 +352,6 @@ var drawBullets = function (bullets) {
         context.beginPath();
         context.arc(bullets[i].x, -bullets[i].y, bullets[i].radius, 0, 2 * Math.PI);
         context.fill();
-
-        /*
-        if (bullets[i].id === 'asteroid') {
-            console.log(bullets[i]);
-            drawOrbit(bullets[i].orbitParams, asteroidLineColor);
-        }
-        */
     }
 
 }
@@ -440,6 +442,7 @@ var render = function (gameState) {
     var players = gameState.players;
     var bullets = gameState.bullets;
     var powerUps = gameState.powerUps;
+    var asteroids = gameState.asteroids;
     var shootingOrbits = gameState.shootingOrbits;
     var localPlayer = players[socket.id];
     var strikes = gameState.strikes;
@@ -492,6 +495,7 @@ var render = function (gameState) {
     drawPlayers(players);
     drawBullets(bullets);
     drawPowerUps(powerUps);
+    drawAsteroids(asteroids);
     drawEarth();
     drawShootingOrbit(shootingOrbits);
 
