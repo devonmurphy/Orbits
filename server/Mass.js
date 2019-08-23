@@ -1,3 +1,4 @@
+var utils = require('./utils.js');
 class Mass {
     constructor(x, y, radius) {
         this.x = x;
@@ -7,6 +8,7 @@ class Mass {
         this.vy = 0;
         this.lastTime = new Date();
         this.forces = [];
+        this.orbitParams = {};
     }
 
     addForce(force) {
@@ -202,6 +204,7 @@ class Mass {
         orbitParams.vel = { x: this.vx, y: this.vy };
         orbitParams.pos = { x: this.x, y: this.y };
 
+        this.orbitParams = utils.deepCopy(orbitParams);
         return orbitParams;
     }
 

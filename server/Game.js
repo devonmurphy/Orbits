@@ -147,32 +147,26 @@ class Game {
         // Here we took the derivitive of the offsets when they were multplied by the velocity
         sharedPlayer.vx = circularOrbitVel * playerOffsetY;
         sharedPlayer.vy = -circularOrbitVel * playerOffsetX;
+
+        // Initial calculation of orbit parameters
+        sharedPlayer.calculateOrbit(this.planet.mass);
+
+        // Create the player
         sharedPlayer.fuel = this.startingFuel;
         sharedPlayer.fireRate = this.startingFireRate;
         sharedPlayer.thrust = this.startingThrust;
         sharedPlayer.bulletHealth = this.startingBulletHealth;
-
-        /*
+        sharedPlayer.name = playerName;
+        sharedPlayer.controls = { x: 0, y: 0 };
         sharedPlayer.shotPower = this.startingShotPower;
         sharedPlayer.bulletCount = this.startingBulletCount;
+        sharedPlayer.shotPowerMax = this.startingShotPowerMax;
+        sharedPlayer.shotPowerChangeRate = this.startingShotPowerChangeRate;
         sharedPlayer.score = 0;
-        */
+        sharedPlayer.id = socket.id;
+        sharedPlayer.type = "player";
 
-        // Initial calculation of orbit parameters
-        var orbitParams = sharedPlayer.calculateOrbit(this.planet.mass);
-        this.players[socket.id] = {
-            player: utils.deepCopy(sharedPlayer),
-            name: playerName,
-            orbitParams: utils.deepCopy(orbitParams),
-            controls: { x: 0, y: 0 },
-            shotPower: this.startingShotPower,
-            bulletCount: this.startingBulletCount,
-            shotPowerMax: this.startingShotPowerMax,
-            shotPowerChangeRate: this.startingShotPowerChangeRate,
-            score: 0,
-        };
-        this.players[socket.id].player.id = socket.id;
-        this.players[socket.id].player.type = "player";
+        this.players[socket.id] = utils.deepCopy(sharedPlayer);
     }
 
     // Receives player controls
@@ -180,7 +174,7 @@ class Game {
         var socket = this;
         var players = this.players;
         if (Object.keys(players).length > 0 && players[socket.id]) {
-            var player = players[socket.id].player;
+            var player = players[socket.id];
             var tangent = { x: -player.vy, y: player.vx };
             var speed = Math.sqrt(Math.pow(player.vx, 2) + Math.pow(player.vy, 2));
             players[socket.id].controls = { x: 0, y: 0 };
@@ -209,26 +203,24 @@ class Game {
         var id = this.id;
         var players = this.players;
         if (players[id]) {
-            if (players[id].player) {
-                var player = players[id];
+            var player = players[id];
 
-                // Increase shot power on scroll up
-                if (data < 0) {
-                    player.shotPower += player.shotPowerChangeRate;
-                }
+            // Increase shot power on scroll up
+            if (data < 0) {
+                player.shotPower += player.shotPowerChangeRate;
+            }
 
-                // Increase shot power on scroll down
-                if (data > 0) {
-                    player.shotPower -= player.shotPowerChangeRate;
-                }
+            // Increase shot power on scroll down
+            if (data > 0) {
+                player.shotPower -= player.shotPowerChangeRate;
+            }
 
-                // Clamp values between 0 and shotPowerMax
-                if (player.shotPower < 0) {
-                    player.shotPower = 0;
-                }
-                if (player.shotPower > player.shotPowerMax) {
-                    player.shotPower = player.shotPowerMax;
-                }
+            // Clamp values between 0 and shotPowerMax
+            if (player.shotPower < 0) {
+                player.shotPower = 0;
+            }
+            if (player.shotPower > player.shotPowerMax) {
+                player.shotPower = player.shotPowerMax;
             }
         }
     }
@@ -238,14 +230,12 @@ class Game {
         var id = this.id;
         var players = this.players;
         if (players[id]) {
-            if (players[id].player) {
-                var player = players[id].player;
-                if (data.button === 0) {
-                    player.leftMouseDown = true;
-                }
-                if (data.button === 2) {
-                    player.rightMouseDown = true;
-                }
+            var player = players[id];
+            if (data.button === 0) {
+                player.leftMouseDown = true;
+            }
+            if (data.button === 2) {
+                player.rightMouseDown = true;
             }
         }
     }
@@ -257,32 +247,30 @@ class Game {
         var bullets = this.bullets;
         var id = socket.id;
         if (players[id]) {
-            if (players[id].player) {
-                if (data.button === 0) {
-                    var player = players[id].player;
-                    var shotPower = players[id].shotPower;
-                    player.leftMouseDown = false;
-                    var currentTime = (new Date()).getTime();
-                    if (player.lastMouseUpTime === undefined) {
-                        player.lastMouseUpTime = 0;
-                    }
-                    if (players[id].bulletCount === undefined) {
-                        players[id].bulletCount = this.startingBulletCount;
-                    }
-                    if (currentTime - player.lastMouseUpTime > player.fireRate && players[id].bulletCount !== 0) {
-                        players[id].bulletCount -= 1;
-                        player.lastMouseUpTime = currentTime;
-                        var bullet = new Mass(player.x, player.y, this.bulletRadius);
-                        bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
-                        bullet.id = socket.id;
-                        bullet.type = "bullet"
-                        bullet.health = players[id].player.bulletHealth;
-                        bullets.push(utils.deepCopy(bullet));
-                    }
-                } else if (data.button === 2) {
-                    var player = players[id].player;
-                    player.rightMouseDown = false;
+            if (data.button === 0) {
+                var player = players[id];
+                var shotPower = players[id].shotPower;
+                player.leftMouseDown = false;
+                var currentTime = (new Date()).getTime();
+                if (player.lastMouseUpTime === undefined) {
+                    player.lastMouseUpTime = 0;
                 }
+                if (players[id].bulletCount === undefined) {
+                    players[id].bulletCount = this.startingBulletCount;
+                }
+                if (currentTime - player.lastMouseUpTime > player.fireRate && players[id].bulletCount !== 0) {
+                    players[id].bulletCount -= 1;
+                    player.lastMouseUpTime = currentTime;
+                    var bullet = new Mass(player.x, player.y, this.bulletRadius);
+                    bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
+                    bullet.id = socket.id;
+                    bullet.type = "bullet"
+                    bullet.health = players[id].bulletHealth;
+                    bullets.push(utils.deepCopy(bullet));
+                }
+            } else if (data.button === 2) {
+                var player = players[id];
+                player.rightMouseDown = false;
             }
         }
     }
@@ -292,16 +280,14 @@ class Game {
         var id = this.id
         var players = this.players;
         if (players[id]) {
-            if (players[id].player) {
-                var player = players[id].player;
-                if (player.leftMouseDown === true) {
-                    player.clientX = data.clientX;
-                    player.clientY = -data.clientY;
-                }
-                if (player.rightMouseDown === true) {
-                    player.clientX = data.clientX;
-                    player.clientY = -data.clientY;
-                }
+            var player = players[id];
+            if (player.leftMouseDown === true) {
+                player.clientX = data.clientX;
+                player.clientY = -data.clientY;
+            }
+            if (player.rightMouseDown === true) {
+                player.clientX = data.clientX;
+                player.clientY = -data.clientY;
             }
         }
     }
@@ -354,7 +340,7 @@ class Game {
         // Copy old player object and reset the player id
         if (oldSocket.id in this.players) {
             this.players[socket.id] = utils.deepCopy(this.players[oldSocket.id]);
-            this.players[socket.id].player.id = socket.id;
+            this.players[socket.id].id = socket.id;
         } else {
             this.connectPlayer(player);
             return;
@@ -413,7 +399,7 @@ class Game {
 
             // Loop through players and add forces of controls and planet
             for (var id in players) {
-                var player = players[id].player;
+                var player = players[id];
                 var controls = players[id].controls;
                 var shotPower = players[id].shotPower;
 
@@ -553,7 +539,7 @@ class Game {
                         var asteroid = asteroids[asteroids.indexOf(collisions[i])];
                         // Delete the bullet if ran out of health
                         if (asteroid.health <= 1) {
-                            if(collisions[i].hitBy.id in players){
+                            if (collisions[i].hitBy.id in players) {
                                 players[collisions[i].hitBy.id].score += 1;
                             }
                             asteroids.splice(asteroids.indexOf(collisions[i]), 1);
@@ -588,7 +574,7 @@ class Game {
                 if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'bullet') {
                     if (powerUps.indexOf(collisions[i]) > -1 && collisions[i].hitBy.id !== 'asteroid') {
                         const player = players[collisions[i].hitBy.id];
-                        collisions[i].applyPowerUp(player.player, this.planet);
+                        collisions[i].applyPowerUp(player, this.planet);
                         powerUps.splice(powerUps.indexOf(collisions[i]), 1);
                     }
                 }
@@ -596,7 +582,7 @@ class Game {
                 if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'player') {
                     if (powerUps.indexOf(collisions[i]) > -1) {
                         const player = players[collisions[i].hitBy.id];
-                        collisions[i].applyPowerUp(player.player, this.planet);
+                        collisions[i].applyPowerUp(player, this.planet);
                         powerUps.splice(powerUps.indexOf(collisions[i]), 1);
                     }
                 }

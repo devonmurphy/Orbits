@@ -303,7 +303,7 @@ var drawPlayers = function (players) {
         }
 
         // Draw player
-        var player = players[id].player;
+        var player = players[id];
         var name = players[id].name;
 
         // Draw Player name
@@ -432,8 +432,8 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes) {
     context.fillStyle = "white";
     context.textAlign = "center";
 
-    if (localPlayer.player.fuel !== null) {
-        context.fillText("fuel: " + localPlayer.player.fuel, uiX, uiY + 600);
+    if (localPlayer.fuel !== null) {
+        context.fillText("fuel: " + localPlayer.fuel, uiX, uiY + 600);
     }
 }
 
