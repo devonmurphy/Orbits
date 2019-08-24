@@ -20,7 +20,17 @@ class CollisionGrid {
                 this.y < object.y + object.radius &&
                 this.y + this.size > object.y) {
                 // collision detected!
-                this.objects.push(object);
+                this.objects.push(
+                    {
+                        id: object.id,
+                        uid: object.uid,
+                        type: object.type,
+                        x: object.x,
+                        y: object.y,
+                        radius: object.radius,
+                        health: object.health
+                    }
+                );
             }
         }
     }

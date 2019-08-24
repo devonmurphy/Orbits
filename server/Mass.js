@@ -1,4 +1,5 @@
 var utils = require('./utils.js');
+var uid = require('uid-safe')
 class Mass {
     constructor(x, y, radius) {
         this.x = x;
@@ -9,6 +10,7 @@ class Mass {
         this.lastTime = new Date();
         this.forces = [];
         this.orbitParams = {};
+        this.uid = uid.sync(8);
     }
 
     addForce(force) {
@@ -104,10 +106,10 @@ class Mass {
         var Eint = Math.log(W + Math.sqrt(W * W - 1));
         var Meanint = Ecc * Math.sinh(Eint) - Eint;
         var isClockwise = ((this.vx * this.y - this.vy * this.x) > 0 ? 1 : -1);
-        if( Ecc < 3) {
+        if (Ecc < 3) {
             var timeInt = isClockwise * Meanint * Math.sqrt(-(a * a * a) / mass);
         } else {
-            var timeInt = Math.asinh(Meanint/Ecc);
+            var timeInt = Math.asinh(Meanint / Ecc);
         }
         var curTime = 0;
         var r, x = this.x, y = -this.y, EccAnom;
@@ -204,7 +206,6 @@ class Mass {
         orbitParams.vel = { x: this.vx, y: this.vy };
         orbitParams.pos = { x: this.x, y: this.y };
 
-        this.orbitParams = utils.deepCopy(orbitParams);
         return orbitParams;
     }
 

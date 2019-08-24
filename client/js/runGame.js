@@ -70,7 +70,7 @@ var offsetTop = canvas.offsetTop + canvas.height / 2;
 
 // Scale and size
 var orbitLineWidth = "50";
-var earthRadius = 1500;
+var planetRadius = 1500;
 var gameScale = .03;
 
 var uiX = 12500;
@@ -83,7 +83,7 @@ canvas.height = window.innerHeight
 // Colors
 var outOfBoundsColor = "#000011";
 var gameBackgroundColor = "#000022";
-var earthColor = "#a6ff99";
+var planetColor = "#a6ff99";
 
 var playerColor = "#1f9fef";
 var orbitLineColor = "#a329e0";
@@ -286,11 +286,11 @@ socket.on('waiting for game', function (data) {
     waitingForGame(data);
 });
 
-var drawEarth = function () {
-    // Draw Earth
-    context.fillStyle = earthColor;
+var drawPlanet = function () {
+    // Draw Planet
+    context.fillStyle = planetColor;
     context.beginPath();
-    context.arc(0, 0, earthRadius, 0, 2 * Math.PI);
+    context.arc(0, 0, planetRadius, 0, 2 * Math.PI);
     context.fill();
 }
 
@@ -323,37 +323,43 @@ var drawPlayers = function (players) {
     }
 }
 
-var drawPowerUps = function (powerUps) {
-    for (var i = 0; i < powerUps.length; i++) {
-        context.fillStyle = "white";
-        context.beginPath();
-        context.arc(powerUps[i].x, -powerUps[i].y, powerUps[i].radius, 0, 2 * Math.PI);
-        context.fill();
-    }
+var drawPowerUp = function (powerUp) {
+    context.fillStyle = "white";
+    context.beginPath();
+    context.arc(powerUp.x, -powerUp.y, powerUp.radius, 0, 2 * Math.PI);
+    context.fill();
 
 }
 
-var drawAsteroids = function (asteroids) {
-    for (var i = 0; i < asteroids.length; i++) {
+var drawAsteroid = function (asteroid) {
+    context.fillStyle = enemyBulletColor;
+    context.beginPath();
+    context.arc(asteroid.x, -asteroid.y, asteroid.radius, 0, 2 * Math.PI);
+    context.fill();
+}
+
+var drawBullet = function (bullet) {
+    if (socket.id === bullet.id) {
+        context.fillStyle = playerBulletColor;
+    } else {
         context.fillStyle = enemyBulletColor;
-        context.beginPath();
-        context.arc(asteroids[i].x, -asteroids[i].y, asteroids[i].radius, 0, 2 * Math.PI);
-        context.fill();
     }
+    context.beginPath();
+    context.arc(bullet.x, -bullet.y, bullet.radius, 0, 2 * Math.PI);
+    context.fill();
 }
 
-var drawBullets = function (bullets) {
-    for (var i = 0; i < bullets.length; i++) {
-        if (socket.id === bullets[i].id) {
-            context.fillStyle = playerBulletColor;
-        } else {
-            context.fillStyle = enemyBulletColor;
+var drawObjects = function (objects) {
+    for (var uid in objects){
+        var object = objects[uid];
+        if (object.type === 'asteroid') {
+            drawAsteroid(object);
+        } else if (object.type === 'powerUp') {
+            drawPowerUp(object);
+        } else if (object.type === 'bullet') {
+            drawBullet(object);
         }
-        context.beginPath();
-        context.arc(bullets[i].x, -bullets[i].y, bullets[i].radius, 0, 2 * Math.PI);
-        context.fill();
     }
-
 }
 
 var drawOrbit = function (orbitParams, lineColor) {
@@ -440,9 +446,7 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes) {
 //  Render based on game state received from server
 var render = function (gameState) {
     var players = gameState.players;
-    var bullets = gameState.bullets;
-    var powerUps = gameState.powerUps;
-    var asteroids = gameState.asteroids;
+    var objects = gameState.objects;
     var shootingOrbits = gameState.shootingOrbits;
     var localPlayer = players[socket.id];
     var strikes = gameState.strikes;
@@ -493,10 +497,9 @@ var render = function (gameState) {
 
     // Draw everthing
     drawPlayers(players);
-    drawBullets(bullets);
-    drawPowerUps(powerUps);
-    drawAsteroids(asteroids);
-    drawEarth();
+    drawObjects(objects);
+
+    drawPlanet();
     drawShootingOrbit(shootingOrbits);
 
     if (localPlayer) {
