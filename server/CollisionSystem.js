@@ -12,7 +12,7 @@ class CollisionSystem {
     }
 
     createMap() {
-        var overlap = 0.95;
+        var overlap = 1;
         // Create Map grid square that has sides of gridCount
         for (var x = -this.gridCount; x <= this.gridCount; x++) {
             for (var y = -this.gridCount; y <= this.gridCount; y++) {
