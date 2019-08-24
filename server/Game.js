@@ -147,7 +147,7 @@ class Game {
         sharedPlayer.vy = -circularOrbitVel * playerOffsetX;
 
         // Initial calculation of orbit parameters
-        sharedPlayer.calculateOrbit(this.planet.mass);
+        sharedPlayer.orbitParams = sharedPlayer.calculateOrbit(this.planet.mass);
 
         // Create the player
         sharedPlayer.fuel = this.startingFuel;
@@ -468,7 +468,7 @@ class Game {
             // Handle collsions here
             for (var i = 0; i < collisions.length; i++) {
                 // Delete the bullet if they hit another object
-                if (collisions[i].type === 'bullet') {
+                if (collisions[i].type === 'bullet' && collisions[i].uid in this.objects) {
                     // Delete the bullet if ran out of health
                     if (this.objects[collisions[i].uid].health <= 1) {
                         delete this.objects[collisions[i].uid];
@@ -491,7 +491,7 @@ class Game {
                     }
                 }
 
-                if (collisions[i].type === 'asteroid') {
+                if (collisions[i].type === 'asteroid' && collisions[i].uid in this.objects) {
                     // Delete the bullet if ran out of health
                     if (this.objects[collisions[i].uid].health <= 1) {
                         if (collisions[i].hitBy.id in players) {
@@ -503,7 +503,9 @@ class Game {
                     }
                     if (collisions[i].hitBy.id === 'planet') {
                         this.strikes += 1;
-                        delete this.objects[collisions[i].uid];
+                        if (collisions[i].uid in this.objects) {
+                            delete this.objects[collisions[i].uid];
+                        }
                         if (this.strikes >= this.maxStrikes) {
                             for (var playerId in this.players) {
                                 this.io.to(playerId).emit('youdied', 'Your Planet Died');
@@ -515,7 +517,7 @@ class Game {
 
                 // Delete the player if they got hit
                 if (collisions[i].type === 'player' && collisions[i].hitBy.id !== 'powerUp') {
-                    if (collisions[i].hitBy.id) {
+                    if (collisions[i].hitBy.id && collisions[i].hitBy.id in players) {
                         if (players[collisions[i].hitBy.id]) {
                             players[collisions[i].hitBy.id].score += 1;
                         }
@@ -526,9 +528,11 @@ class Game {
                 }
 
                 if (collisions[i].type === 'powerUp' && (collisions[i].hitBy.type === 'player' || collisions[i].hitBy.type === 'bullet')) {
-                    const player = players[collisions[i].hitBy.id];
-                    this.objects[collisions[i].uid].applyPowerUp(player, this.planet);
-                    delete this.objects[collisions[i].uid];
+                    if (collisions[i].uid in this.objects) {
+                        const player = players[collisions[i].hitBy.id];
+                        this.objects[collisions[i].uid].applyPowerUp(player, this.planet);
+                        delete this.objects[collisions[i].uid];
+                    }
                 }
             }
 
