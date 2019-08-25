@@ -344,9 +344,9 @@ class Game {
         }
 
         // Update all of the old bullet ids to the new id
-        for (var bullet = 0; bullet < this.bullets.length; bullet++) {
-            if (this.bullets[bullet].id === oldSocket.id) {
-                this.bullets[bullet].id = socket.id;
+        for (var uid in this.objects){
+            if (this.objects[uid].id === oldSocket.id) {
+                this.objects[uid].id = socket.id;
             }
         }
 
