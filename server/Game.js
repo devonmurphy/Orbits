@@ -206,6 +206,81 @@ class Game {
         this.objects[bullet.uid] = utils.deepCopy(bullet);
     }
 
+
+    handleCollisions(collisions) {
+        var players = this.players;
+        // Handle collsions here
+        for (var i = 0; i < collisions.length; i++) {
+            // Delete the bullet if they hit another object
+            if (collisions[i].type === 'bullet' && collisions[i].uid in this.objects) {
+                // Delete the bullet if ran out of health
+                if (this.objects[collisions[i].uid].health <= 1) {
+                    delete this.objects[collisions[i].uid];
+                } else {
+                    this.objects[collisions[i].uid].health -= 1;
+                }
+
+                // if Single player mode increase strikes
+                if (this.type === 'single player') {
+                    if (collisions[i].hitBy.id === 'planet') {
+                        this.strikes += 1;
+                        delete this.objects[collisions[i].uid];
+                        if (this.strikes >= this.maxStrikes) {
+                            for (var playerId in this.players) {
+                                this.io.to(playerId).emit('youdied', 'Your Planet Died');
+                            }
+                            this.endGame();
+                        }
+                    }
+                }
+            }
+
+            if (collisions[i].type === 'asteroid' && collisions[i].uid in this.objects) {
+                // Delete the bullet if ran out of health
+                if (this.objects[collisions[i].uid].health <= 1) {
+                    if (collisions[i].hitBy.id in players) {
+                        players[collisions[i].hitBy.id].score += 1;
+                    }
+                    delete this.objects[collisions[i].uid];
+                } else {
+                    this.objects[collisions[i].uid].health -= 1;
+                }
+                if (collisions[i].hitBy.id === 'planet') {
+                    this.strikes += 1;
+                    if (collisions[i].uid in this.objects) {
+                        delete this.objects[collisions[i].uid];
+                    }
+                    if (this.strikes >= this.maxStrikes) {
+                        for (var playerId in this.players) {
+                            this.io.to(playerId).emit('youdied', 'Your Planet Died');
+                        }
+                        this.endGame();
+                    }
+                }
+            }
+
+            // Delete the player if they got hit
+            if (collisions[i].type === 'player' && collisions[i].hitBy.id !== 'powerUp') {
+                if (collisions[i].hitBy.id && collisions[i].hitBy.id in players) {
+                    if (players[collisions[i].hitBy.id]) {
+                        players[collisions[i].hitBy.id].score += 1;
+                    }
+                }
+                var id = collisions[i].id;
+
+                this.killPlayer(this.io, id);
+            }
+
+            if (collisions[i].type === 'powerUp' && (collisions[i].hitBy.type === 'player' || collisions[i].hitBy.type === 'bullet')) {
+                if (collisions[i].uid in this.objects) {
+                    const player = players[collisions[i].hitBy.id];
+                    this.objects[collisions[i].uid].applyPowerUp(player, this.planet);
+                    delete this.objects[collisions[i].uid];
+                }
+            }
+        }
+    }
+
     // Update the game state every 15 ms
     start() {
         this.io.sockets.in(this.gameId).emit('starting game');
@@ -290,78 +365,7 @@ class Game {
 
             this.map.objects = Object.values(this.players).concat(Object.values(this.objects).concat(this.planet));
             this.map.updateCollisions();
-            var collisions = this.map.collisions;
-
-            // Handle collsions here
-            for (var i = 0; i < collisions.length; i++) {
-                // Delete the bullet if they hit another object
-                if (collisions[i].type === 'bullet' && collisions[i].uid in this.objects) {
-                    // Delete the bullet if ran out of health
-                    if (this.objects[collisions[i].uid].health <= 1) {
-                        delete this.objects[collisions[i].uid];
-                    } else {
-                        this.objects[collisions[i].uid].health -= 1;
-                    }
-
-                    // if Single player mode increase strikes
-                    if (this.type === 'single player') {
-                        if (collisions[i].hitBy.id === 'planet') {
-                            this.strikes += 1;
-                            delete this.objects[collisions[i].uid];
-                            if (this.strikes >= this.maxStrikes) {
-                                for (var playerId in this.players) {
-                                    this.io.to(playerId).emit('youdied', 'Your Planet Died');
-                                }
-                                this.endGame();
-                            }
-                        }
-                    }
-                }
-
-                if (collisions[i].type === 'asteroid' && collisions[i].uid in this.objects) {
-                    // Delete the bullet if ran out of health
-                    if (this.objects[collisions[i].uid].health <= 1) {
-                        if (collisions[i].hitBy.id in players) {
-                            players[collisions[i].hitBy.id].score += 1;
-                        }
-                        delete this.objects[collisions[i].uid];
-                    } else {
-                        this.objects[collisions[i].uid].health -= 1;
-                    }
-                    if (collisions[i].hitBy.id === 'planet') {
-                        this.strikes += 1;
-                        if (collisions[i].uid in this.objects) {
-                            delete this.objects[collisions[i].uid];
-                        }
-                        if (this.strikes >= this.maxStrikes) {
-                            for (var playerId in this.players) {
-                                this.io.to(playerId).emit('youdied', 'Your Planet Died');
-                            }
-                            this.endGame();
-                        }
-                    }
-                }
-
-                // Delete the player if they got hit
-                if (collisions[i].type === 'player' && collisions[i].hitBy.id !== 'powerUp') {
-                    if (collisions[i].hitBy.id && collisions[i].hitBy.id in players) {
-                        if (players[collisions[i].hitBy.id]) {
-                            players[collisions[i].hitBy.id].score += 1;
-                        }
-                    }
-                    var id = collisions[i].id;
-
-                    this.killPlayer(this.io, id);
-                }
-
-                if (collisions[i].type === 'powerUp' && (collisions[i].hitBy.type === 'player' || collisions[i].hitBy.type === 'bullet')) {
-                    if (collisions[i].uid in this.objects) {
-                        const player = players[collisions[i].hitBy.id];
-                        this.objects[collisions[i].uid].applyPowerUp(player, this.planet);
-                        delete this.objects[collisions[i].uid];
-                    }
-                }
-            }
+            this.handleCollisions(this.map.collisions);
 
             var objects = utils.deepCopy(this.objects);
             var map = utils.deepCopy(this.map);
