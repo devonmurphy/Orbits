@@ -48,9 +48,9 @@ class Player extends Mass {
 
         // TODO: USE THESE FOR STUFF
         socket.on('mouseout', function (data) {
-        });
+        }.bind(this));
         socket.on('keyup', function (data) {
-        });
+        }.bind(this));
     }
 
     // Receives player controls
@@ -110,7 +110,6 @@ class Player extends Mass {
     // Fires the bullet when the mouse is released
     mouseup(data) {
         if (data.button === 0) {
-            console.log('shotted on');
             var shotPower = this.shotPower;
             this.leftMouseDown = false;
             var currentTime = (new Date()).getTime();
@@ -121,18 +120,9 @@ class Player extends Mass {
                 this.bulletCount = this.startingBulletCount;
             }
             if (currentTime - this.lastMouseUpTime > this.fireRate && this.bulletCount !== 0) {
+                this.leftMouseUp = true;
                 this.bulletCount -= 1;
                 this.lastMouseUpTime = currentTime;
-                var bullet = new Mass(this.x, this.y, this.bulletRadius);
-
-                console.log('bullet fired - pew pew');
-                /*
-                bullet.calculateShootingOrbit(shotPower, this, this.planet.mass);
-                bullet.id = socket.id;
-                bullet.type = "bullet"
-                bullet.health = players[id].bulletHealth;
-                this.objects[bullet.uid] = utils.deepCopy(bullet);
-                */
             }
         } else if (data.button === 2) {
             this.rightMouseDown = false;

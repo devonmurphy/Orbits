@@ -126,7 +126,7 @@ class Game {
         var playerOffsetY = Math.sin(2 * Math.PI * playerNumber / playerCount);
 
         this.players[socket.id] = new Player(this.startingDist * playerOffsetX, this.startingDist * playerOffsetY, playerName);
-        this.players[socket.id].setupHandlers(socket, this.players[socket.id]);
+        this.players[socket.id].setupHandlers(socket);
 
         // Calculate velocity for circular orbit
         var dist = Math.sqrt(Math.pow(this.players[socket.id].x, 2) + Math.pow(this.players[socket.id].y, 2));
@@ -199,6 +199,15 @@ class Game {
         this.checkIfGameEnds();
     }
 
+    spawnBullet(player) {
+        var bullet = new Mass(player.x, player.y, player.bulletRadius);
+        bullet.calculateShootingOrbit(player.shotPower, player, this.planet.mass);
+        bullet.id = player.id;
+        bullet.type = "bullet"
+        bullet.health = player.bulletHealth;
+        this.objects[bullet.uid] = utils.deepCopy(bullet);
+    }
+
     // Update the game state every 15 ms
     start() {
         this.io.sockets.in(this.gameId).emit('starting game');
@@ -255,6 +264,12 @@ class Game {
                     var bullet = new Mass(player.x, player.y, player.bulletRadius);
                     var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                     shootingOrbits[id] = utils.deepCopy(orbitParams);
+                }
+
+                // Player mouse just went up
+                if (player.leftMouseUp === true) {
+                    player.leftMouseUp = false;
+                    this.spawnBullet(player);
                 }
 
                 // If a player is out of the map destroy them
