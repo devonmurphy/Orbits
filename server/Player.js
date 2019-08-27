@@ -22,11 +22,11 @@ class Player extends Mass {
         this.shotPowerMax = 2240;
 
         this.name = opts.name;
-        this.id = opts.id;
     }
 
     setupHandlers(socket) {
         this.socket = socket;
+        this.id = this.socket.id;
 
         // Player controls
         this.socket.on('movement', this.movement);
