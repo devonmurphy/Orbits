@@ -1,5 +1,6 @@
 var Mass = require('./Mass.js');
 var Player = require('./Player.js');
+var Bullet = require('./Bullet.js');
 var PowerUp = require('./PowerUp.js');
 var Planet = require('./Planet.js');
 var CollisionSystem = require('./CollisionSystem.js');
@@ -200,11 +201,8 @@ class Game {
     }
 
     spawnBullet(player) {
-        var bullet = new Mass(player.x, player.y, player.bulletRadius);
+        var bullet = new Bullet(player);
         bullet.calculateShootingOrbit(player.shotPower, player, this.planet.mass);
-        bullet.id = player.id;
-        bullet.type = "bullet"
-        bullet.health = player.bulletHealth;
         this.objects[bullet.uid] = utils.deepCopy(bullet);
     }
 
