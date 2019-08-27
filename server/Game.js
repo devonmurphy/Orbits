@@ -34,7 +34,7 @@ class Game {
 
         // Player shooting constants
         this.startingFireRate = 500;
-        this.bulletRadius = 175;
+        this.startingBulletRadius = 175;
         this.startingBulletCount = (this.type === 'single player' ? Infinity : 20);
         this.startingShotPower = 500;
         this.startingBulletHealth = 1;
@@ -158,6 +158,7 @@ class Game {
         sharedPlayer.controls = { x: 0, y: 0 };
         sharedPlayer.shotPower = this.startingShotPower;
         sharedPlayer.bulletCount = this.startingBulletCount;
+        sharedPlayer.bulletRadius = this.startingBulletRadius;
         sharedPlayer.shotPowerMax = this.startingShotPowerMax;
         sharedPlayer.shotPowerChangeRate = this.startingShotPowerChangeRate;
         sharedPlayer.score = 0;
@@ -258,7 +259,7 @@ class Game {
                 if (currentTime - player.lastMouseUpTime > player.fireRate && players[id].bulletCount !== 0) {
                     players[id].bulletCount -= 1;
                     player.lastMouseUpTime = currentTime;
-                    var bullet = new Mass(player.x, player.y, this.bulletRadius);
+                    var bullet = new Mass(player.x, player.y, player.bulletRadius);
                     bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                     bullet.id = socket.id;
                     bullet.type = "bullet"
@@ -431,7 +432,7 @@ class Game {
 
                 // Player mouse is down - calculate the shooting orbit
                 if (player.leftMouseDown === true) {
-                    var bullet = new Mass(player.x, player.y, this.bulletRadius);
+                    var bullet = new Mass(player.x, player.y, player.bulletRadius);
                     var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                     shootingOrbits[id] = utils.deepCopy(orbitParams);
                 }

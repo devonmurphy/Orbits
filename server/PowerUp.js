@@ -11,6 +11,7 @@ class PowerUp extends Mass {
             'shotPowerMax',
             'thrust',
             'bulletHealth',
+            'bulletRadius',
             /*
             'shield',
             'turrets',
@@ -42,6 +43,9 @@ class PowerUp extends Mass {
                 break;
             case 'shotPowerMax':
                 player.shotPowerMax += 100;
+                break;
+            case 'bulletRadius':
+                player.bulletRadius += 25;
                 break;
             case 'shield':
                 planet.shield += 1;
