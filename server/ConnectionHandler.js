@@ -20,7 +20,7 @@ class ConnectionHandler {
         var gameLink = DOMAIN + ":" + PORT + "/play?gameId=" + theGame.gameId;
         var data = {
             maxPlayers: theGame.playerCount,
-            currentPlayers: theGame.playerSockets.length,
+            currentPlayers: Object.keys(theGame.players).length,
             gameLink: gameLink,
         };
         // Send the game state to the client to be rendered
