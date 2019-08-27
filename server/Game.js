@@ -310,7 +310,7 @@ class Game {
 
                     var mouseThrustForce = { x: 0, y: 0 };
                     if (player.rightMouseDown === true && player.clientX && player.clientY) {
-                        mouseThrustForce = this.calculateThrustForce(player.thrust, player);
+                        mouseThrustForce = player.calculateThrustForce(player.thrust, player);
                     }
                     var controlForceMag = Math.sqrt(Math.pow(controls.x + mouseThrustForce.x, 2) + Math.pow(controls.y + mouseThrustForce.y, 2));
                     if (controlForceMag !== 0) {
@@ -365,12 +365,14 @@ class Game {
 
             // Create a list of all the objects
             var allObjects = Object.values(this.players).concat(Object.values(this.objects).concat(this.planet));
-            this.map.objects = allObjects; 
+            this.map.objects = allObjects;
             this.map.updateCollisions();
             this.handleCollisions(this.map.collisions);
 
             var objects = utils.deepCopy(this.objects);
-            var map = utils.deepCopy(this.map);
+
+            //var map = this.map; // dont want to sent the full map unless we are debugging
+            var map = { mapRadius: this.map.mapRadius };
             var strikes = this.strikes;
             var maxStrikes = this.maxStrikes;
             var gameState = {
