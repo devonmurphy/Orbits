@@ -146,7 +146,7 @@ class Game {
 
         // Spawn the player on the map
         this.spawnPlayer(socket, player.name);
-        if (this.autoStart && this.playerCount === this.playerSockets.length) {
+        if (this.autoStart && Object.keys(this.players).length === this.playerCount) {
             this.start();
         }
     }
