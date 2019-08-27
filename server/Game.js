@@ -363,7 +363,9 @@ class Game {
                 object.update();
             }
 
-            this.map.objects = Object.values(this.players).concat(Object.values(this.objects).concat(this.planet));
+            // Create a list of all the objects
+            var allObjects = Object.values(this.players).concat(Object.values(this.objects).concat(this.planet));
+            this.map.objects = allObjects; 
             this.map.updateCollisions();
             this.handleCollisions(this.map.collisions);
 
