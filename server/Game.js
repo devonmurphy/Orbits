@@ -1,4 +1,5 @@
 var Mass = require('./Mass.js');
+var Player = require('./Player.js');
 var PowerUp = require('./PowerUp.js');
 var Planet = require('./Planet.js');
 var CollisionSystem = require('./CollisionSystem.js');
@@ -35,7 +36,7 @@ class Game {
         // Player shooting constants
         this.startingFireRate = 500;
         this.startingBulletRadius = 175;
-        this.startingBulletCount = (this.type === 'single player' ? Infinity : 20);
+        this.startingBulletCount = (this.type === 'single player' ? Infinity : Infinity);
         this.startingShotPower = 500;
         this.startingBulletHealth = 1;
         this.startingShotPowerChangeRate = 30;
@@ -60,19 +61,6 @@ class Game {
 
         this.map = new CollisionSystem(this.gridSize, this.gridCount, this.mapRadius);
 
-    }
-
-    calculateThrustForce(thrustPower, player) {
-        var thrustX = (player.clientX - player.x);
-        var thrustY = (player.clientY - player.y);
-        var dist = Math.sqrt(Math.pow(thrustX, 2) + Math.pow(thrustY, 2));
-
-        // Calculate the thrust vector
-        var thrust = {
-            x: thrustPower * thrustX / dist,
-            y: thrustPower * thrustY / dist,
-        }
-        return thrust;
     }
 
     checkIfPowerUpSpawns() {
@@ -136,180 +124,24 @@ class Game {
         var playerNumber = Object.keys(this.players).length;
         var playerOffsetX = Math.cos(2 * Math.PI * playerNumber / playerCount);
         var playerOffsetY = Math.sin(2 * Math.PI * playerNumber / playerCount);
-        var sharedPlayer = new Mass(this.startingDist * playerOffsetX, this.startingDist * playerOffsetY, this.playerRadius);
+
+        this.players[socket.id] = new Player(this.startingDist * playerOffsetX, this.startingDist * playerOffsetY, playerName);
+        this.players[socket.id].setupHandlers(socket, this.players[socket.id]);
 
         // Calculate velocity for circular orbit
-        var dist = Math.sqrt(Math.pow(sharedPlayer.x, 2) + Math.pow(sharedPlayer.y, 2));
+        var dist = Math.sqrt(Math.pow(this.players[socket.id].x, 2) + Math.pow(this.players[socket.id].y, 2));
         var circularOrbitVel = Math.sqrt(this.planet.mass / dist);
 
         // Here we took the derivitive of the offsets when they were multplied by the velocity
-        sharedPlayer.vx = circularOrbitVel * playerOffsetY;
-        sharedPlayer.vy = -circularOrbitVel * playerOffsetX;
+        this.players[socket.id].vx = circularOrbitVel * playerOffsetY;
+        this.players[socket.id].vy = -circularOrbitVel * playerOffsetX;
 
         // Initial calculation of orbit parameters
-        sharedPlayer.orbitParams = sharedPlayer.calculateOrbit(this.planet.mass);
-
-        // Create the player
-        sharedPlayer.fuel = this.startingFuel;
-        sharedPlayer.fireRate = this.startingFireRate;
-        sharedPlayer.thrust = this.startingThrust;
-        sharedPlayer.bulletHealth = this.startingBulletHealth;
-        sharedPlayer.name = playerName;
-        sharedPlayer.controls = { x: 0, y: 0 };
-        sharedPlayer.shotPower = this.startingShotPower;
-        sharedPlayer.bulletCount = this.startingBulletCount;
-        sharedPlayer.bulletRadius = this.startingBulletRadius;
-        sharedPlayer.shotPowerMax = this.startingShotPowerMax;
-        sharedPlayer.shotPowerChangeRate = this.startingShotPowerChangeRate;
-        sharedPlayer.score = 0;
-        sharedPlayer.id = socket.id;
-        sharedPlayer.type = "player";
-
-        this.players[socket.id] = utils.deepCopy(sharedPlayer);
+        this.players[socket.id].orbitParams = this.players[socket.id].calculateOrbit(this.planet.mass);
     }
 
-    // Receives player controls
-    movement(data) {
-        var socket = this;
-        var players = this.players;
-        if (Object.keys(players).length > 0 && players[socket.id]) {
-            var player = players[socket.id];
-            var tangent = { x: -player.vy, y: player.vx };
-            var speed = Math.sqrt(Math.pow(player.vx, 2) + Math.pow(player.vy, 2));
-            players[socket.id].controls = { x: 0, y: 0 };
-            if (data.right) {
-                players[socket.id].controls.x -= tangent.x / speed * player.thrust;
-                players[socket.id].controls.y -= tangent.y / speed * player.thrust;
-            }
-            if (data.left) {
-                players[socket.id].controls.x += tangent.x / speed * player.thrust;
-                players[socket.id].controls.y += tangent.y / speed * player.thrust;
-            }
-            if (data.forward) {
-                players[socket.id].controls.x += player.vx / speed * player.thrust;
-                players[socket.id].controls.y += player.vy / speed * player.thrust;
-            }
-            if (data.backward) {
-                players[socket.id].controls.x -= player.vx / speed * player.thrust;
-                players[socket.id].controls.y -= player.vy / speed * player.thrust;
-            }
-        }
-
-    }
-
-    // Adjusts player shot power whenever they scroll
-    wheelMove(data) {
-        var id = this.id;
-        var players = this.players;
-        if (players[id]) {
-            var player = players[id];
-
-            // Increase shot power on scroll up
-            if (data < 0) {
-                player.shotPower += player.shotPowerChangeRate;
-            }
-
-            // Increase shot power on scroll down
-            if (data > 0) {
-                player.shotPower -= player.shotPowerChangeRate;
-            }
-
-            // Clamp values between 0 and shotPowerMax
-            if (player.shotPower < 0) {
-                player.shotPower = 0;
-            }
-            if (player.shotPower > player.shotPowerMax) {
-                player.shotPower = player.shotPowerMax;
-            }
-        }
-    }
-
-    // Calculates shooting orbit while mouse is down
-    mousedown(data) {
-        var id = this.id;
-        var players = this.players;
-        if (players[id]) {
-            var player = players[id];
-            if (data.button === 0) {
-                player.leftMouseDown = true;
-            }
-            if (data.button === 2) {
-                player.rightMouseDown = true;
-            }
-        }
-    }
-
-    // Fires the bullet when the mouse is released
-    mouseup(data) {
-        var socket = this;
-        var players = this.players;
-        var id = socket.id;
-        if (players[id]) {
-            if (data.button === 0) {
-                var player = players[id];
-                var shotPower = players[id].shotPower;
-                player.leftMouseDown = false;
-                var currentTime = (new Date()).getTime();
-                if (player.lastMouseUpTime === undefined) {
-                    player.lastMouseUpTime = 0;
-                }
-                if (players[id].bulletCount === undefined) {
-                    players[id].bulletCount = this.startingBulletCount;
-                }
-                if (currentTime - player.lastMouseUpTime > player.fireRate && players[id].bulletCount !== 0) {
-                    players[id].bulletCount -= 1;
-                    player.lastMouseUpTime = currentTime;
-                    var bullet = new Mass(player.x, player.y, player.bulletRadius);
-                    bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
-                    bullet.id = socket.id;
-                    bullet.type = "bullet"
-                    bullet.health = players[id].bulletHealth;
-                    this.objects[bullet.uid] = utils.deepCopy(bullet);
-                }
-            } else if (data.button === 2) {
-                var player = players[id];
-                player.rightMouseDown = false;
-            }
-        }
-    }
-
-    // Update the player's clientX and clientY position when they move their mouse
-    mousemove(data) {
-        var id = this.id
-        var players = this.players;
-        if (players[id]) {
-            var player = players[id];
-            if (player.leftMouseDown === true) {
-                player.clientX = data.clientX;
-                player.clientY = -data.clientY;
-            }
-            if (player.rightMouseDown === true) {
-                player.clientX = data.clientX;
-                player.clientY = -data.clientY;
-            }
-        }
-    }
-
-    connectPlayer(player) {
-        var socket = player.socket;
-        if (!this.playerSockets.includes(socket)) {
-            this.playerSockets.push(socket);
-        }
-        Object.assign(socket, this);
+    connectPlayer(player, socket) {
         socket.join(this.gameId);
-
-        // Player controls
-        socket.on('movement', this.movement);
-        socket.on('wheel', this.wheelMove);
-        socket.on('mousedown', this.mousedown);
-        socket.on('mouseup', this.mouseup);
-        socket.on('mousemove', this.mousemove);
-
-        // TODO: USE THESE FOR STUFF
-        socket.on('mouseout', function (data) {
-        });
-        socket.on('keyup', function (data) {
-        });
 
         // Spawn the player on the map
         this.spawnPlayer(socket, player.name);
@@ -319,33 +151,20 @@ class Game {
     }
 
     reconnectPlayer(socket, oldSocket, player) {
-        Object.assign(socket, this);
         socket.join(this.gameId);
-
-        // Player controls
-        socket.on('movement', this.movement);
-        socket.on('wheel', this.wheelMove);
-        socket.on('mousedown', this.mousedown);
-        socket.on('mouseup', this.mouseup);
-        socket.on('mousemove', this.mousemove);
-
-        // TODO: USE THESE FOR STUFF
-        socket.on('mouseout', function (data) {
-        });
-        socket.on('keyup', function (data) {
-        });
 
         // Copy old player object and reset the player id
         if (oldSocket.id in this.players) {
             this.players[socket.id] = utils.deepCopy(this.players[oldSocket.id]);
             this.players[socket.id].id = socket.id;
+            this.players[socket.id].setupHandlers(socket);
         } else {
-            this.connectPlayer(player);
+            this.connectPlayer(player, socket);
             return;
         }
 
         // Update all of the old bullet ids to the new id
-        for (var uid in this.objects){
+        for (var uid in this.objects) {
             if (this.objects[uid].id === oldSocket.id) {
                 this.objects[uid].id = socket.id;
             }
@@ -396,6 +215,7 @@ class Game {
             for (var id in players) {
                 var player = players[id];
                 var controls = players[id].controls;
+                //console.log(controls);
                 var shotPower = players[id].shotPower;
 
                 if ((player.fuel > 0) && (controls.x || controls.y || player.rightMouseDown)) {

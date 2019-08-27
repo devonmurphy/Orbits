@@ -87,7 +87,7 @@ class ConnectionHandler {
                 sessions[sessionID].socket = socket;
                 sessions[sessionID].gameId = gameId;
                 var theGame = games[gameId];
-                theGame.connectPlayer(sessions[sessionID]);
+                theGame.connectPlayer(sessions[sessionID], socket);
                 if (theGame.players.length === theGame.playerCount) {
                     theGame.start();
                 }
@@ -107,7 +107,7 @@ class ConnectionHandler {
                 playerCount: 1,
                 gameEnded: gameEnded
             });
-            theGame.connectPlayer(sessions[sessionID]);
+            theGame.connectPlayer(sessions[sessionID], socket);
             theGame.start();
             games[gameId] = theGame;
         });
@@ -142,7 +142,7 @@ class ConnectionHandler {
 
                     // Join the player who just sent "Quick Match" 
                     games[gameId] = theGame;
-                    theGame.connectPlayer(sessions[sessionID]);
+                    theGame.connectPlayer(sessions[sessionID], socket);
                 } else {
                     // New game did not need to made - join existing game
                     var theGame = games[this.currentQuickMatch];
@@ -150,7 +150,7 @@ class ConnectionHandler {
 
                     sessions[sessionID].socket = socket;
                     sessions[sessionID].gameId = gameId;
-                    theGame.connectPlayer(sessions[sessionID]);
+                    theGame.connectPlayer(sessions[sessionID], socket);
                 }
 
             } else if ((sessionID in sessions) && (sessions[sessionID].gameId)) {

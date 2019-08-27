@@ -15,31 +15,13 @@ class Player extends Mass {
         // Player shooting constants
         this.fireRate = 500;
         this.bulletRadius = 175;
-        this.bulletCount = 20;
+        this.bulletCount = Infinity;
         this.shotPower = 500;
         this.bulletHealth = 1;
         this.shotPowerChangeRate = 30;
         this.shotPowerMax = 2240;
 
         this.name = name;
-    }
-
-    setupHandlers(socket) {
-        this.socket = socket;
-        this.id = this.socket.id;
-
-        // Player controls
-        this.socket.on('movement', this.movement);
-        this.socket.on('wheel', this.wheelMove);
-        this.socket.on('mousedown', this.mousedown);
-        this.socket.on('mouseup', this.mouseup);
-        this.socket.on('mousemove', this.mousemove);
-
-        // TODO: USE THESE FOR STUFF
-        this.socket.on('mouseout', function (data) {
-        });
-        this.socket.on('keyup', function (data) {
-        });
     }
 
     calculateThrustForce(thrustPower) {
@@ -53,6 +35,22 @@ class Player extends Mass {
             y: thrustPower * thrustY / dist,
         }
         return thrust;
+    }
+
+  setupHandlers(socket) {
+        this.id = socket.id;
+        // Player controls
+        socket.on('movement', this.movement.bind(this));
+        socket.on('wheel', this.wheelMove.bind(this));
+        socket.on('mousedown', this.mousedown.bind(this));
+        socket.on('mouseup', this.mouseup.bind(this));
+        socket.on('mousemove', this.mousemove.bind(this));
+
+        // TODO: USE THESE FOR STUFF
+        socket.on('mouseout', function (data) {
+        });
+        socket.on('keyup', function (data) {
+        });
     }
 
     // Receives player controls
@@ -112,6 +110,7 @@ class Player extends Mass {
     // Fires the bullet when the mouse is released
     mouseup(data) {
         if (data.button === 0) {
+            console.log('shotted on');
             var shotPower = this.shotPower;
             this.leftMouseDown = false;
             var currentTime = (new Date()).getTime();
@@ -152,3 +151,5 @@ class Player extends Mass {
         }
     }
 }
+
+module.exports = Player;
