@@ -1,7 +1,7 @@
 var Mass = require('./Mass.js');
 
 class Player extends Mass {
-    constructor(x, y, opts) {
+    constructor(x, y, name) {
         super(x, y, 350);
 
         // Player constants
@@ -21,7 +21,7 @@ class Player extends Mass {
         this.shotPowerChangeRate = 30;
         this.shotPowerMax = 2240;
 
-        this.name = opts.name;
+        this.name = name;
     }
 
     setupHandlers(socket) {
