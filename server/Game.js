@@ -214,7 +214,6 @@ class Game {
             this.checkIfPowerUpSpawns();
 
             // Loop through the player list and update their position and velocity
-            var allObjects = [];
             var players = this.players;
             var shootingOrbits = this.shootingOrbits;
 
@@ -273,8 +272,6 @@ class Game {
                 // If a player is out of the map destroy them
                 if (this.map.checkOutOfBounds(player)) {
                     this.killPlayer(this.io, id);
-                } else {
-                    allObjects.push(player);
                 }
 
             }
@@ -289,13 +286,9 @@ class Game {
                 }
                 this.planet.addForce(object);
                 object.update();
-                allObjects.push(object);
             }
 
-            // Add the planet as an object 
-            allObjects.push(this.planet);
-
-            this.map.objects = allObjects;
+            this.map.objects = Object.values(this.players).concat(Object.values(this.objects).concat(this.planet));
             this.map.updateCollisions();
             var collisions = this.map.collisions;
 
