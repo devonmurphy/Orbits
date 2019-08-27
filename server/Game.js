@@ -207,8 +207,14 @@ class Game {
     }
 
 
-    handleCollisions(collisions) {
+    handleCollisions() {
+        // Create a list of all the objects
+        var allObjects = Object.values(this.players).concat(Object.values(this.objects).concat(this.planet));
+        this.map.objects = allObjects;
+        this.map.updateCollisions();
+
         var players = this.players;
+        var collisions = this.map.collisions;
         // Handle collsions here
         for (var i = 0; i < collisions.length; i++) {
             // Delete the bullet if they hit another object
@@ -281,96 +287,99 @@ class Game {
         }
     }
 
+    updatePlayers() {
+        // Loop through the player list and update their position and velocity
+        var players = this.players;
+        var shootingOrbits = this.shootingOrbits;
+
+        // Loop through players and add forces of controls and planet
+        for (var id in players) {
+            var player = players[id];
+            var controls = players[id].controls;
+            //console.log(controls);
+            var shotPower = players[id].shotPower;
+
+            if ((player.fuel > 0) && (controls.x || controls.y || player.rightMouseDown)) {
+
+                // lower their fuel when controls are engaged
+                player.fuel -= this.fuelDrainRate;
+                // dont lower it too much though
+                if (player.fuel < 0) {
+                    player.fuel = 0;
+                }
+
+                var mouseThrustForce = { x: 0, y: 0 };
+                if (player.rightMouseDown === true && player.clientX && player.clientY) {
+                    mouseThrustForce = player.calculateThrustForce(player.thrust, player);
+                }
+                var controlForceMag = Math.sqrt(Math.pow(controls.x + mouseThrustForce.x, 2) + Math.pow(controls.y + mouseThrustForce.y, 2));
+                if (controlForceMag !== 0) {
+                    var controlForce = {
+                        x: (controls.x + mouseThrustForce.x) / controlForceMag * player.thrust,
+                        y: (controls.y + mouseThrustForce.y) / controlForceMag * player.thrust
+                    };
+                    player.addForce(controlForce);
+                }
+            }
+
+            this.planet.addForce(player);
+            player.update();
+
+            // Player is pressing a movement control - recalculate the player orbit
+            if (controls.x || controls.y || player.rightMouseDown) {
+                var orbitParams = player.calculateOrbit(this.planet.mass);
+                players[id].orbitParams = utils.deepCopy(orbitParams);
+            }
+
+            // Player mouse is down - calculate the shooting orbit
+            if (player.leftMouseDown === true) {
+                var bullet = new Mass(player.x, player.y, player.bulletRadius);
+                var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
+                shootingOrbits[id] = utils.deepCopy(orbitParams);
+            }
+
+            // Player mouse just went up
+            if (player.leftMouseUp === true) {
+                player.leftMouseUp = false;
+                this.spawnBullet(player);
+            }
+
+            // If a player is out of the map destroy them
+            if (this.map.checkOutOfBounds(player)) {
+                this.killPlayer(this.io, id);
+            }
+
+        }
+
+    }
+
+    updateObjects() {
+        // Apply the planet force to all the non player objects
+        for (var uid in this.objects) {
+            var object = this.objects[uid];
+            if (this.map.checkOutOfBounds(object, 2 * this.mapRadius)) {
+                // Remove it if it is too far away
+                delete this.objects[object.uid];
+                continue;
+            }
+            this.planet.addForce(object);
+            object.update();
+        }
+    }
+
     // Update the game state every 15 ms
     start() {
         this.io.sockets.in(this.gameId).emit('starting game');
         this.gameLoop = setInterval(() => {
             this.checkIfAsteroidSpawns();
             this.checkIfPowerUpSpawns();
+            this.updateObjects();
+            this.updatePlayers();
+            this.handleCollisions();
 
-            // Loop through the player list and update their position and velocity
+            var objects = this.objects;
             var players = this.players;
             var shootingOrbits = this.shootingOrbits;
-
-            // Loop through players and add forces of controls and planet
-            for (var id in players) {
-                var player = players[id];
-                var controls = players[id].controls;
-                //console.log(controls);
-                var shotPower = players[id].shotPower;
-
-                if ((player.fuel > 0) && (controls.x || controls.y || player.rightMouseDown)) {
-
-                    // lower their fuel when controls are engaged
-                    player.fuel -= this.fuelDrainRate;
-                    // dont lower it too much though
-                    if (player.fuel < 0) {
-                        player.fuel = 0;
-                    }
-
-                    var mouseThrustForce = { x: 0, y: 0 };
-                    if (player.rightMouseDown === true && player.clientX && player.clientY) {
-                        mouseThrustForce = player.calculateThrustForce(player.thrust, player);
-                    }
-                    var controlForceMag = Math.sqrt(Math.pow(controls.x + mouseThrustForce.x, 2) + Math.pow(controls.y + mouseThrustForce.y, 2));
-                    if (controlForceMag !== 0) {
-                        var controlForce = {
-                            x: (controls.x + mouseThrustForce.x) / controlForceMag * player.thrust,
-                            y: (controls.y + mouseThrustForce.y) / controlForceMag * player.thrust
-                        };
-                        player.addForce(controlForce);
-                    }
-                }
-
-                this.planet.addForce(player);
-                player.update();
-
-                // Player is pressing a movement control - recalculate the player orbit
-                if (controls.x || controls.y || player.rightMouseDown) {
-                    var orbitParams = player.calculateOrbit(this.planet.mass);
-                    players[id].orbitParams = utils.deepCopy(orbitParams);
-                }
-
-                // Player mouse is down - calculate the shooting orbit
-                if (player.leftMouseDown === true) {
-                    var bullet = new Mass(player.x, player.y, player.bulletRadius);
-                    var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
-                    shootingOrbits[id] = utils.deepCopy(orbitParams);
-                }
-
-                // Player mouse just went up
-                if (player.leftMouseUp === true) {
-                    player.leftMouseUp = false;
-                    this.spawnBullet(player);
-                }
-
-                // If a player is out of the map destroy them
-                if (this.map.checkOutOfBounds(player)) {
-                    this.killPlayer(this.io, id);
-                }
-
-            }
-
-            // Apply the planet force to all the non player objects
-            for (var uid in this.objects) {
-                var object = this.objects[uid];
-                if (this.map.checkOutOfBounds(object, 2 * this.mapRadius)) {
-                    // Remove it if it is too far away
-                    delete this.objects[object.uid];
-                    continue;
-                }
-                this.planet.addForce(object);
-                object.update();
-            }
-
-            // Create a list of all the objects
-            var allObjects = Object.values(this.players).concat(Object.values(this.objects).concat(this.planet));
-            this.map.objects = allObjects;
-            this.map.updateCollisions();
-            this.handleCollisions(this.map.collisions);
-
-            var objects = utils.deepCopy(this.objects);
-
             //var map = this.map; // dont want to sent the full map unless we are debugging
             var map = { mapRadius: this.map.mapRadius };
             var strikes = this.strikes;
