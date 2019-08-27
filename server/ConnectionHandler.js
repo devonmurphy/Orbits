@@ -77,7 +77,7 @@ class ConnectionHandler {
                 autoStart: true
             });
             games[gameId] = theGame;
-            theGame.connectPlayer(sessions[sessionID]);
+            theGame.connectPlayer(sessions[sessionID], socket);
             this.sendWaitingForGame(theGame);
         });
 
@@ -186,14 +186,14 @@ class ConnectionHandler {
                             var oldSocket = sessions[sessionID].socket;
                             if (!oldSocket) {
                                 sessions[sessionID].socket = socket;
-                                theGame.connectPlayer(sessions[sessionID]);
+                                theGame.connectPlayer(sessions[sessionID], socket);
                             } else {
                                 if (oldSocket.id in theGame.players) {
                                     sessions[sessionID].socket = socket;
                                     theGame.reconnectPlayer(socket, oldSocket, sessions[sessionID]);
                                 } else {
                                     sessions[sessionID].socket = socket;
-                                    theGame.connectPlayer(sessions[sessionID]);
+                                    theGame.connectPlayer(sessions[sessionID], socket);
                                 }
                             }
                             this.sendWaitingForGame(theGame);
