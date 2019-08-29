@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { hot } from "react-hot-loader";
 import "../css/CreateGameUI.css";
 
-class CreateGameUI extends Component {
+class GameUI extends Component {
   constructor(props) {
     super(props);
   }
@@ -20,4 +20,4 @@ class CreateGameUI extends Component {
   }
 }
 
-export default hot(module)(CreateGameUI);
+export default hot(module)(GameUI);
