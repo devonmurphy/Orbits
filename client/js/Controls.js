@@ -1,4 +1,4 @@
-import * as Renderer from "./Renderer.js/index.js";
+import * as Renderer from "./Renderer.js";
 import socket from "./Socket.js"
 
 var canvas = document.getElementById('renderer');
