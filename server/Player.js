@@ -15,7 +15,7 @@ class Player extends Mass {
         // Player shooting constants
         this.fireRate = 500;
         this.bulletRadius = 175;
-        this.bulletCount = Infinity;
+        this.bulletCount = 50;
         this.shotPower = 500;
         this.bulletHealth = 1;
         this.shotPowerChangeRate = 30;

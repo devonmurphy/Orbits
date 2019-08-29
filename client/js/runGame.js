@@ -350,7 +350,7 @@ var drawBullet = function (bullet) {
 }
 
 var drawObjects = function (objects) {
-    for (var uid in objects){
+    for (var uid in objects) {
         var object = objects[uid];
         if (object.type === 'asteroid') {
             drawAsteroid(object);
@@ -431,7 +431,7 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes) {
     context.textAlign = "center";
 
     if (strikes !== null) {
-        context.fillText("strikes: " + strikes + "/" + maxStrikes, uiX - 720, uiY);
+        context.fillText("strikes: " + strikes + "/" + maxStrikes, uiX - 720, uiY + 1150);
     }
 
     context.font = "600px Verdana";
@@ -439,7 +439,7 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes) {
     context.textAlign = "center";
 
     if (localPlayer.fuel !== null) {
-        context.fillText("fuel: " + localPlayer.fuel, uiX, uiY + 600);
+        context.fillText("fuel: " + localPlayer.fuel, uiX - 50, uiY + 600);
     }
 }
 
