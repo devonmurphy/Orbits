@@ -1,4 +1,4 @@
-import * as Renderer from "./Render.js";
+import * as Renderer from "./Renderer.js/index.js";
 
 // Intiates client connection and sets up controls 
 var socket = io();
