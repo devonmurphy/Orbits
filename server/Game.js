@@ -28,21 +28,8 @@ class Game {
         this.mass = 5000000000;
         this.planet = new Planet(0, 0, this.planetRadius, this.mass);
 
-        // Player constants
-        this.playerRadius = 350;
-        this.startingThrust = 200;
+        // Starting distance to spawn players
         this.startingDist = 8000;
-        this.startingFuel = (this.type === 'single player' ? Infinity : 2000);
-        this.fuelDrainRate = 1;
-
-        // Player shooting constants
-        this.startingFireRate = 500;
-        this.startingBulletRadius = 175;
-        this.startingBulletCount = (this.type === 'single player' ? Infinity : Infinity);
-        this.startingShotPower = 500;
-        this.startingBulletHealth = 1;
-        this.startingShotPowerChangeRate = 30;
-        this.shotPowerMax = 2240;
 
         // Map constants
         this.gridCount = 3;
@@ -311,7 +298,7 @@ class Game {
             if ((player.fuel > 0) && (controls.x || controls.y || player.rightMouseDown)) {
 
                 // lower their fuel when controls are engaged
-                player.fuel -= this.fuelDrainRate;
+                player.fuel -= player.fuelDrainRate;
                 // dont lower it too much though
                 if (player.fuel < 0) {
                     player.fuel = 0;
