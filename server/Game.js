@@ -37,11 +37,11 @@ class Game {
         this.mapRadius = 15000;
 
         // Single Player constats
-        this.asteroidRadius = this.playerRadius;
+        this.asteroidRadius = 350;
         this.asteroidSpawnRate = (this.type === 'single player' ? 5000 : Infinity);
         this.lastAsteroidSpawnTime = (new Date()).getTime();
 
-        this.powerUpRadius = this.playerRadius;
+        this.powerUpRadius = 350;
         this.powerUpSpawnRate = (this.type === 'single player' ? 5000 : Infinity);
         this.lastPowerUpSpawnTime = (new Date()).getTime();
 
