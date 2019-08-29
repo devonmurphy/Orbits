@@ -1,6 +1,7 @@
 var Mass = require('./Mass.js');
 var Player = require('./Player.js');
 var Bullet = require('./Bullet.js');
+var Asteroid = require('./Asteroid.js');
 var PowerUp = require('./PowerUp.js');
 var Planet = require('./Planet.js');
 var CollisionSystem = require('./CollisionSystem.js');
@@ -98,10 +99,7 @@ class Game {
             var startingDistX = (Math.random() > .5 ? -1 : 1) * startingDist * (XYRatio);
             var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio * XYRatio));
 
-            var asteroid = new Mass(
-                startingDistX,
-                startingDistY,
-                this.asteroidRadius);
+            var asteroid = new Asteroid(startingDistX, startingDistY, this.asteroidRadius, this.gameId, 1);
 
             var dist = Math.sqrt(Math.pow(asteroid.x, 2) + Math.pow(asteroid.y, 2));
             var speedSpreadX = (Math.random() > .5 ? -1 : 1) * 500 * Math.random();
@@ -109,10 +107,6 @@ class Game {
             asteroid.vx = -asteroid.x / dist * 500 + speedSpreadX;
             asteroid.vy = -asteroid.y / dist * 500 + speedSpreadY;
 
-            asteroid.id = this.gameId;
-            asteroid.type = "asteroid";
-            asteroid.health = 1;
-            // asteroid.orbitParams = asteroid.calculateOrbit(this.planet.mass);
             this.objects[asteroid.uid] = utils.deepCopy(asteroid);
             this.lastAsteroidSpawnTime = (new Date()).getTime();
         }
@@ -146,6 +140,8 @@ class Game {
 
         // Spawn the player on the map
         this.spawnPlayer(socket, player.name);
+
+        // Automatically start the game if autoStart is true and the playerCount is reached
         if (this.autoStart && Object.keys(this.players).length === this.playerCount) {
             this.start();
         }
