@@ -176,13 +176,19 @@ class Game {
     }
 
     checkIfGameEnds() {
-        if (Object.keys(this.players).length === 1) {
+        if (Object.keys(this.players).length === 1 && this.type !== 'single player') {
             var lastId = Object.keys(this.players)[0];
             this.io.to(lastId).emit('youwon', 'You Won');
             this.endGame();
         }
 
         if (Object.keys(this.players).length === 0) {
+            this.endGame();
+        }
+
+        // End the game if the strikes exceeded the max strikes
+        if (this.strikes >= this.maxStrikes) {
+            this.io.sockets.in(this.gameId).emit('youdied', 'Your Planet Died');
             this.endGame();
         }
     }
@@ -231,12 +237,9 @@ class Game {
                     if (collisions[i].hitBy.id === 'planet') {
                         this.strikes += 1;
                         delete this.objects[collisions[i].uid];
-                        if (this.strikes >= this.maxStrikes) {
-                            for (var playerId in this.players) {
-                                this.io.to(playerId).emit('youdied', 'Your Planet Died');
-                            }
-                            this.endGame();
-                        }
+
+                        // check if the game ended because of strikes
+                        this.checkIfGameEnds()
                     }
                 }
             }
@@ -260,12 +263,9 @@ class Game {
                     if (collisions[i].uid in this.objects) {
                         delete this.objects[collisions[i].uid];
                     }
-                    if (this.strikes >= this.maxStrikes) {
-                        for (var playerId in this.players) {
-                            this.io.to(playerId).emit('youdied', 'Your Planet Died');
-                        }
-                        this.endGame();
-                    }
+
+                    // check if the game ended because of strikes
+                    this.checkIfGameEnds()
                 }
             }
 
