@@ -241,8 +241,10 @@ class Game {
                 }
             }
 
+            // Handle collisions of asteroids
             if (collisions[i].type === 'asteroid' && collisions[i].uid in this.objects) {
-                // Delete the bullet if ran out of health
+
+                // Delete the asteroid if it ran out of health
                 if (this.objects[collisions[i].uid].health <= 1) {
                     if (collisions[i].hitBy.id in players) {
                         players[collisions[i].hitBy.id].score += 1;
@@ -251,6 +253,8 @@ class Game {
                 } else {
                     this.objects[collisions[i].uid].health -= 1;
                 }
+
+                // Collision between asteroids and the planet
                 if (collisions[i].hitBy.id === 'planet') {
                     this.strikes += 1;
                     if (collisions[i].uid in this.objects) {
@@ -265,7 +269,7 @@ class Game {
                 }
             }
 
-            // Delete the player if they got hit
+            // Delete the player if they got hit by something other than a power up
             if (collisions[i].type === 'player' && collisions[i].hitBy.id !== 'powerUp') {
                 if (collisions[i].hitBy.id && collisions[i].hitBy.id in players) {
                     if (collisions[i].hitBy.id in players) {
@@ -277,6 +281,7 @@ class Game {
                 this.killPlayer(this.io, id);
             }
 
+            // Collision between power up and player/bullet
             if (collisions[i].type === 'powerUp' && (collisions[i].hitBy.type === 'player' || collisions[i].hitBy.type === 'bullet')) {
                 if (collisions[i].uid in this.objects && collisions[i].hitBy.id in players) {
                     const player = players[collisions[i].hitBy.id];
@@ -284,9 +289,17 @@ class Game {
                     delete this.objects[collisions[i].uid];
                 }
             }
+
+            // Collision between power up and asteroid
+            if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'asteroid') {
+                if (collisions[i].uid in this.objects) {
+                    delete this.objects[collisions[i].uid];
+                }
+            }
         }
     }
 
+    // Updates the players positions and respond to controls
     updatePlayers() {
         // Loop through the player list and update their position and velocity
         var players = this.players;
@@ -296,9 +309,9 @@ class Game {
         for (var id in players) {
             var player = players[id];
             var controls = players[id].controls;
-            //console.log(controls);
             var shotPower = players[id].shotPower;
 
+            // If the player has fuel and they are pressing a thrust control down
             if ((player.fuel > 0) && (controls.x || controls.y || player.rightMouseDown)) {
 
                 // lower their fuel when controls are engaged
@@ -308,20 +321,27 @@ class Game {
                     player.fuel = 0;
                 }
 
+                // If the right mouse btn is down calculate thrust force
                 var mouseThrustForce = { x: 0, y: 0 };
                 if (player.rightMouseDown === true && player.clientX && player.clientY) {
                     mouseThrustForce = player.calculateThrustForce(player.thrust, player);
                 }
+
+                // Get the magnitude of the mouse controls + key controls
                 var controlForceMag = Math.sqrt(Math.pow(controls.x + mouseThrustForce.x, 2) + Math.pow(controls.y + mouseThrustForce.y, 2));
+
+                // normalize controlForce to have magnitude of player.thrust
                 if (controlForceMag !== 0) {
                     var controlForce = {
                         x: (controls.x + mouseThrustForce.x) / controlForceMag * player.thrust,
                         y: (controls.y + mouseThrustForce.y) / controlForceMag * player.thrust
                     };
+                    // add the control force to the player
                     player.addForce(controlForce);
                 }
             }
 
+            // add the planet's force to the player and update their position
             this.planet.addForce(player);
             player.update();
 
@@ -338,7 +358,7 @@ class Game {
                 shootingOrbits[id] = utils.deepCopy(orbitParams);
             }
 
-            // Player mouse just went up
+            // Player left mouse btn was released
             if (player.leftMouseUp === true) {
                 player.leftMouseUp = false;
                 this.spawnBullet(player);
@@ -353,6 +373,7 @@ class Game {
 
     }
 
+    // Update all of the objects positions
     updateObjects() {
         // Apply the planet force to all the non player objects
         for (var uid in this.objects) {
@@ -393,7 +414,7 @@ class Game {
                 maxStrikes,
             };
 
-            // Send the game state to the client to be rendered
+            // Send the game state to the clients to be rendered
             this.io.sockets.in(this.gameId).emit('gameState', gameState);
         }, 15)
     }
