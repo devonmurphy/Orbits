@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import GameSelectBtns from "./GameSelectBtns.js";
-import PlayAgainBtn from "./PlayAgainBtn.js";
-import CreateGameUI from "./CreateGameUI.js";
-import WaitingForGame from "./WaitingForGame.js";
-import Login from "./Login.js";
+import GameSelectBtns from "../react/GameSelectBtns.js";
+import PlayAgainBtn from "../react/PlayAgainBtn.js";
+import CreateGameUI from "../react/GameUI.js";
+import WaitingForGame from "../react/WaitingForGame.js";
+import Login from "../react/Login.js";
 import socket from "./Socket.js"
 
 var canvas = document.getElementById('renderer');
