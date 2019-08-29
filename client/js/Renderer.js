@@ -45,6 +45,14 @@ var playerWon = false;
 var DEBUG_LINE = false;
 var DEBUG_MAP = false;
 
+var setPlayerWon = function () {
+    playerWon = true;
+}
+
+var setPlayerDead = function () {
+    playerDead = true;
+}
+
 var createGameSelectBtns = function () {
     var singlePlayerOnClick = () => {
         socket.emit('Single Player');
@@ -394,4 +402,4 @@ var render = function (gameState) {
     }
 }
 
-export { render, createLogin, createGameSelectBtns, waitingForGame, gameScale, offsetLeft, offsetTop };
+export { render, createLogin, createGameSelectBtns, waitingForGame, gameScale, offsetLeft, offsetTop, setPlayerDead, setPlayerWon };

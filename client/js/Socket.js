@@ -10,12 +10,12 @@ socket.on('gameState', function (gameState) {
 
 // Receive you died 
 socket.on('youdied', function (data) {
-    playerDead = true;
+    Renderer.setPlayerDead();
 });
 
 // Receive you won
 socket.on('youwon', function (data) {
-    playerWon = true;
+    Renderer.setPlayerWon();
 });
 
 // Receive you won

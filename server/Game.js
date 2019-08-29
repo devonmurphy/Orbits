@@ -170,7 +170,7 @@ class Game {
         }
 
         // End the game if the strikes exceeded the max strikes
-        if (this.strikes >= this.maxStrikes) {
+        if (this.strikes >= this.maxStrikes && this.type === 'single player') {
             this.io.sockets.in(this.gameId).emit('youdied', 'Your Planet Died');
             this.endGame();
         }
