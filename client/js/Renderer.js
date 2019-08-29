@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import GameSelectBtns from "../react/GameSelectBtns.js";
 import PlayAgainBtn from "../react/PlayAgainBtn.js";
-import CreateGameUI from "../react/GameUI.js";
+import CreateGameUI from "../react/CreateGameUI.js";
 import WaitingForGame from "../react/WaitingForGame.js";
 import Login from "../react/Login.js";
 import socket from "./Socket.js"
