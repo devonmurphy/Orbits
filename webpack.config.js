@@ -2,7 +2,7 @@ const path = require("path");
 const webpack = require("webpack");
 
 module.exports = {
-  entry: "./client/js/runGame.js",
+  entry: "./client/js/Controls.js",
   mode: "development",
   module: {
     rules: [
