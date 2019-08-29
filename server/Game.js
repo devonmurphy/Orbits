@@ -268,7 +268,7 @@ class Game {
             // Delete the player if they got hit
             if (collisions[i].type === 'player' && collisions[i].hitBy.id !== 'powerUp') {
                 if (collisions[i].hitBy.id && collisions[i].hitBy.id in players) {
-                    if (players[collisions[i].hitBy.id]) {
+                    if (collisions[i].hitBy.id in players) {
                         players[collisions[i].hitBy.id].score += 1;
                     }
                 }
@@ -278,7 +278,7 @@ class Game {
             }
 
             if (collisions[i].type === 'powerUp' && (collisions[i].hitBy.type === 'player' || collisions[i].hitBy.type === 'bullet')) {
-                if (collisions[i].uid in this.objects) {
+                if (collisions[i].uid in this.objects && collisions[i].hitBy.id in players) {
                     const player = players[collisions[i].hitBy.id];
                     this.objects[collisions[i].uid].applyPowerUp(player, this.planet);
                     delete this.objects[collisions[i].uid];
