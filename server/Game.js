@@ -273,8 +273,8 @@ class Game {
                 }
             }
 
-            // Collision between power up and asteroid
-            if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'asteroid') {
+            // Collision between power up and asteroid or planet
+            if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'asteroid' || collisions[i].hitBy.type === 'planet') {
                 if (collisions[i].uid in this.objects) {
                     delete this.objects[collisions[i].uid];
                 }
