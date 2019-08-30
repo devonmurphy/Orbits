@@ -106,15 +106,18 @@ class Mass {
         var Eint = Math.log(W + Math.sqrt(W * W - 1));
         var Meanint = Ecc * Math.sinh(Eint) - Eint;
         var isClockwise = ((this.vx * this.y - this.vy * this.x) > 0 ? 1 : -1);
-        if (Ecc < 3) {
-            var timeInt = isClockwise * Meanint * Math.sqrt(-(a * a * a) / mass);
+        if (Ecc < 10) {
+            var timeInt = Meanint * Math.sqrt(-(a * a * a) / mass);
         } else {
             var timeInt = Math.asinh(Meanint / Ecc);
         }
         var curTime = 0;
         var r, x = this.x, y = -this.y, EccAnom;
         var orbitPoints = [];
-        var dist = this.magnitude(this.x, this.y, x, y);
+        var dist = this.magnitude(this.x, -this.y, x, y);
+
+        var flipped = false;
+        var beforeDist;
 
         while (orbitPoints.length < maxDrawSteps && dist < maxDrawDist) {
             EccAnom = this.Newton(maxNewtonSteps, curTime, Ecc, timeInt, a, mass);
@@ -123,13 +126,26 @@ class Mass {
             x = -r * (Math.cos(theta - w));
             y = -r * (Math.sin(theta - w));
             var orbitPos = { x, y };
+            dist = this.magnitude(this.x, -this.y, x, y);
+
+            if (orbitPoints.length === 0 && beforeDist < dist && flipped) {
+                timeInt = -timeInt;
+                beforeDist = dist;
+                continue;
+            }
+
+            if (orbitPoints.length === 0 && dist > 500 && !flipped) {
+                timeInt = -timeInt;
+                flipped = true;
+                beforeDist = dist;
+                continue;
+            }
 
             if (!isNaN(x) && !isNaN(y)) {
                 orbitPoints.push(orbitPos);
             }
 
             curTime += isClockwise * drawStep;
-            dist = this.magnitude(this.x, this.y, x, y);
         }
         return orbitPoints;
     }
@@ -165,7 +181,7 @@ class Mass {
                 w = Math.atan2(ecc.y, ecc.x);
             }
             else {
-                w = Math.Pi / 2;
+                w = Math.PI / 2;
             }
             a = H * H / (mass * (1 - Ecc * Ecc));
             b = a * Math.sqrt(1 - Ecc * Ecc);
@@ -190,6 +206,8 @@ class Mass {
             w = Math.atan2(ecc.y, ecc.x);
             T = 2 * Math.PI * Math.sqrt(-a * a * a / mass);
             var dot = ecc.x * this.x + ecc.y * this.y;
+
+            // this is wrong T.T
             theta = Math.acos(dot / Ecc / dist);
             periapsis = (1 - Ecc) * a;
             orbitParams.points = this.calculateHyperbolicOrbit(a, Ecc, theta, w, mass);
