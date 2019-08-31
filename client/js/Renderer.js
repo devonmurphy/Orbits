@@ -44,6 +44,7 @@ var playerWon = false;
 
 var DEBUG_LINE = false;
 var DEBUG_MAP = false;
+var DEBUG_FPS = false;
 
 var setPlayerWon = function () {
     playerWon = true;
@@ -51,6 +52,25 @@ var setPlayerWon = function () {
 
 var setPlayerDead = function () {
     playerDead = true;
+}
+
+var lastFpsTime = 0;
+var fpsCount = 0;
+var fps = 0;
+var fpsUpdateRate = 5;
+var drawFPSCounter = function () {
+    if (fpsCount % fpsUpdateRate === 0) {
+        var newTime = performance.now();
+        var delta = newTime - lastFpsTime;
+        lastFpsTime = newTime;
+        fps = Math.round(1 / delta * 1000 * fpsUpdateRate);
+    }
+    fpsCount += 1;
+
+    context.font = "600px Verdana";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.fillText("fps: " + fps, uiX - 850, uiY - 1200);
 }
 
 var createGameSelectBtns = function () {
@@ -373,6 +393,9 @@ var render = function (gameState) {
 
     drawPlanet();
     drawShootingOrbit(shootingOrbits);
+    if (DEBUG_FPS) {
+        drawFPSCounter();
+    }
 
     if (localPlayer) {
         drawGameUI(localPlayer, strikes, maxStrikes);
