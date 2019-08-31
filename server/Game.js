@@ -339,6 +339,19 @@ class Game {
                 var bullet = new Mass(player.x, player.y, player.bulletRadius);
                 var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                 shootingOrbits[id] = utils.deepCopy(orbitParams);
+                var currentTime = (new Date()).getTime();
+                if (player.autoFire && (currentTime - player.lastFireTime) > player.fireRate && player.bulletCount !== 0) {
+                    this.spawnBullet(player);
+                    player.bulletCount -= 1;
+                    player.lastFireTime = currentTime;
+                }
+            }
+
+            // Player mouse is down enable/disable autofire
+            if (player.middleMouseDown === true) {
+                console.log('hit');
+                player.autoFire = !player.autoFire;
+                player.middleMouseDown = false;
             }
 
             // Player left mouse btn was released

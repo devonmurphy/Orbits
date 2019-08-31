@@ -14,8 +14,9 @@ class Player extends Mass {
 
         // Player shooting constants
         this.fireRate = 500;
+        this.autoFire = false;
         this.bulletRadius = 175;
-        this.bulletCount = 50;
+        this.bulletCount = 500;
         this.shotPower = 500;
         this.bulletHealth = 1;
         this.shotPowerChangeRate = 30;
@@ -37,7 +38,7 @@ class Player extends Mass {
         return thrust;
     }
 
-  setupHandlers(socket) {
+    setupHandlers(socket) {
         this.id = socket.id;
         // Player controls
         socket.on('movement', this.movement.bind(this));
@@ -101,8 +102,9 @@ class Player extends Mass {
     mousedown(data) {
         if (data.button === 0) {
             this.leftMouseDown = true;
-        }
-        if (data.button === 2) {
+        } else if (data.button === 1) {
+            this.middleMouseDown = true;
+        } else if (data.button === 2) {
             this.rightMouseDown = true;
         }
     }
@@ -110,20 +112,21 @@ class Player extends Mass {
     // Fires the bullet when the mouse is released
     mouseup(data) {
         if (data.button === 0) {
-            var shotPower = this.shotPower;
             this.leftMouseDown = false;
             var currentTime = (new Date()).getTime();
-            if (this.lastMouseUpTime === undefined) {
-                this.lastMouseUpTime = 0;
+            if (this.lastFireTime === undefined) {
+                this.lastFireTime = 0;
             }
             if (this.bulletCount === undefined) {
                 this.bulletCount = this.startingBulletCount;
             }
-            if (currentTime - this.lastMouseUpTime > this.fireRate && this.bulletCount !== 0) {
+            if (currentTime - this.lastFireTime > this.fireRate && this.bulletCount !== 0) {
                 this.leftMouseUp = true;
                 this.bulletCount -= 1;
-                this.lastMouseUpTime = currentTime;
+                this.lastFireTime = currentTime;
             }
+        } else if (data.button === 1) {
+            this.middleMouseDown = false;
         } else if (data.button === 2) {
             this.rightMouseDown = false;
         }
@@ -136,6 +139,10 @@ class Player extends Mass {
             this.clientY = -data.clientY;
         }
         if (this.rightMouseDown === true) {
+            this.clientX = data.clientX;
+            this.clientY = -data.clientY;
+        }
+        if (this.middleMouseDown === true) {
             this.clientX = data.clientX;
             this.clientY = -data.clientY;
         }
