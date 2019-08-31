@@ -44,7 +44,7 @@ var playerWon = false;
 
 var DEBUG_LINE = false;
 var DEBUG_MAP = false;
-var DEBUG_FPS = false;
+var DEBUG_FPS = true;
 
 var setPlayerWon = function () {
     playerWon = true;
