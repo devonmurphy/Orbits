@@ -274,7 +274,7 @@ class Game {
             }
 
             // Collision between power up and asteroid or planet
-            if (collisions[i].type === 'powerUp' && collisions[i].hitBy.type === 'asteroid' || collisions[i].hitBy.type === 'planet') {
+            if (collisions[i].type === 'powerUp' && (collisions[i].hitBy.type === 'asteroid' || collisions[i].hitBy.type === 'planet')) {
                 if (collisions[i].uid in this.objects) {
                     delete this.objects[collisions[i].uid];
                 }
@@ -349,7 +349,6 @@ class Game {
 
             // Player mouse is down enable/disable autofire
             if (player.middleMouseDown === true) {
-                console.log('hit');
                 player.autoFire = !player.autoFire;
                 player.middleMouseDown = false;
             }
@@ -357,7 +356,11 @@ class Game {
             // Player left mouse btn was released
             if (player.leftMouseUp === true) {
                 player.leftMouseUp = false;
-                this.spawnBullet(player);
+                var currentTime = (new Date()).getTime();
+                if ((currentTime - player.lastFireTime) > player.fireRate && player.bulletCount !== 0) {
+                    this.spawnBullet(player);
+                    player.bulletCount -= 1;
+                }
             }
 
             // If a player is out of the map destroy them

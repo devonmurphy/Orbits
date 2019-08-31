@@ -21,6 +21,7 @@ class Player extends Mass {
         this.bulletHealth = 1;
         this.shotPowerChangeRate = 30;
         this.shotPowerMax = 2240;
+        this.lastFireTime = 0;
 
         this.name = name;
     }
@@ -102,6 +103,7 @@ class Player extends Mass {
     mousedown(data) {
         if (data.button === 0) {
             this.leftMouseDown = true;
+            this.leftMouseUp = false;
         } else if (data.button === 1) {
             this.middleMouseDown = true;
         } else if (data.button === 2) {
@@ -113,18 +115,7 @@ class Player extends Mass {
     mouseup(data) {
         if (data.button === 0) {
             this.leftMouseDown = false;
-            var currentTime = (new Date()).getTime();
-            if (this.lastFireTime === undefined) {
-                this.lastFireTime = 0;
-            }
-            if (this.bulletCount === undefined) {
-                this.bulletCount = this.startingBulletCount;
-            }
-            if (currentTime - this.lastFireTime > this.fireRate && this.bulletCount !== 0) {
-                this.leftMouseUp = true;
-                this.bulletCount -= 1;
-                this.lastFireTime = currentTime;
-            }
+            this.leftMouseUp = true;
         } else if (data.button === 1) {
             this.middleMouseDown = false;
         } else if (data.button === 2) {

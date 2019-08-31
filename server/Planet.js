@@ -5,6 +5,7 @@ class Planet {
         this.radius = radius;
         this.mass = mass;
         this.id = 'planet';
+        this.type = 'planet';
     }
 
     addForce(mass) {

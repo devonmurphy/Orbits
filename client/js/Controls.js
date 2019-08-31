@@ -43,6 +43,10 @@ document.addEventListener('keyup', function (event) {
 });
 
 canvas.addEventListener("mousedown", function (event) {
+    if (event.button === 1) {
+        // Block middle click
+        event.preventDefault();
+    }
     var data = {
         clientX: (event.clientX - Renderer.offsetLeft) / Renderer.gameScale,
         clientY: (event.clientY - Renderer.offsetTop) / Renderer.gameScale,
@@ -85,7 +89,7 @@ canvas.addEventListener('wheel', function (event) {
 });
 
 canvas.addEventListener('contextmenu', function (e) {
-    if (e.button == 2) {
+    if (e.button === 2) {
         // Block right-click menu thru preventing default action.
         e.preventDefault();
     }
