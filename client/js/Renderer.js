@@ -54,6 +54,13 @@ var setPlayerDead = function () {
     playerDead = true;
 }
 
+var renderImage = function (x, y, source) {
+    const image = document.getElementById(source);
+    context.scale(1 / gameScale, 1 / gameScale);
+    context.drawImage(image, gameScale * (x) - image.width / 2, gameScale * (y) - image.height / 2);
+    context.scale(gameScale, gameScale);
+}
+
 var lastFpsTime = 0;
 var fpsCount = 0;
 var fps = 0;
@@ -212,6 +219,8 @@ var drawPlayers = function (players) {
         context.beginPath();
         context.arc(player.x, -player.y, player.radius, 0, 2 * Math.PI);
         context.fill();
+
+        renderImage(player.x, -player.y, 'loops');
     }
 }
 
