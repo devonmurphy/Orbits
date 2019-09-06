@@ -54,11 +54,15 @@ var setPlayerDead = function () {
     playerDead = true;
 }
 
-var renderImage = function (x, y, source) {
+var renderImage = function (x, y, angle, source) {
     const image = document.getElementById(source);
+    context.translate(x, y);
     context.scale(1 / gameScale, 1 / gameScale);
-    context.drawImage(image, gameScale * (x) - image.width / 2, gameScale * (y) - image.height / 2);
+    context.rotate(angle * Math.PI / 180);
+    context.drawImage(image, - image.width / 2, - image.height / 2);
+    context.rotate(-angle * Math.PI / 180);
     context.scale(gameScale, gameScale);
+    context.translate(-x, -y);
 }
 
 var lastFpsTime = 0;
@@ -220,7 +224,7 @@ var drawPlayers = function (players) {
         context.arc(player.x, -player.y, player.radius, 0, 2 * Math.PI);
         context.fill();
 
-        renderImage(player.x, -player.y, 'loops');
+        renderImage(player.x, -player.y, 45, 'loops');
     }
 }
 
