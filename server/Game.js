@@ -360,6 +360,7 @@ class Game {
                 if ((currentTime - player.lastFireTime) > player.fireRate && player.bulletCount !== 0) {
                     this.spawnBullet(player);
                     player.bulletCount -= 1;
+                    player.lastFireTime = currentTime;
                 }
             }
 
