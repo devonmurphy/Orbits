@@ -34,7 +34,7 @@ var planetColor = "#a6ff99";
 var playerColor = "#1f9fef";
 var orbitLineColor = "#a329e0";
 var playerShootingLineColor = "#1f9fef";
-var playerBulletColor = "#1f9fef";
+var playerBulletColor = "#ebc934";
 
 var enemyColor = "#ff0066";
 var enemyBulletColor = "#ff0066";
@@ -215,6 +215,9 @@ var drawPlayers = function (players) {
         context.textAlign = "center";
         context.fillText(name, player.x, -player.y - 600);
 
+        context.strokeStyle = "black";
+        context.lineWidth = 2 * orbitLineWidth;
+
         if (socket.id === id) {
             context.fillStyle = playerColor;
         } else {
@@ -223,8 +226,9 @@ var drawPlayers = function (players) {
         context.beginPath();
         context.arc(player.x, -player.y, player.radius, 0, 2 * Math.PI);
         context.fill();
+        context.stroke();
 
-        renderImage(player.x, -player.y, 45, .05, 'ship');
+        renderImage(player.x, -player.y, 45, .04, 'ship');
     }
 }
 
@@ -401,11 +405,11 @@ var render = function (gameState) {
     }
 
     // Draw everthing
-    drawPlayers(players);
     drawObjects(objects);
-
     drawPlanet();
     drawShootingOrbit(shootingOrbits);
+
+    drawPlayers(players);
     if (DEBUG_FPS) {
         drawFPSCounter();
     }
