@@ -12,7 +12,7 @@ class Mass {
         this.orbitParams = {};
         this.uid = uid.sync(8);
     }
-    
+
     // adds a force to the mass's this.forces
     addForce(force) {
         this.forces.push(force);
@@ -46,7 +46,7 @@ class Mass {
 
         return this
     }
-    
+
     // use this to iterate one specified timestep
     fixedUpdate(timeStep) {
         this.applyForces(timeStep);
@@ -105,6 +105,12 @@ class Mass {
         return E;
     }
 
+    rotatePoint(point, center, angle) {
+        var rotatedX = Math.cos(angle) * (point.x - center.x) - Math.sin(angle) * (point.y - center.y) + center.x;
+        var rotatedY = Math.sin(angle) * (point.x - center.x) + Math.cos(angle) * (point.y - center.y) + center.y;
+        return { x: rotatedX, y: rotatedY };
+    }
+
     // Calculates a list of coordinates of the Mass's hyperbolic orbit
     calculateHyperbolicOrbit(a, Ecc, theta, w, mass) {
         // drawing parameters
@@ -152,14 +158,14 @@ class Mass {
                 beforeDist = dist;
                 continue;
             }
-            
+
             // if this is the first point after a flip and the last distance was smaller- reset timeInt
             if (orbitPoints.length === 0 && beforeDist < dist && flipped) {
                 timeInt = -timeInt;
                 beforeDist = dist;
                 continue;
             }
-            
+
             // Push the point into orbitPoints if it is not NaN
             if (!isNaN(x) && !isNaN(y)) {
                 orbitPoints.push(orbitPos);
@@ -167,6 +173,62 @@ class Mass {
 
             // iterate the time by the drawStep based on if the orbit is clockwise or not
             curTime += isClockwise * drawStep;
+        }
+        if (orbitPoints.length < 5) {
+            console.log('failure!!');
+            console.log('ecc: ' + Ecc);
+            console.log('a: ' + a);
+            console.log('b: ' + Math.sqrt(a * a * (Ecc * Ecc - 1)));
+            console.log('theta: ' + theta * 180 / Math.PI);
+        }
+        return orbitPoints;
+    }
+
+    // Calculates a list of coordinates of the Mass's hyperbolic orbit
+    calculateHyperbolicOrbit2(a, b, w, periapsis) {
+        // drawing parameters
+        var maxDrawSteps = 500;
+        var drawStep = 100;
+        var maxDrawDist = 50000;
+        var dist = 0;
+        var orbitPoints = [];
+        var y = 0;
+        var isClockwise = ((this.vx * this.y - this.vy * this.x) > 0 ? 1 : -1);
+
+        // loop until orbitPoints has grown too large or moved too far from the starting position
+        while (orbitPoints.length < maxDrawSteps && dist < maxDrawDist) {
+            //var x = this.x + a * Math.sqrt(1 + ((y - this.y) * (y - this.y)) / (b * b));
+            var x = a * Math.sqrt(1 + (y * y) / (b * b));
+            var orbitPos = { x, y };
+            dist = this.magnitude(this.x, -this.y, x, y);
+
+            if (!isNaN(x) && !isNaN(y)) {
+                orbitPoints.push(orbitPos);
+            }
+            // iterate the time by the drawStep based on if the orbit is clockwise or not
+            y += isClockwise * drawStep;
+        }
+
+        // perapsis params
+        var pX = -periapsis * Math.cos(w);
+        var pY = periapsis * Math.sin(w);
+
+        var deltaX = pX + a;
+        var deltaY = pY;
+
+        for (var i = 0; i < orbitPoints.length; i++) {
+            var point = orbitPoints[i];
+            point.x -= deltaX;
+            point.y -= deltaY;
+
+            orbitPoints[i] = this.rotatePoint(point, { x: -pX, y: -pY }, 2 * Math.PI - w);
+        }
+
+        if (orbitPoints.length < 5) {
+            console.log('failure!!');
+            console.log('a: ' + a);
+            console.log('b: ' + b);
+            console.log('w: ' + w);
         }
         return orbitPoints;
     }
@@ -231,7 +293,8 @@ class Mass {
             // this is wrong T.T
             theta = Math.acos(dot / Ecc / dist);
             periapsis = (1 - Ecc) * a;
-            orbitParams.points = this.calculateHyperbolicOrbit(a, Ecc, theta, w, mass);
+            //orbitParams.points = this.calculateHyperbolicOrbit(a, Ecc, theta, w, mass);
+            orbitParams.points = this.calculateHyperbolicOrbit2(a, b, w, periapsis);
         }
 
         orbitParams.speed = speed;
