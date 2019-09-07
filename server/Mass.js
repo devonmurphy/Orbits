@@ -192,12 +192,20 @@ class Mass {
         var maxDrawDist = 50000;
         var dist = 0;
         var orbitPoints = [];
-        var y = 0;
         var isClockwise = ((this.vx * this.y - this.vy * this.x) > 0 ? 1 : -1);
+
+        // perapsis params
+        var pX = -periapsis * Math.cos(w);
+        var pY = periapsis * Math.sin(w);
+
+        var deltaX = pX + a;
+        var deltaY = pY;
+
+        var startDist = this.magnitude(this.x, -this.y, 0, 0);
+        var y = 0;
 
         // loop until orbitPoints has grown too large or moved too far from the starting position
         while (orbitPoints.length < maxDrawSteps && dist < maxDrawDist) {
-            //var x = this.x + a * Math.sqrt(1 + ((y - this.y) * (y - this.y)) / (b * b));
             var x = a * Math.sqrt(1 + (y * y) / (b * b));
             var orbitPos = { x, y };
             dist = this.magnitude(this.x, -this.y, x, y);
@@ -209,13 +217,6 @@ class Mass {
             y += isClockwise * drawStep;
         }
 
-        // perapsis params
-        var pX = -periapsis * Math.cos(w);
-        var pY = periapsis * Math.sin(w);
-
-        var deltaX = pX + a;
-        var deltaY = pY;
-
         for (var i = 0; i < orbitPoints.length; i++) {
             var point = orbitPoints[i];
             point.x -= deltaX;
@@ -224,6 +225,11 @@ class Mass {
             orbitPoints[i] = this.rotatePoint(point, { x: -pX, y: -pY }, 2 * Math.PI - w);
         }
 
+        if (this.magnitude(orbitPoints[0].x, orbitPoints[0].y, this.x, -this.y) < 500) {
+            console.log("success!!");
+            //console.log("phi: " + phi * 180 / Math.PI);
+            console.log("w: " + w * 180 / Math.PI);
+        }
         if (orbitPoints.length < 5) {
             console.log('failure!!');
             console.log('a: ' + a);
