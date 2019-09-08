@@ -65,127 +65,15 @@ class Mass {
         return Math.sqrt(x * x + y * y);
     }
 
-    // Performs Newton's method to solve for mean anomaly in elliptical and hyperbolic orbits
-    Newton(steps, time, Ecc, timeInt, a, mass) {
-        var n;
-        var E = 0;
-        var Mean = 0;
-        // Elliptical orbits
-        if (Ecc > 1) {
-            Mean = Math.sqrt(mass / -(a * a * a)) * (time - timeInt);
-            E = Mean;
-            for (n = 0; n < steps; n++) {
-                var func = Mean - Ecc * Math.sinh(E) + E;
-                var func1 = Ecc * Math.cosh(E) - 1;
-                var Ebefore = E;
-                E = E + func / func1;
-                // if the difference between sucessive values is less than .01 stop
-                if (E - Ebefore < .01)
-                    break;
-            }
-        }
-        // Hyperbolic orbits
-        else if (Ecc < 1) {
-            Mean = Math.sqrt(mass / (a * a * a)) * (time - timeInt);
-            E = Mean;
-            for (n = 0; n < steps; n++) {
-                var denom = (1 - Ecc * (Math.cos(E)));
-                if (denom != 0) {
-                    var Ebefore = E;
-                    E = E - (E - Ecc * Math.sin(E) - Mean) / denom;
-                    // if the difference between sucessive values is less than .01 stop
-                    if (E - Ebefore < .01)
-                        break;
-                }
-                else {
-                    break;
-                }
-            }
-        }
-        return E;
-    }
-
     rotatePoint(point, center, angle) {
         var rotatedX = Math.cos(angle) * (point.x - center.x) - Math.sin(angle) * (point.y - center.y) + center.x;
         var rotatedY = Math.sin(angle) * (point.x - center.x) + Math.cos(angle) * (point.y - center.y) + center.y;
         return { x: rotatedX, y: rotatedY };
     }
 
-    // Calculates a list of coordinates of the Mass's hyperbolic orbit
-    calculateHyperbolicOrbit(a, Ecc, theta, w, mass) {
-        // drawing parameters
-        var maxDrawSteps = 500;
-        var drawStep = .1;
-        var maxNewtonSteps = 10;
-        var maxDrawDist = 50000;
-
-        // orbit parameters
-        var W = (Ecc + Math.cos(theta)) / (1 + Ecc * Math.cos(theta));
-        var Eint = Math.log(W + Math.sqrt(W * W - 1));
-        var Meanint = Ecc * Math.sinh(Eint) - Eint;
-        var isClockwise = ((this.vx * this.y - this.vy * this.x) > 0 ? 1 : -1);
-        var timeInt = Meanint * Math.sqrt(-(a * a * a) / mass);
-        /*
-        } else {
-            var timeInt = Math.asinh(Meanint / Ecc);
-        }
-        */
-        var curTime = 0;
-        var r, x = this.x, y = -this.y, EccAnom;
-        var orbitPoints = [];
-        var dist = this.magnitude(this.x, -this.y, x, y);
-
-        var flipped = false;
-        var beforeDist;
-
-        // loop until orbitPoints has grown too large or moved too far from the starting position
-        while (orbitPoints.length < maxDrawSteps && dist < maxDrawDist) {
-            // Calculate the Eccentric Anomaly using Newton's method
-            EccAnom = this.Newton(maxNewtonSteps, curTime, Ecc, timeInt, a, mass);
-            theta = 2 * Math.atan(Math.sqrt((1 + Ecc) / (Ecc - 1)) * Math.tanh(EccAnom / 2));
-            // Get position from Eccentric Anomaly
-            r = a * (Ecc * Math.cosh(EccAnom) - 1);
-            x = -r * (Math.cos(theta - w));
-            y = -r * (Math.sin(theta - w));
-            var orbitPos = { x, y };
-            dist = this.magnitude(this.x, -this.y, x, y);
-
-            // if this is the first point and it hasn't flipped yet
-            //  and the distance is too far away from the player flip the sign of timeInt
-            if (orbitPoints.length === 0 && dist > 500 && !flipped) {
-                timeInt = -timeInt;
-                flipped = true;
-                beforeDist = dist;
-                continue;
-            }
-
-            // if this is the first point after a flip and the last distance was smaller- reset timeInt
-            if (orbitPoints.length === 0 && beforeDist < dist && flipped) {
-                timeInt = -timeInt;
-                beforeDist = dist;
-                continue;
-            }
-
-            // Push the point into orbitPoints if it is not NaN
-            if (!isNaN(x) && !isNaN(y)) {
-                orbitPoints.push(orbitPos);
-            }
-
-            // iterate the time by the drawStep based on if the orbit is clockwise or not
-            curTime += isClockwise * drawStep;
-        }
-        if (orbitPoints.length < 5) {
-            console.log('failure!!');
-            console.log('ecc: ' + Ecc);
-            console.log('a: ' + a);
-            console.log('b: ' + Math.sqrt(a * a * (Ecc * Ecc - 1)));
-            console.log('theta: ' + theta * 180 / Math.PI);
-        }
-        return orbitPoints;
-    }
 
     // Calculates a list of coordinates of the Mass's hyperbolic orbit
-    calculateHyperbolicOrbit2(a, b, w, periapsis) {
+    calculateHyperbolicOrbit(a, b, w, periapsis) {
         // drawing parameters
         var maxDrawSteps = 500;
         var drawStep = 100;
@@ -299,8 +187,7 @@ class Mass {
             // this is wrong T.T
             theta = Math.acos(dot / Ecc / dist);
             periapsis = (1 - Ecc) * a;
-            //orbitParams.points = this.calculateHyperbolicOrbit(a, Ecc, theta, w, mass);
-            orbitParams.points = this.calculateHyperbolicOrbit2(a, b, w, periapsis);
+            orbitParams.points = this.calculateHyperbolicOrbit(a, b, w, periapsis);
         }
 
         orbitParams.speed = speed;
