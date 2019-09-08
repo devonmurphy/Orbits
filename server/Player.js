@@ -101,6 +101,8 @@ class Player extends Mass {
 
     // Calculates shooting orbit while mouse is down
     mousedown(data) {
+        this.clientX = data.clientX;
+        this.clientY = -data.clientY;
         if (data.button === 0) {
             this.leftMouseDown = true;
             this.leftMouseUp = false;
@@ -125,18 +127,8 @@ class Player extends Mass {
 
     // Update the player's clientX and clientY position when they move their mouse
     mousemove(data) {
-        if (this.leftMouseDown === true) {
-            this.clientX = data.clientX;
-            this.clientY = -data.clientY;
-        }
-        if (this.rightMouseDown === true) {
-            this.clientX = data.clientX;
-            this.clientY = -data.clientY;
-        }
-        if (this.middleMouseDown === true) {
-            this.clientX = data.clientX;
-            this.clientY = -data.clientY;
-        }
+        this.clientX = data.clientX;
+        this.clientY = -data.clientY;
     }
 }
 
