@@ -231,7 +231,7 @@ var drawPlayers = function (players) {
         context.stroke();
         */
 
-        renderImage(player.x, -player.y, 0, 600 / 350*gameScale , 'ship');
+        renderImage(player.x, -player.y, player.rotation * 180 / Math.PI, 600 / 350 * gameScale, 'ship');
     }
 }
 
