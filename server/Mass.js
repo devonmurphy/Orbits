@@ -202,7 +202,7 @@ class Mass {
         var deltaY = pY;
 
         var startDist = this.magnitude(this.x, -this.y, 0, 0);
-        var y = 0;
+        var y = -isClockwise*10000;
 
         // loop until orbitPoints has grown too large or moved too far from the starting position
         while (orbitPoints.length < maxDrawSteps && dist < maxDrawDist) {
