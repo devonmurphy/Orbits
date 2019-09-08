@@ -352,6 +352,14 @@ class Game {
                 var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                 shootingOrbits[id] = utils.deepCopy(orbitParams);
                 var currentTime = (new Date()).getTime();
+
+
+                var shootX = (player.clientX - player.x);
+                var shootY = (player.clientY - player.y);
+                var isClockwise = ((shootX) > 0 ? 1 : -1);
+                var angle = isClockwise * Math.acos(shootY / Math.sqrt(shootX * shootX + shootY * shootY));
+                players[id].rotation = angle;
+
                 if (player.autoFire && (currentTime - player.lastFireTime) > player.fireRate && player.bulletCount !== 0) {
                     this.spawnBullet(player);
                     player.bulletCount -= 1;
