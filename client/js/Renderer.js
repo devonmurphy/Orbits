@@ -231,7 +231,19 @@ var drawPlayers = function (players) {
         context.stroke();
         */
 
-        renderImage(player.x, -player.y, player.rotation * 180 / Math.PI, 600 / 350 * gameScale, 'ship');
+        if (socket.id === id) {
+            if (player.thrusting) {
+                renderImage(player.x, -player.y, player.rotation * 180 / Math.PI, 600 / 350 * gameScale, 'shipThrusting');
+            } else {
+                renderImage(player.x, -player.y, player.rotation * 180 / Math.PI, 600 / 350 * gameScale, 'ship');
+            }
+        } else {
+            if (player.thrusting) {
+                renderImage(player.x, -player.y, player.rotation * 180 / Math.PI, 600 / 350 * gameScale, 'enemyShipThrusting');
+            } else {
+                renderImage(player.x, -player.y, player.rotation * 180 / Math.PI, 600 / 350 * gameScale, 'enemyShip');
+            }
+        }
     }
 }
 

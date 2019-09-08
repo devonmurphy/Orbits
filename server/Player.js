@@ -7,7 +7,7 @@ class Player extends Mass {
         // Player constants
         this.thrust = 200;
         this.fuelDrainRate = 1;
-        this.fuel = 2000;
+        this.fuel = 20000;
         this.controls = { x: 0, y: 0 };
         this.score = 0;
         this.type = "player";

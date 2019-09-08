@@ -313,7 +313,7 @@ class Game {
                 // Get the magnitude of the mouse controls + key controls
                 var controlForceMag = Math.sqrt(Math.pow(controls.x + mouseThrustForce.x, 2) + Math.pow(controls.y + mouseThrustForce.y, 2));
 
-
+                players[id].thrusting = true;
                 // normalize controlForce to have magnitude of player.thrust
                 if (controlForceMag !== 0) {
                     var controlForce = {
@@ -330,10 +330,10 @@ class Game {
                 }
             } else {
                 var p = players[id];
-                //var isClockwise = ((p.vx * p.y - p.vy * p.x) > 0 ? 1 : -1);
                 var isClockwise = ((p.vx) > 0 ? 1 : -1);
                 var angle = isClockwise * Math.acos(p.vy / Math.sqrt(p.vx * p.vx + p.vy * p.vy));
                 players[id].rotation = angle;
+                players[id].thrusting = false;
             }
 
             // add the planet's force to the player and update their position
