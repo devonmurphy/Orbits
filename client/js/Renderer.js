@@ -215,6 +215,7 @@ var drawPlayers = function (players) {
         context.textAlign = "center";
         context.fillText(name, player.x, -player.y - 600);
 
+        /*
         context.strokeStyle = "black";
         context.lineWidth = 2 * orbitLineWidth;
 
@@ -223,12 +224,14 @@ var drawPlayers = function (players) {
         } else {
             context.fillStyle = enemyColor;
         }
+
         context.beginPath();
         context.arc(player.x, -player.y, player.radius, 0, 2 * Math.PI);
         context.fill();
         context.stroke();
+        */
 
-        renderImage(player.x, -player.y, 45, .04, 'ship');
+        renderImage(player.x, -player.y, 0, 600 / 350*gameScale , 'ship');
     }
 }
 
