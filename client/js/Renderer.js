@@ -420,10 +420,10 @@ var render = function (gameState) {
     }
 
     // Draw everthing
-    drawObjects(objects);
     drawPlanet();
     drawShootingOrbit(shootingOrbits);
 
+    drawObjects(objects);
     drawPlayers(players);
     if (DEBUG_FPS) {
         drawFPSCounter();

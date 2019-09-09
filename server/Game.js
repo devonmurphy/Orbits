@@ -348,11 +348,10 @@ class Game {
 
             // Player mouse is down - calculate the shooting orbit
             if (player.leftMouseDown === true) {
-                var bullet = new Mass(player.x, player.y, player.bulletRadius);
+                var bullet = new Bullet(player);
                 var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
                 shootingOrbits[id] = utils.deepCopy(orbitParams);
                 var currentTime = (new Date()).getTime();
-
 
                 var shootX = (player.clientX - player.x);
                 var shootY = (player.clientY - player.y);
