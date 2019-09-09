@@ -113,6 +113,7 @@ class Mass {
             orbitPoints[i] = this.rotatePoint(point, { x: -pX, y: -pY }, 2 * Math.PI - w);
         }
 
+        /*
         if (this.magnitude(orbitPoints[0].x, orbitPoints[0].y, this.x, -this.y) < 500) {
             console.log("success!!");
             //console.log("phi: " + phi * 180 / Math.PI);
@@ -124,6 +125,7 @@ class Mass {
             console.log('b: ' + b);
             console.log('w: ' + w);
         }
+        */
         return orbitPoints;
     }
 
