@@ -52,6 +52,37 @@ class Game {
 
     }
 
+    // Update the game state every 15 ms
+    start() {
+        this.io.sockets.in(this.gameId).emit('starting game');
+        this.gameLoop = setInterval(() => {
+            this.checkIfAsteroidSpawns();
+            this.checkIfPowerUpSpawns();
+            this.updateObjects();
+            this.updatePlayers();
+            this.handleCollisions();
+
+            var objects = this.objects;
+            var players = this.players;
+            var shootingOrbits = this.shootingOrbits;
+            //var map = this.map; // dont want to sent the full map unless we are debugging
+            var map = { mapRadius: this.map.mapRadius };
+            var strikes = this.strikes;
+            var maxStrikes = this.maxStrikes;
+            var gameState = {
+                players,
+                objects,
+                shootingOrbits,
+                map,
+                strikes,
+                maxStrikes,
+            };
+
+            // Send the game state to the clients to be rendered
+            this.io.sockets.in(this.gameId).emit('gameState', gameState);
+        }, 15)
+    }
+
     checkIfPowerUpSpawns() {
         var currentTime = (new Date()).getTime();
         if (currentTime - this.lastPowerUpSpawnTime >= this.powerUpSpawnRate) {
@@ -405,37 +436,6 @@ class Game {
             this.planet.addForce(object);
             object.update();
         }
-    }
-
-    // Update the game state every 15 ms
-    start() {
-        this.io.sockets.in(this.gameId).emit('starting game');
-        this.gameLoop = setInterval(() => {
-            this.checkIfAsteroidSpawns();
-            this.checkIfPowerUpSpawns();
-            this.updateObjects();
-            this.updatePlayers();
-            this.handleCollisions();
-
-            var objects = this.objects;
-            var players = this.players;
-            var shootingOrbits = this.shootingOrbits;
-            //var map = this.map; // dont want to sent the full map unless we are debugging
-            var map = { mapRadius: this.map.mapRadius };
-            var strikes = this.strikes;
-            var maxStrikes = this.maxStrikes;
-            var gameState = {
-                players,
-                objects,
-                shootingOrbits,
-                map,
-                strikes,
-                maxStrikes,
-            };
-
-            // Send the game state to the clients to be rendered
-            this.io.sockets.in(this.gameId).emit('gameState', gameState);
-        }, 15)
     }
 }
 
