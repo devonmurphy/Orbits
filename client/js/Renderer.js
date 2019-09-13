@@ -17,7 +17,7 @@ var offsetTop = canvas.offsetTop + canvas.height / 2;
 // Scale and size
 var orbitLineWidth = "50";
 var planetRadius = 1500;
-var gameScale = .025;
+var gameScale = .05;
 
 var uiX = 12500;
 var uiY = 12000;

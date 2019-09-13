@@ -8,6 +8,7 @@ var socket = io();
 // Receive game state from server and then render it
 socket.on('gameState', function (gameState) {
     Renderer.render(gameState);
+    theGame.updateGameState(gameState);
 });
 
 // Receive you died 

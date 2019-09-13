@@ -49,7 +49,6 @@ class Game {
             var shootingOrbits = this.shootingOrbits;
             var strikes = this.strikes;
             var maxStrikes = this.maxStrikes;
-            console.log(players);
             var gameState = {
                 players,
                 objects,
@@ -63,6 +62,19 @@ class Game {
         }, 15)
     }
 
+    updateGameState(gameState) {
+        for (var player in gameState.players) {
+            console.log(this.players[player]);
+            this.players[player].x = gameState.players[player].x;
+            this.players[player].y = gameState.players[player].y;
+            this.players[player].vx = gameState.players[player].vx;
+            this.players[player].vy = gameState.players[player].vy;
+            this.players[player].fuel = gameState.players[player].fuel;
+            this.players[player].lastFireTime = gameState.players[player].lastFireTime;
+        }
+        //this.objects = gameState.objects;
+        //this.shootingOrbits = gameState.shootingOrbits;
+    }
 
     // Create a new player
     spawnPlayer(socket, playerName) {
@@ -104,7 +116,7 @@ class Game {
         clearInterval(this.gameLoop);
         this.gameEnded(this.gameId)
     }
-    
+
     spawnBullet(player) {
         var bullet = new Bullet(player);
         bullet.calculateShootingOrbit(player.shotPower, player, this.planet.mass);
