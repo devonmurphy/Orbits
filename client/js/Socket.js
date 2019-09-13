@@ -1,5 +1,7 @@
 import * as Renderer from "./Renderer.js";
+import * as Game from "./server/Game.js";
 
+var theGame;
 // Intiates client connection and sets up controls 
 var socket = io();
 
@@ -21,6 +23,16 @@ socket.on('youwon', function (data) {
 // Receive you won
 socket.on('starting game', function (data) {
     document.getElementById('renderer').style.display = 'block';
+    //Add the new player to the sessions object
+    // Create a new game and with the player who created it
+    theGame = new Game({
+        io: this,
+        type: 'single player',
+        gameId: 'jahsdjhajkdshjkd78as8d',
+        playerCount: 1,
+    });
+    theGame.connectPlayer('asjkdhkajsdhjkhadjkshjkdjk', this);
+    theGame.start();
 });
 
 // Render waiting for game screen
