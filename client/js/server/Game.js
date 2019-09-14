@@ -2,6 +2,7 @@ var Player = require('./Player.js');
 var Bullet = require('./Bullet.js');
 var Planet = require('./Planet.js');
 var utils = require('./utils.js');
+var Renderer = require('../Renderer.js');
 
 class Game {
     constructor(opts) {
@@ -20,6 +21,7 @@ class Game {
         this.objects = {};
 
         // Game constants
+        this.started = false;
         this.planetRadius = 1500;
         this.mass = 5000000000;
         this.planet = new Planet(0, 0, this.planetRadius, this.mass);
@@ -39,6 +41,7 @@ class Game {
 
     // Update the game state every 15 ms
     start() {
+        this.started = true;
         //this.io.sockets.in(this.gameId).emit('starting game');
         this.gameLoop = setInterval(() => {
             this.updateObjects();
@@ -56,6 +59,7 @@ class Game {
                 strikes,
                 maxStrikes,
             };
+            Renderer.render(gameState);
 
             // Send the game state to the clients to be rendered
             //this.io.sockets.in(this.gameId).emit('gameState', gameState);
@@ -64,16 +68,29 @@ class Game {
 
     updateGameState(gameState) {
         for (var player in gameState.players) {
-            console.log(this.players[player]);
-            this.players[player].x = gameState.players[player].x;
-            this.players[player].y = gameState.players[player].y;
-            this.players[player].vx = gameState.players[player].vx;
-            this.players[player].vy = gameState.players[player].vy;
-            this.players[player].fuel = gameState.players[player].fuel;
-            this.players[player].lastFireTime = gameState.players[player].lastFireTime;
+            var newPlayer = gameState.players[player];
+
+            var socket = { id: player };
+            if (!(player in this.players)) {
+                this.spawnPlayer(socket, player.name);
+            }
+            var currentPlayer = this.players[player];
+
+            currentPlayer.x = newPlayer.x;
+            currentPlayer.y = newPlayer.y;
+            currentPlayer.vx = newPlayer.vx;
+            currentPlayer.vy = newPlayer.vy;
+            currentPlayer.fuel = newPlayer.fuel;
+            currentPlayer.lastFireTime = newPlayer.lastFireTime;
+            currentPlayer.name = newPlayer.name;
+            currentPlayer.orbitParams = newPlayer.orbitParams;
+            currentPlayer.thrusting = newPlayer.thrusting;
+            currentPlayer.rotation = newPlayer.rotation;
+            currentPlayer.controls = newPlayer.controls;
         }
         //this.objects = gameState.objects;
-        //this.shootingOrbits = gameState.shootingOrbits;
+        this.shootingOrbits = utils.deepCopy(gameState.shootingOrbits);
+        //this.shootingOrbits = gameState.shootingOrbits[socket.id];
     }
 
     // Create a new player
@@ -85,7 +102,7 @@ class Game {
         var playerOffsetY = Math.sin(2 * Math.PI * playerNumber / playerCount);
 
         this.players[socket.id] = new Player(this.startingDist * playerOffsetX, this.startingDist * playerOffsetY, playerName);
-        this.players[socket.id].setupHandlers(socket);
+        //this.players[socket.id].setupHandlers(socket);
 
         // Calculate velocity for circular orbit
         var dist = Math.sqrt(Math.pow(this.players[socket.id].x, 2) + Math.pow(this.players[socket.id].y, 2));
@@ -133,99 +150,9 @@ class Game {
         // Loop through players and add forces of controls and planet
         for (var id in players) {
             var player = players[id];
-            var controls = players[id].controls;
-            var shotPower = players[id].shotPower;
-
-            // If the player has fuel and they are pressing a thrust control down
-            if ((player.fuel > 0) && (controls.x || controls.y || player.rightMouseDown)) {
-
-                // lower their fuel when controls are engaged
-                player.fuel -= player.fuelDrainRate;
-                // dont lower it too much though
-                if (player.fuel < 0) {
-                    player.fuel = 0;
-                }
-
-                // If the right mouse btn is down calculate thrust force
-                var mouseThrustForce = { x: 0, y: 0 };
-                if (player.rightMouseDown === true && player.clientX && player.clientY) {
-                    mouseThrustForce = player.calculateThrustForce(player.thrust, player);
-                }
-
-                // Get the magnitude of the mouse controls + key controls
-                var controlForceMag = Math.sqrt(Math.pow(controls.x + mouseThrustForce.x, 2) + Math.pow(controls.y + mouseThrustForce.y, 2));
-
-                players[id].thrusting = true;
-                // normalize controlForce to have magnitude of player.thrust
-                if (controlForceMag !== 0) {
-                    var controlForce = {
-                        x: (controls.x + mouseThrustForce.x) / controlForceMag * player.thrust,
-                        y: (controls.y + mouseThrustForce.y) / controlForceMag * player.thrust
-                    };
-
-                    var isClockwise = ((controlForce.x) > 0 ? 1 : -1);
-                    var angle = isClockwise * Math.acos(controlForce.y / Math.sqrt(controlForce.x * controlForce.x + controlForce.y * controlForce.y));
-                    players[id].rotation = angle;
-
-                    // add the control force to the player
-                    player.addForce(controlForce);
-                }
-            } else {
-                var p = players[id];
-                var isClockwise = ((p.vx) > 0 ? 1 : -1);
-                var angle = isClockwise * Math.acos(p.vy / Math.sqrt(p.vx * p.vx + p.vy * p.vy));
-                players[id].rotation = angle;
-                players[id].thrusting = false;
-            }
-
             // add the planet's force to the player and update their position
             this.planet.addForce(player);
             player.update();
-
-            // Player is pressing a movement control - recalculate the player orbit
-            if (controls.x || controls.y || player.rightMouseDown) {
-                var orbitParams = player.calculateOrbit(this.planet.mass);
-                players[id].orbitParams = utils.deepCopy(orbitParams);
-            }
-
-            // Player mouse is down - calculate the shooting orbit
-            if (player.leftMouseDown === true) {
-                var bullet = new Bullet(player);
-                var orbitParams = bullet.calculateShootingOrbit(shotPower, player, this.planet.mass);
-                shootingOrbits[id] = utils.deepCopy(orbitParams);
-                var currentTime = (new Date()).getTime();
-
-                var shootX = (player.clientX - player.x);
-                var shootY = (player.clientY - player.y);
-                var isClockwise = ((shootX) > 0 ? 1 : -1);
-                var angle = isClockwise * Math.acos(shootY / Math.sqrt(shootX * shootX + shootY * shootY));
-                players[id].rotation = angle;
-
-                if (player.autoFire && (currentTime - player.lastFireTime) > player.fireRate && player.bulletCount !== 0) {
-                    this.spawnBullet(player);
-                    player.bulletCount -= 1;
-                    player.lastFireTime = currentTime;
-                }
-            }
-
-            // Player mouse is down enable/disable autofire
-            if (player.middleMouseDown === true) {
-                player.autoFire = !player.autoFire;
-                player.middleMouseDown = false;
-            }
-
-            // Player left mouse btn was released
-            if (player.leftMouseUp === true) {
-                player.leftMouseUp = false;
-                var currentTime = (new Date()).getTime();
-                if ((currentTime - player.lastFireTime) > player.fireRate && player.bulletCount !== 0) {
-                    this.spawnBullet(player);
-                    player.bulletCount -= 1;
-                    player.lastFireTime = currentTime;
-                }
-            }
-
-
         }
 
     }

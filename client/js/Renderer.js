@@ -17,7 +17,7 @@ var offsetTop = canvas.offsetTop + canvas.height / 2;
 // Scale and size
 var orbitLineWidth = "50";
 var planetRadius = 1500;
-var gameScale = .05;
+var gameScale = .025;
 
 var uiX = 12500;
 var uiY = 12000;
@@ -232,6 +232,7 @@ var drawPlayers = function (players) {
         */
 
         if (socket.id === id) {
+            console.log(player.thrusting);
             if (player.thrusting) {
                 renderImage(player.x, -player.y, player.rotation * 180 / Math.PI, 600 / 350 * gameScale, 'shipThrusting');
             } else {
