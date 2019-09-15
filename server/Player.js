@@ -1,5 +1,7 @@
 var Mass = require('./Mass.js');
 
+var DEBUG_LAG = 0;
+
 class Player extends Mass {
     constructor(x, y, name) {
         super(x, y, 350);
@@ -57,78 +59,90 @@ class Player extends Mass {
 
     // Receives player controls
     movement(data) {
-        var tangent = { x: -this.vy, y: this.vx };
-        var speed = Math.sqrt(Math.pow(this.vx, 2) + Math.pow(this.vy, 2));
-        this.controls = { x: 0, y: 0 };
-        if (data.right) {
-            this.controls.x -= tangent.x / speed * this.thrust;
-            this.controls.y -= tangent.y / speed * this.thrust;
-        }
-        if (data.left) {
-            this.controls.x += tangent.x / speed * this.thrust;
-            this.controls.y += tangent.y / speed * this.thrust;
-        }
-        if (data.forward) {
-            this.controls.x += this.vx / speed * this.thrust;
-            this.controls.y += this.vy / speed * this.thrust;
-        }
-        if (data.backward) {
-            this.controls.x -= this.vx / speed * this.thrust;
-            this.controls.y -= this.vy / speed * this.thrust;
-        }
+        setTimeout(() => {
+            var tangent = { x: -this.vy, y: this.vx };
+            var speed = Math.sqrt(Math.pow(this.vx, 2) + Math.pow(this.vy, 2));
+            this.controls = { x: 0, y: 0 };
+            if (data.right) {
+                this.controls.x -= tangent.x / speed * this.thrust;
+                this.controls.y -= tangent.y / speed * this.thrust;
+            }
+            if (data.left) {
+                this.controls.x += tangent.x / speed * this.thrust;
+                this.controls.y += tangent.y / speed * this.thrust;
+            }
+            if (data.forward) {
+                this.controls.x += this.vx / speed * this.thrust;
+                this.controls.y += this.vy / speed * this.thrust;
+            }
+            if (data.backward) {
+                this.controls.x -= this.vx / speed * this.thrust;
+                this.controls.y -= this.vy / speed * this.thrust;
+            }
+        }, DEBUG_LAG);
     }
 
     // Adjusts player shot power whenever they scroll
     wheelMove(data) {
-        // Increase shot power on scroll up
-        if (data < 0) {
-            this.shotPower += this.shotPowerChangeRate;
-        }
+        setTimeout(() => {
+            // Increase shot power on scroll up
+            if (data < 0) {
+                this.shotPower += this.shotPowerChangeRate;
+            }
 
-        // Increase shot power on scroll down
-        if (data > 0) {
-            this.shotPower -= this.shotPowerChangeRate;
-        }
+            // Increase shot power on scroll down
+            if (data > 0) {
+                this.shotPower -= this.shotPowerChangeRate;
+            }
 
-        // Clamp values between 0 and shotPowerMax
-        if (this.shotPower < 0) {
-            this.shotPower = 0;
-        }
-        if (this.shotPower > this.shotPowerMax) {
-            this.shotPower = this.shotPowerMax;
-        }
+            // Clamp values between 0 and shotPowerMax
+            if (this.shotPower < 0) {
+                this.shotPower = 0;
+            }
+            if (this.shotPower > this.shotPowerMax) {
+                this.shotPower = this.shotPowerMax;
+            }
+        }, DEBUG_LAG);
     }
 
     // Calculates shooting orbit while mouse is down
     mousedown(data) {
-        this.clientX = data.clientX;
-        this.clientY = -data.clientY;
-        if (data.button === 0) {
-            this.leftMouseDown = true;
-            this.leftMouseUp = false;
-        } else if (data.button === 1) {
-            this.middleMouseDown = true;
-        } else if (data.button === 2) {
-            this.rightMouseDown = true;
-        }
+        setTimeout(() => {
+            this.clientX = data.clientX;
+            this.clientY = -data.clientY;
+            if (data.button === 0) {
+                this.leftMouseDown = true;
+                this.leftMouseUp = false;
+            } else if (data.button === 1) {
+                this.middleMouseDown = true;
+            } else if (data.button === 2) {
+                this.rightMouseDown = true;
+            }
+
+        }, DEBUG_LAG);
     }
 
     // Fires the bullet when the mouse is released
     mouseup(data) {
-        if (data.button === 0) {
-            this.leftMouseDown = false;
-            this.leftMouseUp = true;
-        } else if (data.button === 1) {
-            this.middleMouseDown = false;
-        } else if (data.button === 2) {
-            this.rightMouseDown = false;
-        }
+        setTimeout(() => {
+            if (data.button === 0) {
+                this.leftMouseDown = false;
+                this.leftMouseUp = true;
+            } else if (data.button === 1) {
+                this.middleMouseDown = false;
+            } else if (data.button === 2) {
+                this.rightMouseDown = false;
+            }
+        }, DEBUG_LAG);
     }
 
     // Update the player's clientX and clientY position when they move their mouse
     mousemove(data) {
-        this.clientX = data.clientX;
-        this.clientY = -data.clientY;
+        setTimeout(() => {
+            this.clientX = data.clientX;
+            this.clientY = -data.clientY;
+
+        }, DEBUG_LAG);
     }
 }
 

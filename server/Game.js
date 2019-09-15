@@ -7,6 +7,8 @@ var Planet = require('./Planet.js');
 var CollisionSystem = require('./CollisionSystem.js');
 var utils = require('./utils.js');
 
+var DEBUG_LAG = 0;
+
 class Game {
     constructor(opts) {
         // Server side constants
@@ -79,7 +81,9 @@ class Game {
             };
 
             // Send the game state to the clients to be rendered
-            this.io.sockets.in(this.gameId).emit('gameState', gameState);
+            setTimeout(() => {
+                this.io.sockets.in(this.gameId).emit('gameState', gameState);
+            }, DEBUG_LAG);
         }, 15)
     }
 
