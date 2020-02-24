@@ -16,7 +16,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var ConnectionHandler = require('./ConnectionHandler.js');
 
-var PORT = 5000;
+var PORT = 8081;
 
 var db = new database();
 db.connect();

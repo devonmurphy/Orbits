@@ -77,7 +77,7 @@ class Mass {
         // drawing parameters
         var maxDrawSteps = 500;
         var drawStep = 100;
-        var maxDrawDist = 50000;
+        var maxDrawDist = 25000;
         var dist = 0;
         var orbitPoints = [];
         var isClockwise = ((this.vx * this.y - this.vy * this.x) > 0 ? 1 : -1);

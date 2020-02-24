@@ -35,8 +35,8 @@
   },
   "scripts": {
     "mocha": "sleep 5 && mocha --color --recursive ./tests/",
-    "test" : "npm-run-all -p start mocha",
-    "start": "npm run build && node ./server/server.js",
+    "test": "npm-run-all -p start mocha",
+    "start": "npm i && npm run build && node ./server/server.js",
     "nodemon": "nodemon --delay 2.5 ./server/server.js",
     "watch:frontEnd": "webpack --watch --mode development",
     "build": "webpack --node development",
