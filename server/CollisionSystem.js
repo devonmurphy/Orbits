@@ -41,9 +41,9 @@ class CollisionSystem {
             const potentials = c.potentials();
             // Loop through the potential collisions
             for (const collision of potentials) {
-                if (c.collides(collision, result)) {
-                    // Only count collisions that are not between a player's own bullets and themselves
-                    if (!(c.id === collision.id && c.type !== collision.type)) {
+                // Only count collisions that are not between a player's own bullets and themselves
+                if (!(c.id === collision.id && c.type !== collision.type)) {
+                    if (c.collides(collision, result)) {
                         this.collisions = this.collisions.concat({
                             id: c.id,
                             uid: c.uid,

@@ -80,10 +80,14 @@ class Game {
                 maxStrikes,
             };
 
-            // Send the game state to the clients to be rendered
-            setTimeout(() => {
+            if (DEBUG_LAG === 0) {
                 this.io.sockets.in(this.gameId).emit('gameState', gameState);
-            }, DEBUG_LAG);
+            } else {
+                // Send the game state to the clients to be rendered
+                setTimeout(() => {
+                    this.io.sockets.in(this.gameId).emit('gameState', gameState);
+                }, DEBUG_LAG);
+            }
         }, 15)
     }
 
