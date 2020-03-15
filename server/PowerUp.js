@@ -7,12 +7,12 @@ class PowerUp extends Mass {
         this.id = "powerUp";
         this.power = power;
         this.powers = [
-            'fireRate',
-            'shotPowerMax',
-            'thrust',
-            'bulletHealth',
-            'bulletRadius',
-            'bulletCount',
+            'fire rate',
+            'max shooting power',
+            'max thrust',
+            'bullet health',
+            'bullet radius',
+            'bullet count',
             'fuel',
             /*
             'shield',
@@ -43,22 +43,22 @@ class PowerUp extends Mass {
             player.powerUps[this.power] += 1;
         }
         switch (this.power) {
-            case 'fireRate':
+            case 'fire rate':
                 player.fireRate *= 0.9;
                 break;
             case 'thrust':
                 player.thrust += 100;
                 break;
-            case 'shotPowerMax':
+            case 'max shooting power':
                 player.shotPowerMax += 100;
                 break;
-            case 'bulletCount':
+            case 'bullet count':
                 player.bulletCount += 10;
                 break;
             case 'fuel':
                 player.fuel += 1000;
                 break;
-            case 'bulletRadius':
+            case 'bullet radius':
                 player.bulletRadius += 25;
                 break;
             case 'shield':
@@ -67,7 +67,7 @@ class PowerUp extends Mass {
             case 'turrets':
                 planet.turrets += 1;
                 break;
-            case 'bulletHealth':
+            case 'bullet health':
                 player.bulletHealth += 1;
                 break;
             case 'bulletHoming':

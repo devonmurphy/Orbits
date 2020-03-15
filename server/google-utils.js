@@ -9,7 +9,7 @@ var google = require('googleapis').google;
 const googleConfig = {
   clientId: process.env.GOOGLE_CLIENT_ID, // e.g. asdfghjkljhgfdsghjk.apps.googleusercontent.com
   clientSecret: process.env.GOOGLE_CLIENT_SECRET, // e.g. _ASDFA%DFASDFASDFASD#FAD-
-  redirect: "http://localhost:8080/auth/google/callback",
+  redirect: "http://localhost:8081/auth/google/callback",
 };
 
 const defaultScope = [
