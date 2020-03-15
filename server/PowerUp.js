@@ -28,13 +28,19 @@ class PowerUp extends Mass {
     }
 
     generateRandomPower() {
-         this.power = this.powers[Math.floor(Math.random()*this.powers.length)];
-         console.log("Power up created:" + this.power);
+        this.power = this.powers[Math.floor(Math.random() * this.powers.length)];
+        console.log("Power up created:" + this.power);
     }
 
     applyPowerUp(player, planet) {
         if (this.power === undefined) {
             this.generateRandomPower();
+        }
+
+        if (!(this.power in player.powerUps)) {
+            player.powerUps[this.power] = 1;
+        } else {
+            player.powerUps[this.power] += 1;
         }
         switch (this.power) {
             case 'fireRate':

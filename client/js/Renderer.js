@@ -365,6 +365,17 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes) {
     if (localPlayer.fuel !== null) {
         context.fillText("fuel: " + localPlayer.fuel, uiX - 50, uiY + 600);
     }
+
+    context.font = "600px Verdana";
+    context.fillStyle = "white";
+    context.textAlign = "left";
+
+    if (localPlayer.powerUps !== null) {
+        for( let i = 0; i < Object.keys(localPlayer.powerUps).length; i++){
+            context.fillText(Object.keys(localPlayer.powerUps)[i], -uiX , uiY + 600 + 500*i);
+            context.fillText(localPlayer.powerUps[Object.keys(localPlayer.powerUps)[i]] + "x  ", -uiX - 1000 , uiY + 600 + 500*i);
+        }
+    }
 }
 
 //  Render based on game state received from server
