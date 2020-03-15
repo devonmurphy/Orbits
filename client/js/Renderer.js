@@ -360,7 +360,7 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes, map) {
         context.fillText(map.currentMapKills + " / " + map.mapKills + " enemies destroyed", uiX - 50, -uiY);
     }
 
-    if (map.currentMapKills >= map.mapKills) {
+    if (map.mapKills !== null && map.currentMapKills >= map.mapKills) {
         context.fillText("Escape planet gravity", 0, -uiY - 5000);
         context.fillText("to proceed to next map", 0, -uiY - 4490);
         outOfBoundsColor = "#00002f";
