@@ -14,6 +14,7 @@ class ConnectionHandler {
         this.games = opts.games;
         this.io = opts.io;
         this.quickMatchPlayers = 0;
+        this.names = [];
     }
 
     sendWaitingForGame(theGame) {
@@ -51,14 +52,21 @@ class ConnectionHandler {
             }
         });
 
-        socket.on("login", function (name) {
-            if (sessionID in sessions) {
-                sessions[sessionID].socket = socket;
-                sessions[sessionID].name = name
-            } else {
-                sessions[sessionID] = { socket: socket, name: name };
-            }
-        });
+        socket.on("login", (name) => {
+
+            if (!(this.names.includes(name))) {
+                if (sessionID in sessions) {
+                    sessions[sessionID].socket = socket;
+                    sessions[sessionID].name = name
+                } else {
+                    sessions[sessionID] = { socket: socket, name: name };
+                    this.names.push(name);
+                }
+                } else {
+                    let error = "Error: name " + name + " already exists!";
+                    sessions[sessionID] = { socket: socket, error: error };
+                }
+            });
 
         socket.on("Create Game", (playerCount) => {
             // Create a new game and with the player who created it
@@ -207,13 +215,19 @@ class ConnectionHandler {
                         }
                     }
                 } else {
-                    // Player is not in a game, just update their socket 
-                    sessions[sessionID].socket = socket;
-                    socket.emit('game mode selection');
+                    if (sessions[sessionID].name) {
+                        // Player is not in a game, just update their socket 
+                        sessions[sessionID].socket = socket;
+                        socket.emit('game mode selection');
+                    } else {
+                        // Player has not logged in yet
+                        sessions[sessionID].socket = socket;
+                        socket.emit('login', { error: sessions[sessionID].error });
+                    }
                 }
             } else {
                 // Player has not logged in yet
-                socket.emit('login');
+                socket.emit('login', { error: "" });
             }
             this.setupSocketHandlers(socket);
         }

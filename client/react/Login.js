@@ -11,10 +11,13 @@ class Login extends Component {
     return (
       <form onSubmit={this.props.onSubmit}>
         <div className="question">
-          <input id="inGameName" type="text" required maxLength="10"/>
+          <input id="inGameName" type="text" required maxLength="10" />
           <label>IN GAME NAME</label>
         </div>
         <button id="submitInGameName">SUBMIT</button>
+        <div>
+          <b>{this.props.error}</b>
+        </div>
       </form>
     )
   }

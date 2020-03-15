@@ -24,8 +24,8 @@ socket.on('starting game', function (data) {
 });
 
 // Render waiting for game screen
-socket.on('login', function () {
-    Renderer.createLogin();
+socket.on('login', function (data) {
+    Renderer.createLogin(data);
 });
 
 // Render waiting for game screen

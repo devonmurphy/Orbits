@@ -114,7 +114,8 @@ var createGameSelectBtns = function () {
     );
 }
 
-var createLogin = function () {
+var createLogin = function (data) {
+    console.log('received login')
 
     var onSubmit = () => {
         var inGameName = document.getElementById("inGameName").value;
@@ -124,6 +125,7 @@ var createLogin = function () {
     ReactDOM.render(
         <Login
             onSubmit={onSubmit}
+            error={data.error ? data.error : ''}
         />,
         document.getElementById('root')
     );

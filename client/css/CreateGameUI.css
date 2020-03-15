@@ -5,6 +5,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
+b {
+    color:#fff;
+    font-size: 60px;
+    font-weight:lighter;
+}
+
 html {
   background-color: white;
 }

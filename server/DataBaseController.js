@@ -3,10 +3,11 @@ const Knex = require('knex');
 class DatabaseController {
     constructor() {
         this.databaseConfig = {
-            user: process.env.SQL_USER,
-            password: process.env.SQL_PASSWORD,
-            database: process.env.SQL_DATABASE,
-            host: process.env.SQL_IP
+            host: process.env.RDS_HOSTNAME,
+            user: process.env.RDS_USERNAME,
+            password: process.env.RDS_PASSWORD,
+            port: process.env.RDS_PORT,
+            database: 'ebdb'
         };
     }
     connect() {
@@ -34,7 +35,7 @@ class DatabaseController {
     addUser(inputEmail) {
         this.knex('users').insert({
             email: inputEmail
-        }).then(()=>{
+        }).then(() => {
             console.log('added user ');
         }).catch((error) => {
             console.log(error);
