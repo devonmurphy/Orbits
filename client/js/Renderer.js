@@ -358,15 +358,23 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes, map) {
         context.fillText(map.currentMapKills + " / " + map.mapKills + " enemies destroyed", uiX - 50, -uiY);
     }
 
+    if (map.currentMapKills >= map.mapKills) {
+        context.fillText("Escape planet gravity", 0, -uiY - 5000);
+        context.fillText("to proceed to next map", 0, -uiY - 4490);
+        outOfBoundsColor = "#00002f";
+    } else {
+        outOfBoundsColor = "#000011";
+    }
+
     if (map.level !== null) {
         context.fillText("level: " + map.level, uiX - 50, -uiY - 600);
     }
 
     context.textAlign = "left";
     if (localPlayer.powerUps !== null) {
-        for( let i = 0; i < Object.keys(localPlayer.powerUps).length; i++){
-            context.fillText(Object.keys(localPlayer.powerUps)[i], -uiX , uiY + 600 + 500*i);
-            context.fillText(localPlayer.powerUps[Object.keys(localPlayer.powerUps)[i]] + "x  ", -uiX - 1000 , uiY + 600 + 500*i);
+        for (let i = 0; i < Object.keys(localPlayer.powerUps).length; i++) {
+            context.fillText(Object.keys(localPlayer.powerUps)[i], -uiX, uiY + 600 + 500 * i);
+            context.fillText(localPlayer.powerUps[Object.keys(localPlayer.powerUps)[i]] + "x  ", -uiX - 1000, uiY + 600 + 500 * i);
         }
     }
 }
