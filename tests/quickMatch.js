@@ -15,7 +15,7 @@ const opts = {
 var login = async function () {
   const browser = await puppeteer.launch(opts);
   const page = await browser.newPage();
-  await page.goto('http://localhost:5000/game', { waitUntil: ['load', 'domcontentloaded'] });
+  await page.goto('http://localhost:8081/game', { waitUntil: ['load', 'domcontentloaded'] });
   await page.waitForSelector('#inGameName');
   await page.type('#inGameName', 'hello world', { delay: 20 })
 

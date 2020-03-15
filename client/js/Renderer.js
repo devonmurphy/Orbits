@@ -335,41 +335,34 @@ var drawShootingOrbit = function (shootingOrbits) {
     drawOrbit(shootingOrbits[socket.id], playerShootingLineColor)
 }
 
-var drawGameUI = function (localPlayer, strikes, maxStrikes) {
+var drawGameUI = function (localPlayer, strikes, maxStrikes, map) {
 
     context.font = "600px Verdana";
     context.fillStyle = "white";
     context.textAlign = "center";
     context.fillText("score: " + localPlayer.score, uiX - 850, uiY - 600);
 
-    context.font = "600px Verdana";
-    context.fillStyle = "white";
-    context.textAlign = "center";
-
     if (localPlayer.bulletCount !== null) {
         context.fillText("bullets: " + localPlayer.bulletCount, uiX - 850, uiY);
     }
-
-    context.font = "600px Verdana";
-    context.fillStyle = "white";
-    context.textAlign = "center";
 
     if (strikes !== null) {
         context.fillText("strikes: " + strikes + "/" + maxStrikes, uiX - 720, uiY + 1150);
     }
 
-    context.font = "600px Verdana";
-    context.fillStyle = "white";
-    context.textAlign = "center";
-
     if (localPlayer.fuel !== null) {
         context.fillText("fuel: " + localPlayer.fuel, uiX - 50, uiY + 600);
     }
 
-    context.font = "600px Verdana";
-    context.fillStyle = "white";
-    context.textAlign = "left";
+    if (map.mapKills !== null) {
+        context.fillText(map.currentMapKills + " / " + map.mapKills + " enemies destroyed", uiX - 50, -uiY);
+    }
 
+    if (map.level !== null) {
+        context.fillText("level: " + map.level, uiX - 50, -uiY - 600);
+    }
+
+    context.textAlign = "left";
     if (localPlayer.powerUps !== null) {
         for( let i = 0; i < Object.keys(localPlayer.powerUps).length; i++){
             context.fillText(Object.keys(localPlayer.powerUps)[i], -uiX , uiY + 600 + 500*i);
@@ -386,6 +379,7 @@ var render = function (gameState) {
     var localPlayer = players[socket.id];
     var strikes = gameState.strikes;
     var maxStrikes = gameState.maxStrikes;
+    var map = gameState.map;
 
 
     // Resize canvas to window size
@@ -441,7 +435,7 @@ var render = function (gameState) {
     }
 
     if (localPlayer) {
-        drawGameUI(localPlayer, strikes, maxStrikes);
+        drawGameUI(localPlayer, strikes, maxStrikes, map);
     }
     if (playerDead === true) {
         context.font = "3000px Garamond Pro";

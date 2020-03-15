@@ -37,6 +37,10 @@ class Game {
         this.gridCount = 3;
         this.gridSize = 10000;
         this.mapRadius = 15000;
+        this.mapEnded = false;
+        this.level = (this.type === 'single player' ? 1 : null);
+        this.currentMapKills = (this.type === 'single player' ? 0 : null);
+        this.mapKills = (this.type === 'single player' ? 5 : null);
 
         // Single Player constats
         this.asteroidRadius = 350;
@@ -50,16 +54,35 @@ class Game {
         this.strikes = (this.type === 'single player' ? 0 : null);
         this.maxStrikes = (this.type === 'single player' ? 3 : null);
 
-        this.map = new CollisionSystem(this.gridSize, this.gridCount, this.mapRadius);
+        this.map = new CollisionSystem(this.mapRadius);
+    }
 
+    loadNewMap() {
+        this.level += 1;
+        this.shootingOrbits = {};
+        this.objects = {};
+        this.currentMapKills = (this.type === 'single player' ? 0 : null);
+        this.strikes = (this.type === 'single player' ? 0 : null);
+        this.maxStrikes = (this.type === 'single player' ? 3 : null);
+        this.mapKills = (this.type === 'single player' ? 5 * this.level : null);
+        this.lastAsteroidSpawnTime = (new Date()).getTime();
+        this.lastPowerUpSpawnTime = (new Date()).getTime();
+
+        Object.keys(this.players).forEach((key) => {
+            this.respawnPlayer(key)
+        });
+        this.mapEnded = false;
     }
 
     // Update the game state every 15 ms
     start() {
         this.io.sockets.in(this.gameId).emit('starting game');
         this.gameLoop = setInterval(() => {
-            this.checkIfAsteroidSpawns();
-            this.checkIfPowerUpSpawns();
+            this.checkIfMapEnds();
+            if (!this.mapEnded) {
+                this.checkIfAsteroidSpawns();
+                this.checkIfPowerUpSpawns();
+            }
             this.updateObjects();
             this.updatePlayers();
             this.handleCollisions();
@@ -68,7 +91,12 @@ class Game {
             var players = this.players;
             var shootingOrbits = this.shootingOrbits;
             //var map = this.map; // dont want to sent the full map unless we are debugging
-            var map = { mapRadius: this.map.mapRadius };
+            var map = {
+                mapRadius: this.mapRadius,
+                mapKills: this.mapKills,
+                currentMapKills: this.currentMapKills,
+                level: this.level
+            };
             var strikes = this.strikes;
             var maxStrikes = this.maxStrikes;
             var gameState = {
@@ -138,6 +166,28 @@ class Game {
         }
     }
 
+    respawnPlayer(id) {
+        // Spawn player in a circlular orbit based on which player they are in game
+        var playerCount = this.playerCount;
+        var playerNumber = Object.keys(this.players).length;
+        var playerOffsetX = Math.cos(2 * Math.PI * playerNumber / playerCount);
+        var playerOffsetY = Math.sin(2 * Math.PI * playerNumber / playerCount);
+
+        this.players[id].x = this.startingDist * playerOffsetX;
+        this.players[id].y = this.startingDist * playerOffsetY;
+
+        // Calculate velocity for circular orbit
+        var dist = Math.sqrt(Math.pow(this.players[id].x, 2) + Math.pow(this.players[id].y, 2));
+        var circularOrbitVel = Math.sqrt(this.planet.mass / dist);
+
+        // Here we took the derivitive of the offsets when they were multplied by the velocity
+        this.players[id].vx = circularOrbitVel * playerOffsetY;
+        this.players[id].vy = -circularOrbitVel * playerOffsetX;
+
+        // Initial calculation of orbit parameters
+        this.players[id].orbitParams = this.players[id].calculateOrbit(this.planet.mass);
+
+    }
     // Create a new player
     spawnPlayer(socket, playerName) {
         // Spawn player in a circlular orbit based on which player they are in game
@@ -195,6 +245,12 @@ class Game {
 
         // Delete the old player
         delete this.players[oldSocket.id];
+    }
+
+    checkIfMapEnds() {
+        if(this.currentMapKills >= this.mapKills){
+            this.mapEnded = true;
+        }
     }
 
     checkIfGameEnds() {
@@ -273,6 +329,8 @@ class Game {
                 if (this.objects[collisions[i].uid].health <= 1) {
                     if (collisions[i].hitBy.id in players) {
                         players[collisions[i].hitBy.id].score += 1;
+                        this.currentMapKills += 1;
+                        console.log(this.currentMapKills);
                     }
                     delete this.objects[collisions[i].uid];
                 } else {
@@ -422,13 +480,28 @@ class Game {
                 }
             }
 
-            // If a player is out of the map destroy them
-            if (this.map.checkOutOfBounds(player)) {
-                this.killPlayer(this.io, id);
+            // If a player is out of the map destroy them or load a new map
+            if (this.checkOutOfBounds(player, this.mapRadius)) {
+                if (!this.mapEnded) {
+                    this.killPlayer(this.io, id);
+                } else {
+                    this.loadNewMap();
+                }
             }
 
         }
 
+    }
+
+
+    // Check if a mass is out of bounds
+    checkOutOfBounds(mass, radius) {
+        var dist = Math.sqrt(Math.pow(mass.x, 2) + Math.pow(mass.y, 2))
+        if (dist + mass.radius >= radius) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // Update all of the objects positions
@@ -436,7 +509,7 @@ class Game {
         // Apply the planet force to all the non player objects
         for (var uid in this.objects) {
             var object = this.objects[uid];
-            if (this.map.checkOutOfBounds(object, 2 * this.mapRadius)) {
+            if (this.checkOutOfBounds(object, 2 * this.mapRadius)) {
                 // Remove it if it is too far away
                 delete this.objects[object.uid];
                 continue;

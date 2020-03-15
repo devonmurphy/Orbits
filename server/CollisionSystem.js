@@ -2,10 +2,7 @@ var Collisions = require('./Collisions.js');
 
 // Class used to check the hit boxes
 class CollisionSystem {
-    constructor(gridSize, gridCount, mapRadius) {
-        this.gridSize = gridSize;
-        this.gridCount = gridCount;
-        this.mapRadius = mapRadius;
+    constructor() {
         this.map = [];
         this.objects = [];
     }
@@ -60,16 +57,6 @@ class CollisionSystem {
                     }
                 }
             }
-        }
-    }
-
-    // Check if a mass is out of bounds
-    checkOutOfBounds(mass, radius = this.mapRadius) {
-        var dist = Math.sqrt(Math.pow(mass.x, 2) + Math.pow(mass.y, 2))
-        if (dist + mass.radius >= radius) {
-            return true;
-        } else {
-            return false;
         }
     }
 }
