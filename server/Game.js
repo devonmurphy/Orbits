@@ -69,7 +69,7 @@ class Game {
         let asteroidSpawnRate = 5000 - this.level * 500;
         let powerUpSpawnRate = 5000 - this.level * 250;
         if (asteroidSpawnRate < 0) { asteroidSpawnRate = 500; }
-        if (powerUpSpawnRate < 0) { asteroidSpawnRate = 250; }
+        if (powerUpSpawnRate < 0) { powerUpSpawnRate = 250; }
         this.asteroidSpawnRate = (this.type === 'single player' ? asteroidSpawnRate : Infinity);
         this.lastAsteroidSpawnTime = (new Date()).getTime();
         this.powerUpSpawnRate = (this.type === 'single player' ? powerUpSpawnRate : Infinity);
