@@ -65,7 +65,14 @@ class Game {
         this.strikes = (this.type === 'single player' ? 0 : null);
         this.maxStrikes = (this.type === 'single player' ? 3 : null);
         this.mapKills = (this.type === 'single player' ? 5 * this.level : null);
+
+        let asteroidSpawnRate = 5000 - this.level * 500;
+        let powerUpSpawnRate = 5000 - this.level * 250;
+        if (asteroidSpawnRate < 0) { asteroidSpawnRate = 500; }
+        if (powerUpSpawnRate < 0) { asteroidSpawnRate = 250; }
+        this.asteroidSpawnRate = (this.type === 'single player' ? asteroidSpawnRate : Infinity);
         this.lastAsteroidSpawnTime = (new Date()).getTime();
+        this.powerUpSpawnRate = (this.type === 'single player' ? powerUpSpawnRate : Infinity);
         this.lastPowerUpSpawnTime = (new Date()).getTime();
 
         Object.keys(this.players).forEach((key) => {
@@ -153,7 +160,8 @@ class Game {
             var startingDistX = (Math.random() > .5 ? -1 : 1) * startingDist * (XYRatio);
             var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio * XYRatio));
 
-            var asteroid = new Asteroid(startingDistX, startingDistY, this.asteroidRadius, this.gameId, 1);
+            var asteroidHP = Math.floor(Math.random() * this.level) + 1;
+            var asteroid = new Asteroid(startingDistX, startingDistY, this.asteroidRadius, this.gameId, asteroidHP);
 
             var dist = Math.sqrt(Math.pow(asteroid.x, 2) + Math.pow(asteroid.y, 2));
             var speedSpreadX = (Math.random() > .5 ? -1 : 1) * 500 * Math.random();
@@ -248,7 +256,7 @@ class Game {
     }
 
     checkIfMapEnds() {
-        if(this.currentMapKills >= this.mapKills){
+        if (this.currentMapKills >= this.mapKills) {
             this.mapEnded = true;
         }
     }
@@ -325,6 +333,18 @@ class Game {
             // Handle collisions of asteroids
             if (collisions[i].type === 'asteroid' && collisions[i].uid in this.objects) {
 
+                // Collision between asteroids and the planet
+                if (collisions[i].hitBy.id === 'planet') {
+                    this.strikes += this.objects[collisions[i].uid].health;
+                    console.log(this.objects[collisions[i].uid].health);
+                    if (collisions[i].uid in this.objects) {
+                        delete this.objects[collisions[i].uid];
+                        // check if the game ended because of strikes
+                        this.checkIfGameEnds()
+                        return;
+                    }
+                }
+
                 // Delete the asteroid if it ran out of health
                 if (this.objects[collisions[i].uid].health <= 1) {
                     if (collisions[i].hitBy.id in players) {
@@ -335,17 +355,8 @@ class Game {
                     delete this.objects[collisions[i].uid];
                 } else {
                     this.objects[collisions[i].uid].health -= 1;
-                }
-
-                // Collision between asteroids and the planet
-                if (collisions[i].hitBy.id === 'planet') {
-                    this.strikes += 1;
-                    if (collisions[i].uid in this.objects) {
-                        delete this.objects[collisions[i].uid];
-                    }
-
-                    // check if the game ended because of strikes
-                    this.checkIfGameEnds()
+                    // Update the radius of the asteroid since the hp changed
+                    this.objects[collisions[i].uid].updateRadius(this.asteroidRadius);
                 }
             }
 
