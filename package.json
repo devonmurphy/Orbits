@@ -40,7 +40,8 @@
     "nodemon": "nodemon --delay 2.5 ./server/server.js",
     "watch:frontEnd": "webpack --watch --mode development",
     "build": "webpack --node development",
-    "watch": "npm-run-all -p nodemon watch:frontEnd"
+    "watch": "npm-run-all -p nodemon watch:frontEnd",
+    "zip": "rm -rf node_modules package-lock.json dist/ *.zip && zip -r `git rev-parse HEAD`.zip ."
   },
   "author": "Devon Murphy",
   "license": "ISC"
