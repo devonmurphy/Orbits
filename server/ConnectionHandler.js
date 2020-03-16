@@ -53,20 +53,20 @@ class ConnectionHandler {
         });
 
         socket.on("login", (name) => {
-
             if (!(this.names.includes(name))) {
                 if (sessionID in sessions) {
                     sessions[sessionID].socket = socket;
                     sessions[sessionID].name = name
+                    this.names.push(name);
                 } else {
                     sessions[sessionID] = { socket: socket, name: name };
                     this.names.push(name);
                 }
-                } else {
-                    let error = "Error: name " + name + " already exists!";
-                    sessions[sessionID] = { socket: socket, error: error };
-                }
-            });
+            } else {
+                let error = "Error: name " + name + " already exists!";
+                sessions[sessionID] = { socket: socket, error: error };
+            }
+        });
 
         socket.on("Create Game", (playerCount) => {
             // Create a new game and with the player who created it
