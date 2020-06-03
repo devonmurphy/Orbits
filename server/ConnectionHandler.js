@@ -6,7 +6,8 @@ var utils = require('./utils.js');
 
 var PLAYERS_PER_GAME = 2;
 var DOMAIN = utils.getIPAddress();
-var PORT = 5000;
+var PORT = 8081;
+var HOSTNAME = "http://orbits.us-west-1.elasticbeanstalk.com";
 
 class ConnectionHandler {
     constructor(opts) {
@@ -18,7 +19,8 @@ class ConnectionHandler {
     }
 
     sendWaitingForGame(theGame) {
-        var gameLink = DOMAIN + ":" + PORT + "/play?gameId=" + theGame.gameId;
+        //var gameLink = DOMAIN + ":" + PORT + "/play?gameId=" + theGame.gameId;
+        var gameLink = HOSTNAME + "/play?gameId=" + theGame.gameId;
         var data = {
             maxPlayers: theGame.playerCount,
             currentPlayers: Object.keys(theGame.players).length,
