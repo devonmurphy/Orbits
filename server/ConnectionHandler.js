@@ -185,7 +185,7 @@ class ConnectionHandler {
                     // Player hasn't logged in yet send them login screen
                     if (!sessions[sessionID].name) {
                         // Player has not logged in yet
-                        socket.emit('login');
+                        socket.emit('login', { error: "" });
                     } else {
                         // Player is in a game currently - reconnect them
                         var theGame = games[sessions[sessionID].gameId];
