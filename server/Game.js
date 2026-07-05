@@ -3,11 +3,17 @@ var Player = require('./Player.js');
 var Bullet = require('./Bullet.js');
 var Asteroid = require('./Asteroid.js');
 var PowerUp = require('./PowerUp.js');
+var Bot = require('./Bot.js');
 var Planet = require('./Planet.js');
 var CollisionSystem = require('./CollisionSystem.js');
 var utils = require('./utils.js');
 
 var DEBUG_LAG = 0;
+
+// Simulation runs every 15ms (~66Hz) for responsive controls, but the full
+// gameState (including per-player orbit trajectories) is only broadcast
+// every Nth tick to cut socket bandwidth roughly in half.
+var BROADCAST_EVERY_N_TICKS = 2;
 
 class Game {
     constructor(opts) {
@@ -54,7 +60,14 @@ class Game {
         this.strikes = (this.type === 'single player' ? 0 : null);
         this.maxStrikes = (this.type === 'single player' ? 3 : null);
 
+        // Bot enemies (single player only) - AI ships that hunt the player
+        this.maxBots = (this.type === 'single player' ? Math.min(this.level, 3) : 0);
+        this.botSpawnRate = (this.type === 'single player' ? 12000 : Infinity);
+        this.lastBotSpawnTime = (new Date()).getTime();
+
         this.map = new CollisionSystem(this.mapRadius);
+
+        this.tickCount = 0;
     }
 
     loadNewMap() {
@@ -75,6 +88,9 @@ class Game {
         this.powerUpSpawnRate = (this.type === 'single player' ? powerUpSpawnRate : Infinity);
         this.lastPowerUpSpawnTime = (new Date()).getTime();
 
+        this.maxBots = (this.type === 'single player' ? Math.min(this.level, 3) : 0);
+        this.lastBotSpawnTime = (new Date()).getTime();
+
         Object.keys(this.players).forEach((key) => {
             this.respawnPlayer(key)
         });
@@ -89,10 +105,16 @@ class Game {
             if (!this.mapEnded) {
                 this.checkIfAsteroidSpawns();
                 this.checkIfPowerUpSpawns();
+                this.checkIfBotSpawns();
             }
             this.updateObjects();
             this.updatePlayers();
             this.handleCollisions();
+
+            this.tickCount += 1;
+            if (this.tickCount % BROADCAST_EVERY_N_TICKS !== 0) {
+                return;
+            }
 
             var objects = this.objects;
             var players = this.players;
@@ -171,6 +193,31 @@ class Game {
 
             this.objects[asteroid.uid] = utils.deepCopy(asteroid);
             this.lastAsteroidSpawnTime = (new Date()).getTime();
+        }
+    }
+
+    checkIfBotSpawns() {
+        var currentTime = (new Date()).getTime();
+        var currentBotCount = Object.values(this.objects).filter((o) => o.type === 'bot').length;
+        if (currentBotCount >= this.maxBots) {
+            return;
+        }
+        if (currentTime - this.lastBotSpawnTime >= this.botSpawnRate) {
+
+            var startingDist = Math.random() * 10000 + 20000;
+            var XYRatio = Math.random();
+            var startingDistX = (Math.random() > .5 ? -1 : 1) * startingDist * (XYRatio);
+            var startingDistY = (Math.random() > .5 ? -1 : 1) * startingDist * (Math.sqrt(1 - XYRatio * XYRatio));
+
+            var botHealth = 2 + Math.floor(this.level / 2);
+            var bot = new Bot(startingDistX, startingDistY, this.gameId, botHealth);
+
+            var dist = Math.sqrt(Math.pow(bot.x, 2) + Math.pow(bot.y, 2));
+            bot.vx = -bot.y / dist * 400;
+            bot.vy = bot.x / dist * 400;
+
+            this.objects[bot.uid] = utils.deepCopy(bot);
+            this.lastBotSpawnTime = currentTime;
         }
     }
 
@@ -336,7 +383,6 @@ class Game {
                 // Collision between asteroids and the planet
                 if (collisions[i].hitBy.id === 'planet') {
                     this.strikes += this.objects[collisions[i].uid].health;
-                    console.log(this.objects[collisions[i].uid].health);
                     if (collisions[i].uid in this.objects) {
                         delete this.objects[collisions[i].uid];
                         // check if the game ended because of strikes
@@ -350,13 +396,25 @@ class Game {
                     if (collisions[i].hitBy.id in players) {
                         players[collisions[i].hitBy.id].score += 1;
                         this.currentMapKills += 1;
-                        console.log(this.currentMapKills);
                     }
                     delete this.objects[collisions[i].uid];
                 } else {
                     this.objects[collisions[i].uid].health -= 1;
                     // Update the radius of the asteroid since the hp changed
                     this.objects[collisions[i].uid].updateRadius(this.asteroidRadius);
+                }
+            }
+
+            // Handle collisions of bots - killable by player bullets or the player's ship
+            if (collisions[i].type === 'bot' && collisions[i].uid in this.objects) {
+                if (this.objects[collisions[i].uid].health <= 1) {
+                    if (collisions[i].hitBy.id in players) {
+                        players[collisions[i].hitBy.id].score += 1;
+                        this.currentMapKills += 1;
+                    }
+                    delete this.objects[collisions[i].uid];
+                } else {
+                    this.objects[collisions[i].uid].health -= 1;
                 }
             }
 
@@ -515,8 +573,30 @@ class Game {
         }
     }
 
+    // Find the player closest to (x, y), used by bots to pick a target
+    nearestPlayer(x, y) {
+        var closest = null;
+        var closestDist = Infinity;
+        for (var id in this.players) {
+            var player = this.players[id];
+            var dx = player.x - x;
+            var dy = player.y - y;
+            var dist = dx * dx + dy * dy;
+            if (dist < closestDist) {
+                closestDist = dist;
+                closest = player;
+            }
+        }
+        return closest;
+    }
+
     // Update all of the objects positions
     updateObjects() {
+        var currentTime = (new Date()).getTime();
+        // Collect bots that want to fire instead of spawning bullets into
+        // this.objects while iterating over it below.
+        var botsFiring = [];
+
         // Apply the planet force to all the non player objects
         for (var uid in this.objects) {
             var object = this.objects[uid];
@@ -527,7 +607,19 @@ class Game {
             }
             this.planet.addForce(object);
             object.update();
+
+            if (object.type === 'bot') {
+                var target = this.nearestPlayer(object.x, object.y);
+                if (target && object.think(target, currentTime)) {
+                    botsFiring.push(object);
+                }
+            }
         }
+
+        botsFiring.forEach((bot) => {
+            this.spawnBullet(bot);
+            bot.lastFireTime = currentTime;
+        });
     }
 }
 

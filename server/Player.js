@@ -58,9 +58,21 @@ class Player extends Mass {
         }.bind(this));
     }
 
+    // Runs fn immediately, or after DEBUG_LAG ms if artificial lag is being
+    // simulated. With DEBUG_LAG === 0 this used to still go through
+    // setTimeout(fn, 0), which queues a macrotask for every single input
+    // event (mousemove included) for no benefit.
+    runWithLag(fn) {
+        if (DEBUG_LAG > 0) {
+            setTimeout(fn, DEBUG_LAG);
+        } else {
+            fn();
+        }
+    }
+
     // Receives player controls
     movement(data) {
-        setTimeout(() => {
+        this.runWithLag(() => {
             var tangent = { x: -this.vy, y: this.vx };
             var speed = Math.sqrt(Math.pow(this.vx, 2) + Math.pow(this.vy, 2));
             this.controls = { x: 0, y: 0 };
@@ -80,12 +92,12 @@ class Player extends Mass {
                 this.controls.x -= this.vx / speed * this.thrust;
                 this.controls.y -= this.vy / speed * this.thrust;
             }
-        }, DEBUG_LAG);
+        });
     }
 
     // Adjusts player shot power whenever they scroll
     wheelMove(data) {
-        setTimeout(() => {
+        this.runWithLag(() => {
             // Increase shot power on scroll up
             if (data < 0) {
                 this.shotPower += this.shotPowerChangeRate;
@@ -103,12 +115,12 @@ class Player extends Mass {
             if (this.shotPower > this.shotPowerMax) {
                 this.shotPower = this.shotPowerMax;
             }
-        }, DEBUG_LAG);
+        });
     }
 
     // Calculates shooting orbit while mouse is down
     mousedown(data) {
-        setTimeout(() => {
+        this.runWithLag(() => {
             this.clientX = data.clientX;
             this.clientY = -data.clientY;
             if (data.button === 0) {
@@ -119,13 +131,12 @@ class Player extends Mass {
             } else if (data.button === 2) {
                 this.rightMouseDown = true;
             }
-
-        }, DEBUG_LAG);
+        });
     }
 
     // Fires the bullet when the mouse is released
     mouseup(data) {
-        setTimeout(() => {
+        this.runWithLag(() => {
             if (data.button === 0) {
                 this.leftMouseDown = false;
                 this.leftMouseUp = true;
@@ -134,16 +145,15 @@ class Player extends Mass {
             } else if (data.button === 2) {
                 this.rightMouseDown = false;
             }
-        }, DEBUG_LAG);
+        });
     }
 
     // Update the player's clientX and clientY position when they move their mouse
     mousemove(data) {
-        setTimeout(() => {
+        this.runWithLag(() => {
             this.clientX = data.clientX;
             this.clientY = -data.clientY;
-
-        }, DEBUG_LAG);
+        });
     }
 }
 

@@ -64,7 +64,18 @@ canvas.addEventListener("mouseup", function (event) {
     socket.emit('mouseup', data);
 });
 
+// Native mousemove can fire well over 100x/sec on high poll-rate mice.
+// The server only needs a position update roughly as often as it broadcasts
+// gameState, so throttle how often we actually emit.
+var MOUSEMOVE_EMIT_INTERVAL_MS = 30;
+var lastMousemoveEmit = 0;
 canvas.addEventListener("mousemove", function (event) {
+    var now = performance.now();
+    if (now - lastMousemoveEmit < MOUSEMOVE_EMIT_INTERVAL_MS) {
+        return;
+    }
+    lastMousemoveEmit = now;
+
     var data = {
         clientX: (event.clientX - Renderer.offsetLeft) / Renderer.gameScale,
         clientY: (event.clientY - Renderer.offsetTop) / Renderer.gameScale,

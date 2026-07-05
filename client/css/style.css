@@ -6,6 +6,15 @@ head {
 	background-color: #000011;
 }
 
+/* The canvas is sized to exactly window.innerWidth/innerHeight. Without
+   overflow:hidden, a 1px sub-pixel rounding difference is enough to show a
+   scrollbar, which shrinks the viewport, which resizes the canvas back down,
+   which hides the scrollbar again - an infinite feedback loop that reads as
+   the whole game (HUD included) jiggling up and down. */
+html, body {
+	overflow: hidden;
+}
+
 body {
 	margin: 0;
 	background-color: #000011;

@@ -7,7 +7,7 @@ class Mass {
         this.radius = radius;
         this.vx = 0;
         this.vy = 0;
-        this.lastTime = new Date();
+        this.lastTime = Date.now();
         this.forces = [];
         this.orbitParams = {};
         this.uid = uid.sync(8);
@@ -31,10 +31,10 @@ class Mass {
 
     // iterate one time step
     update() {
-        var time = new Date();
-        var timeStep = (time.getMilliseconds() - this.lastTime.getMilliseconds()) / 1000;
+        var time = Date.now();
+        var timeStep = (time - this.lastTime) / 1000;
         if (timeStep < 0)
-            timeStep += 1;
+            timeStep = 0;
 
         this.lastTime = time;
 
@@ -75,8 +75,11 @@ class Mass {
     // Calculates a list of coordinates of the Mass's hyperbolic orbit
     calculateHyperbolicOrbit(a, b, w, periapsis) {
         // drawing parameters
-        var maxDrawSteps = 500;
-        var drawStep = 100;
+        // Fewer, wider-spaced steps cover the same maxDrawDist with ~1/4 the
+        // points, since this array gets JSON-serialized and broadcast over
+        // the socket every tick.
+        var maxDrawSteps = 125;
+        var drawStep = 400;
         var maxDrawDist = 50000;
         var dist = 0;
         var orbitPoints = [];

@@ -22,9 +22,17 @@ var gameScale = .025;
 var uiX = 12500;
 var uiY = 12000;
 
-// Resize canvas to window size
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight
+// Resize canvas to window size. Setting canvas.width/height clears and
+// reallocates the backing store, so this only needs to run on an actual
+// resize event - not on every incoming gameState (up to ~60x/sec).
+var resizeCanvas = function () {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    offsetLeft = canvas.offsetLeft + canvas.width / 2;
+    offsetTop = canvas.offsetTop + canvas.height / 2;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
 // Colors
 var outOfBoundsColor = "#000011";
@@ -38,6 +46,7 @@ var playerBulletColor = "#ebc934";
 
 var enemyColor = "#ff0066";
 var enemyBulletColor = "#ff0066";
+var botColor = "#ff9f1c";
 
 var playerDead = false;
 var playerWon = false;
@@ -275,6 +284,29 @@ var drawBullet = function (bullet) {
     context.fill();
 }
 
+var drawBot = function (bot) {
+    context.fillStyle = botColor;
+    context.beginPath();
+    context.arc(bot.x, -bot.y, bot.radius, 0, 2 * Math.PI);
+    context.fill();
+
+    // Heading indicator so you can see what it's aiming at
+    if (bot.clientX !== undefined && bot.clientY !== undefined) {
+        var dx = bot.clientX - bot.x;
+        var dy = bot.clientY - bot.y;
+        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        var noseLength = bot.radius * 1.8;
+        var noseX = bot.x + dx / dist * noseLength;
+        var noseY = -(bot.y + dy / dist * noseLength);
+        context.strokeStyle = botColor;
+        context.lineWidth = orbitLineWidth;
+        context.beginPath();
+        context.moveTo(bot.x, -bot.y);
+        context.lineTo(noseX, noseY);
+        context.stroke();
+    }
+}
+
 var drawObjects = function (objects) {
     for (var uid in objects) {
         var object = objects[uid];
@@ -282,6 +314,8 @@ var drawObjects = function (objects) {
             drawAsteroid(object);
         } else if (object.type === 'powerUp') {
             drawPowerUp(object);
+        } else if (object.type === 'bot') {
+            drawBot(object);
         } else if (object.type === 'bullet') {
             drawBullet(object);
         }
@@ -390,15 +424,6 @@ var render = function (gameState) {
     var strikes = gameState.strikes;
     var maxStrikes = gameState.maxStrikes;
     var map = gameState.map;
-
-
-    // Resize canvas to window size
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight
-
-    // Recalculate offset
-    offsetLeft = canvas.offsetLeft + canvas.width / 2;
-    offsetTop = canvas.offsetTop + canvas.height / 2;
 
     // Reset canvas and draw background
     context.setTransform(1, 0, 0, 1, 0, 0);
