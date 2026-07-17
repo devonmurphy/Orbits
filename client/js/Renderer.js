@@ -48,6 +48,18 @@ var enemyColor = "#ff0066";
 var enemyBulletColor = "#ff0066";
 var botColor = "#ff9f1c";
 
+// HUD colors
+var hudLabelColor = "#7d8fb3";
+var hudValueColor = "#ffffff";
+var hudCautionColor = "#ffc24b";
+var hudDangerColor = "#ff4d4d";
+var hudFont = "480px Verdana";
+
+// Approximate maximums used only to color-code resources as they run low -
+// doesn't need to track powerup-boosted caps exactly to be a useful cue.
+var FUEL_COLOR_MAX_HINT = 20000;
+var BULLET_COLOR_MAX_HINT = 500;
+
 var playerDead = false;
 var playerWon = false;
 
@@ -371,46 +383,94 @@ var drawShootingOrbit = function (shootingOrbits) {
     drawOrbit(shootingOrbits[socket.id], playerShootingLineColor)
 }
 
-var drawGameUI = function (localPlayer, strikes, maxStrikes, map) {
+// Draws "label:  value" right-aligned at a fixed right edge (anchorX), with
+// the value's right edge pinned there. This is what stops the line from
+// visibly jiggling side to side whenever the value's digit count changes -
+// the old version used textAlign "center" on the whole string, so e.g.
+// "score: 9" -> "score: 10" re-centered the entire line around its anchor.
+var drawHudStat = function (label, value, anchorX, y, valueColor) {
+    context.font = hudFont;
+    context.textAlign = "right";
 
-    context.font = "600px Verdana";
-    context.fillStyle = "white";
-    context.textAlign = "center";
-    context.fillText("score: " + localPlayer.score, uiX - 850, uiY - 600);
+    context.fillStyle = valueColor || hudValueColor;
+    var valueText = String(value);
+    context.fillText(valueText, anchorX, y);
+    var valueWidth = context.measureText(valueText).width;
+
+    context.fillStyle = hudLabelColor;
+    context.fillText(label + "  ", anchorX - valueWidth, y);
+}
+
+// White -> caution -> danger as a ratio climbs toward 1 (e.g. strikes taken)
+var hudRisingDangerColor = function (ratio) {
+    if (ratio >= 0.66) return hudDangerColor;
+    if (ratio >= 0.33) return hudCautionColor;
+    return hudValueColor;
+}
+
+// White -> caution -> danger as a ratio falls toward 0 (e.g. fuel remaining)
+var hudFallingDangerColor = function (ratio) {
+    if (ratio <= 0.15) return hudDangerColor;
+    if (ratio <= 0.4) return hudCautionColor;
+    return hudValueColor;
+}
+
+var drawGameUI = function (localPlayer, strikes, maxStrikes, map) {
+    var hudRightEdge = uiX - 50;
+    var hudRowHeight = 700;
+
+    // Bottom-right stat block: score, bullets, fuel, strikes
+    var row = uiY - 600;
+    drawHudStat("score", localPlayer.score, hudRightEdge, row);
+    row += hudRowHeight;
 
     if (localPlayer.bulletCount !== null) {
-        context.fillText("bullets: " + localPlayer.bulletCount, uiX - 850, uiY);
-    }
-
-    if (strikes !== null) {
-        context.fillText("strikes: " + strikes + "/" + maxStrikes, uiX - 720, uiY + 1150);
+        var bulletColor = hudFallingDangerColor(localPlayer.bulletCount / BULLET_COLOR_MAX_HINT);
+        drawHudStat("bullets", localPlayer.bulletCount, hudRightEdge, row, bulletColor);
+        row += hudRowHeight;
     }
 
     if (localPlayer.fuel !== null) {
-        context.fillText("fuel: " + localPlayer.fuel, uiX - 50, uiY + 600);
+        var fuelColor = hudFallingDangerColor(localPlayer.fuel / FUEL_COLOR_MAX_HINT);
+        drawHudStat("fuel", localPlayer.fuel, hudRightEdge, row, fuelColor);
+        row += hudRowHeight;
     }
 
+    if (strikes !== null) {
+        var strikeColor = hudRisingDangerColor(strikes / maxStrikes);
+        drawHudStat("strikes", strikes + "/" + maxStrikes, hudRightEdge, row, strikeColor);
+    }
+
+    // Top-right block: level and per-map kill progress
+    var topRow = -uiY - 600;
+    if (map.level !== null) {
+        drawHudStat("level", map.level, hudRightEdge, topRow);
+        topRow += hudRowHeight;
+    }
     if (map.mapKills !== null) {
-        context.fillText(map.currentMapKills + " / " + map.mapKills + " enemies destroyed", uiX - 50, -uiY);
+        drawHudStat("enemies destroyed", map.currentMapKills + " / " + map.mapKills, hudRightEdge, topRow);
     }
 
     if (map.mapKills !== null && map.currentMapKills >= map.mapKills) {
+        context.font = hudFont;
+        context.fillStyle = hudValueColor;
+        context.textAlign = "center";
         context.fillText("Escape planet gravity", 0, -uiY - 5000);
-        context.fillText("to proceed to next map", 0, -uiY - 4490);
+        context.fillText("to proceed to next map", 0, -uiY - 4350);
         outOfBoundsColor = "#00002f";
     } else {
         outOfBoundsColor = "#000011";
     }
 
-    if (map.level !== null) {
-        context.fillText("level: " + map.level, uiX - 50, -uiY - 600);
-    }
-
-    context.textAlign = "left";
+    // Bottom-left: active powerups
     if (localPlayer.powerUps !== null) {
-        for (let i = 0; i < Object.keys(localPlayer.powerUps).length; i++) {
-            context.fillText(Object.keys(localPlayer.powerUps)[i], -uiX, uiY + 600 + 500 * i);
-            context.fillText(localPlayer.powerUps[Object.keys(localPlayer.powerUps)[i]] + "x  ", -uiX - 1000, uiY + 600 + 500 * i);
+        context.font = hudFont;
+        context.textAlign = "left";
+        var powerUpNames = Object.keys(localPlayer.powerUps);
+        for (let i = 0; i < powerUpNames.length; i++) {
+            var name = powerUpNames[i];
+            context.fillStyle = hudValueColor;
+            context.fillText(localPlayer.powerUps[name] + "x  " + name, -uiX, uiY + 600 + hudRowHeight * i);
         }
     }
 }

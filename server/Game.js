@@ -15,6 +15,11 @@ var DEBUG_LAG = 0;
 // every Nth tick to cut socket bandwidth roughly in half.
 var BROADCAST_EVERY_N_TICKS = 2;
 
+// Bullets on a bound orbit never leave map bounds on their own, so cap their
+// lifetime to stop them from accumulating (and dragging down collision/
+// broadcast cost) over a long session.
+var BULLET_LIFETIME_MS = 8000;
+
 class Game {
     constructor(opts) {
         // Server side constants
@@ -97,53 +102,62 @@ class Game {
         this.mapEnded = false;
     }
 
+    buildGameState() {
+        var map = {
+            mapRadius: this.mapRadius,
+            mapKills: this.mapKills,
+            currentMapKills: this.currentMapKills,
+            level: this.level
+        };
+        return {
+            players: this.players,
+            objects: this.objects,
+            shootingOrbits: this.shootingOrbits,
+            map,
+            strikes: this.strikes,
+            maxStrikes: this.maxStrikes,
+        };
+    }
+
+    broadcastGameState() {
+        var gameState = this.buildGameState();
+        if (DEBUG_LAG === 0) {
+            this.io.sockets.in(this.gameId).emit('gameState', gameState);
+        } else {
+            // Send the game state to the clients to be rendered
+            setTimeout(() => {
+                this.io.sockets.in(this.gameId).emit('gameState', gameState);
+            }, DEBUG_LAG);
+        }
+    }
+
     // Update the game state every 15 ms
     start() {
         this.io.sockets.in(this.gameId).emit('starting game');
         this.gameLoop = setInterval(() => {
-            this.checkIfMapEnds();
-            if (!this.mapEnded) {
-                this.checkIfAsteroidSpawns();
-                this.checkIfPowerUpSpawns();
-                this.checkIfBotSpawns();
-            }
-            this.updateObjects();
-            this.updatePlayers();
-            this.handleCollisions();
+            try {
+                this.checkIfMapEnds();
+                if (!this.mapEnded) {
+                    this.checkIfAsteroidSpawns();
+                    this.checkIfPowerUpSpawns();
+                    this.checkIfBotSpawns();
+                }
+                this.updateObjects();
+                this.updatePlayers();
+                this.handleCollisions();
 
-            this.tickCount += 1;
-            if (this.tickCount % BROADCAST_EVERY_N_TICKS !== 0) {
-                return;
-            }
+                this.tickCount += 1;
+                if (this.tickCount % BROADCAST_EVERY_N_TICKS !== 0) {
+                    return;
+                }
 
-            var objects = this.objects;
-            var players = this.players;
-            var shootingOrbits = this.shootingOrbits;
-            //var map = this.map; // dont want to sent the full map unless we are debugging
-            var map = {
-                mapRadius: this.mapRadius,
-                mapKills: this.mapKills,
-                currentMapKills: this.currentMapKills,
-                level: this.level
-            };
-            var strikes = this.strikes;
-            var maxStrikes = this.maxStrikes;
-            var gameState = {
-                players,
-                objects,
-                shootingOrbits,
-                map,
-                strikes,
-                maxStrikes,
-            };
-
-            if (DEBUG_LAG === 0) {
-                this.io.sockets.in(this.gameId).emit('gameState', gameState);
-            } else {
-                // Send the game state to the clients to be rendered
-                setTimeout(() => {
-                    this.io.sockets.in(this.gameId).emit('gameState', gameState);
-                }, DEBUG_LAG);
+                this.broadcastGameState();
+            } catch (err) {
+                // A tick throwing used to silently stop the whole game loop
+                // (setInterval doesn't retry after an uncaught error) with
+                // nothing logged - log it so failures are visible instead of
+                // presenting as an unexplained freeze.
+                console.error('Game loop error for game', this.gameId, err);
             }
         }, 15)
     }
@@ -327,6 +341,13 @@ class Game {
     }
 
     endGame() {
+        // Always send one last authoritative snapshot so clients actually
+        // render the terminal state (e.g. "YOU DIED"/"YOU WON") even if this
+        // tick wasn't due for a periodic broadcast - render() only runs when
+        // a gameState arrives, and clearInterval below means none ever will
+        // again, so skipping this would leave clients frozen on stale state.
+        this.broadcastGameState();
+
         // Game has ended clean up
         clearInterval(this.gameLoop);
         this.gameEnded(this.gameId)
@@ -387,7 +408,7 @@ class Game {
                         delete this.objects[collisions[i].uid];
                         // check if the game ended because of strikes
                         this.checkIfGameEnds()
-                        return;
+                        continue;
                     }
                 }
 
@@ -602,6 +623,10 @@ class Game {
             var object = this.objects[uid];
             if (this.checkOutOfBounds(object, 2 * this.mapRadius)) {
                 // Remove it if it is too far away
+                delete this.objects[object.uid];
+                continue;
+            }
+            if (object.type === 'bullet' && (currentTime - object.spawnedAt) > BULLET_LIFETIME_MS) {
                 delete this.objects[object.uid];
                 continue;
             }

@@ -6,6 +6,10 @@ class Bullet extends Mass {
         this.id = player.id;
         this.type = "bullet"
         this.health = player.bulletHealth
+        // Bullets on a bound (elliptical) orbit never naturally leave the
+        // map bounds, so without a lifetime cap they'd accumulate forever -
+        // a real source of ongoing lag over a long session.
+        this.spawnedAt = Date.now();
     }
 
     calculateShootingOrbit(shotPower, player, mass) {

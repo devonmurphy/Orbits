@@ -1,6 +1,6 @@
 import * as Renderer from "./Renderer.js";
 
-// Intiates client connection and sets up controls 
+// Intiates client connection and sets up controls
 var socket = io();
 
 // Receive game state from server and then render it
