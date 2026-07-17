@@ -4,6 +4,18 @@ import socket from "./Socket.js"
 var canvas = document.getElementById('renderer');
 var movement = { right: false, left: false, forward: false, backward: false }
 
+// Number keys trigger legendary abilities (only does anything once you've
+// picked up the matching power-up, and is subject to its cooldown). Chain
+// lightning/explosive ammo/homing bullets are passive - they trigger
+// automatically off your regular shots, no key needed.
+var ABILITY_KEYS = {
+    49: 'teleport',    // '1'
+    50: 'blackHole',   // '2'
+    51: 'freezeTime',  // '3'
+    52: 'bigBomb',     // '4'
+    53: 'holyBubble',  // '5'
+};
+
 // Start movement when keys are pressed down
 document.addEventListener('keydown', function (event) {
     switch (event.keyCode) {
@@ -19,6 +31,9 @@ document.addEventListener('keydown', function (event) {
         case 83: // S
             movement.backward = true;
             break;
+    }
+    if (ABILITY_KEYS[event.keyCode]) {
+        socket.emit('activateAbility', ABILITY_KEYS[event.keyCode]);
     }
     socket.emit('movement', movement);
 });

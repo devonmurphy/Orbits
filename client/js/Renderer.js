@@ -17,10 +17,12 @@ var offsetTop = canvas.offsetTop + canvas.height / 2;
 // Scale and size
 var orbitLineWidth = "50";
 var planetRadius = 1500;
-var gameScale = .025;
+// mapRadius grew 15000->24000 (1.6x); zoom out enough to reveal the extra
+// room without shrinking everything on screen by the full 1.6x.
+var gameScale = .018;
 
-var uiX = 12500;
-var uiY = 12000;
+var uiX = 20000;
+var uiY = 19200;
 
 // Resize canvas to window size. Setting canvas.width/height clears and
 // reallocates the backing store, so this only needs to run on an actual
@@ -47,6 +49,38 @@ var playerBulletColor = "#ebc934";
 var enemyColor = "#ff0066";
 var enemyBulletColor = "#ff0066";
 var botColor = "#ff9f1c";
+var friendlyBotColor = "#4dffb8";
+
+// Power-up rarity colors and name->rarity map. Keep in sync with the POWERS
+// list in server/PowerUp.js.
+var rarityColors = {
+    common: "#ffffff",
+    uncommon: "#4a90ff",
+    rare: "#a259ff",
+    legendary: "#ffd700",
+};
+var powerUpRarity = {
+    'thrust': 'common',
+    'fuel cell': 'common',
+    'fire rate': 'uncommon',
+    'max shooting power': 'uncommon',
+    'bullet health': 'uncommon',
+    'bullet radius': 'uncommon',
+    'bullet count': 'uncommon',
+    'fuel': 'uncommon',
+    'shield': 'rare',
+    'sidewinder': 'rare',
+    'extra life': 'rare',
+    'explosive ammo': 'legendary',
+    'homing bullets': 'legendary',
+    'chain lightning': 'legendary',
+    'reanimate': 'legendary',
+    'teleport': 'legendary',
+    'black hole': 'legendary',
+    'freeze time': 'legendary',
+    'big bomb': 'legendary',
+    'holy bubble': 'legendary',
+};
 
 // HUD colors
 var hudLabelColor = "#7d8fb3";
@@ -271,11 +305,20 @@ var drawPlayers = function (players) {
 }
 
 var drawPowerUp = function (powerUp) {
-    context.fillStyle = "white";
+    var color = rarityColors[powerUp.rarity] || rarityColors.common;
+    context.fillStyle = color;
     context.beginPath();
     context.arc(powerUp.x, -powerUp.y, powerUp.radius, 0, 2 * Math.PI);
     context.fill();
 
+    // Rare/legendary drops get a glowing outline so they stand out at a glance
+    if (powerUp.rarity === 'rare' || powerUp.rarity === 'legendary') {
+        context.strokeStyle = color;
+        context.lineWidth = orbitLineWidth;
+        context.beginPath();
+        context.arc(powerUp.x, -powerUp.y, powerUp.radius * 1.6, 0, 2 * Math.PI);
+        context.stroke();
+    }
 }
 
 var drawAsteroid = function (asteroid) {
@@ -297,7 +340,8 @@ var drawBullet = function (bullet) {
 }
 
 var drawBot = function (bot) {
-    context.fillStyle = botColor;
+    var color = bot.friendly ? friendlyBotColor : botColor;
+    context.fillStyle = color;
     context.beginPath();
     context.arc(bot.x, -bot.y, bot.radius, 0, 2 * Math.PI);
     context.fill();
@@ -310,11 +354,66 @@ var drawBot = function (bot) {
         var noseLength = bot.radius * 1.8;
         var noseX = bot.x + dx / dist * noseLength;
         var noseY = -(bot.y + dy / dist * noseLength);
-        context.strokeStyle = botColor;
+        context.strokeStyle = color;
         context.lineWidth = orbitLineWidth;
         context.beginPath();
         context.moveTo(bot.x, -bot.y);
         context.lineTo(noseX, noseY);
+        context.stroke();
+    }
+}
+
+var drawBlackHole = function (blackHole) {
+    context.fillStyle = "#000000";
+    context.beginPath();
+    context.arc(blackHole.x, -blackHole.y, blackHole.radius, 0, 2 * Math.PI);
+    context.fill();
+
+    context.strokeStyle = rarityColors.legendary;
+    context.lineWidth = orbitLineWidth;
+    context.beginPath();
+    context.arc(blackHole.x, -blackHole.y, blackHole.radius * 1.15, 0, 2 * Math.PI);
+    context.stroke();
+}
+
+var drawLightningEffect = function (lightningEffect) {
+    if (!lightningEffect || !lightningEffect.points || lightningEffect.points.length < 2) {
+        return;
+    }
+    context.strokeStyle = rarityColors.legendary;
+    context.lineWidth = orbitLineWidth;
+    context.beginPath();
+    context.moveTo(lightningEffect.points[0].x, -lightningEffect.points[0].y);
+    for (var i = 1; i < lightningEffect.points.length; i++) {
+        context.lineTo(lightningEffect.points[i].x, -lightningEffect.points[i].y);
+    }
+    context.stroke();
+}
+
+var drawBombEffect = function (bombEffect) {
+    if (!bombEffect) {
+        return;
+    }
+    context.strokeStyle = rarityColors.legendary;
+    context.lineWidth = orbitLineWidth * 2;
+    context.beginPath();
+    context.arc(bombEffect.x, -bombEffect.y, bombEffect.radius, 0, 2 * Math.PI);
+    context.stroke();
+}
+
+var drawHolyBubble = function (localPlayer, map) {
+    context.strokeStyle = rarityColors.legendary;
+    context.lineWidth = orbitLineWidth;
+
+    if (map) {
+        context.beginPath();
+        context.arc(0, 0, planetRadius * 1.6, 0, 2 * Math.PI);
+        context.stroke();
+    }
+
+    if (localPlayer) {
+        context.beginPath();
+        context.arc(localPlayer.x, -localPlayer.y, localPlayer.radius * 1.8, 0, 2 * Math.PI);
         context.stroke();
     }
 }
@@ -330,6 +429,8 @@ var drawObjects = function (objects) {
             drawBot(object);
         } else if (object.type === 'bullet') {
             drawBullet(object);
+        } else if (object.type === 'blackHole') {
+            drawBlackHole(object);
         }
     }
 }
@@ -415,6 +516,14 @@ var hudFallingDangerColor = function (ratio) {
     return hudValueColor;
 }
 
+var ABILITY_HUD_INFO = [
+    { key: 'teleport', label: 'Teleport', keyNum: '1', powerName: 'teleport' },
+    { key: 'blackHole', label: 'Black Hole', keyNum: '2', powerName: 'black hole' },
+    { key: 'freezeTime', label: 'Freeze Time', keyNum: '3', powerName: 'freeze time' },
+    { key: 'bigBomb', label: 'Big Bomb', keyNum: '4', powerName: 'big bomb' },
+    { key: 'holyBubble', label: 'Holy Bubble', keyNum: '5', powerName: 'holy bubble' },
+];
+
 var drawGameUI = function (localPlayer, strikes, maxStrikes, map) {
     var hudRightEdge = uiX - 50;
     var hudRowHeight = 700;
@@ -462,6 +571,25 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes, map) {
         outOfBoundsColor = "#000011";
     }
 
+    // Top-left: unlocked ability cooldowns
+    if (localPlayer.abilityCooldowns) {
+        context.font = hudFont;
+        context.textAlign = "left";
+        var abilityRow = -uiY - 600;
+        for (var a = 0; a < ABILITY_HUD_INFO.length; a++) {
+            var info = ABILITY_HUD_INFO[a];
+            if (!(localPlayer.powerUps && localPlayer.powerUps[info.powerName] > 0)) {
+                continue;
+            }
+            var readyAt = localPlayer.abilityCooldowns[info.key] || 0;
+            var remaining = (readyAt - Date.now()) / 1000;
+            var status = remaining > 0 ? remaining.toFixed(1) + "s" : "READY";
+            context.fillStyle = remaining > 0 ? hudLabelColor : rarityColors.legendary;
+            context.fillText("[" + info.keyNum + "] " + info.label + ": " + status, -uiX, abilityRow);
+            abilityRow += hudRowHeight;
+        }
+    }
+
     // Bottom-left: active powerups
     if (localPlayer.powerUps !== null) {
         context.font = hudFont;
@@ -469,7 +597,8 @@ var drawGameUI = function (localPlayer, strikes, maxStrikes, map) {
         var powerUpNames = Object.keys(localPlayer.powerUps);
         for (let i = 0; i < powerUpNames.length; i++) {
             var name = powerUpNames[i];
-            context.fillStyle = hudValueColor;
+            var rarity = powerUpRarity[name] || 'common';
+            context.fillStyle = rarityColors[rarity];
             context.fillText(localPlayer.powerUps[name] + "x  " + name, -uiX, uiY + 600 + hudRowHeight * i);
         }
     }
@@ -525,6 +654,20 @@ var render = function (gameState) {
 
     drawObjects(objects);
     drawPlayers(players);
+    drawLightningEffect(gameState.lightningEffect);
+    drawBombEffect(gameState.bombEffect);
+
+    if (gameState.holyBubbleActive) {
+        drawHolyBubble(localPlayer, map);
+    }
+
+    if (gameState.timeFrozen && map) {
+        context.fillStyle = "rgba(74, 144, 255, 0.15)";
+        context.beginPath();
+        context.arc(0, 0, map.mapRadius, 0, 2 * Math.PI);
+        context.fill();
+    }
+
     if (DEBUG_FPS) {
         drawFPSCounter();
     }

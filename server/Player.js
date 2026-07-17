@@ -15,6 +15,18 @@ class Player extends Mass {
         this.type = "player";
         this.powerUps = {};
 
+        // Rare/legendary power-up state
+        this.shieldCharges = 0;
+        this.sidewinderLevel = 0;
+        this.explosiveAmmo = 0;
+        this.homingBullets = 0;
+        this.chainLightning = 0;
+        this.extraLives = 0;
+        // Cooldown-gated abilities (teleport/black hole/freeze time), keyed
+        // by ability name -> epoch ms when it's next usable
+        this.abilityCooldowns = {};
+        this.pendingAbility = null;
+
         // Player shooting constants
         this.fireRate = 500;
         this.autoFire = false;
@@ -50,6 +62,7 @@ class Player extends Mass {
         socket.on('mousedown', this.mousedown.bind(this));
         socket.on('mouseup', this.mouseup.bind(this));
         socket.on('mousemove', this.mousemove.bind(this));
+        socket.on('activateAbility', this.activateAbility.bind(this));
 
         // TODO: USE THESE FOR STUFF
         socket.on('mouseout', function (data) {
@@ -153,6 +166,16 @@ class Player extends Mass {
         this.runWithLag(() => {
             this.clientX = data.clientX;
             this.clientY = -data.clientY;
+        });
+    }
+
+    // Queues an ability to be resolved on the next game tick (Game.js owns
+    // the actual effect/cooldown logic, since abilities like black hole and
+    // chain lightning need access to the wider game state, not just this
+    // player).
+    activateAbility(ability) {
+        this.runWithLag(() => {
+            this.pendingAbility = ability;
         });
     }
 }
