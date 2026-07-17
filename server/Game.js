@@ -22,7 +22,7 @@ var BROADCAST_EVERY_N_TICKS = 2;
 // Bullets on a bound orbit never leave map bounds on their own, so cap their
 // lifetime to stop them from accumulating (and dragging down collision/
 // broadcast cost) over a long session.
-var BULLET_LIFETIME_MS = 8000;
+var BULLET_LIFETIME_MS = 16000;
 
 // How far explosive ammo's splash damage reaches from the impact point
 var EXPLOSIVE_RADIUS = 900;

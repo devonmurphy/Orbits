@@ -94,26 +94,28 @@ class Mass {
 
         var startDist = this.magnitude(this.x, -this.y, 0, 0);
         var y = -isClockwise*10000;
+        var rotationCenter = { x: -pX, y: -pY };
+        var rotationAngle = 2 * Math.PI - w;
 
         // loop until orbitPoints has grown too large or moved too far from the starting position
         while (orbitPoints.length < maxDrawSteps && dist < maxDrawDist) {
             var x = a * Math.sqrt(1 + (y * y) / (b * b));
-            var orbitPos = { x, y };
-            dist = this.magnitude(this.x, -this.y, x, y);
 
-            if (!isNaN(x) && !isNaN(y)) {
-                orbitPoints.push(orbitPos);
+            // Transform into world space before measuring distance. For
+            // near-parabolic orbits (eccentricity just barely above 1), `a`
+            // blows up to a huge value, so the untransformed (x, y) can be
+            // enormous even right next to periapsis - checking distance
+            // against that raw point (as this used to) made the loop think
+            // it had already gone way too far and quit after 0-1 points,
+            // even though the real (transformed) trajectory is normal.
+            var transformed = this.rotatePoint({ x: x - deltaX, y: y - deltaY }, rotationCenter, rotationAngle);
+            dist = this.magnitude(this.x, -this.y, transformed.x, transformed.y);
+
+            if (!isNaN(transformed.x) && !isNaN(transformed.y)) {
+                orbitPoints.push(transformed);
             }
             // iterate the time by the drawStep based on if the orbit is clockwise or not
             y += isClockwise * drawStep;
-        }
-
-        for (var i = 0; i < orbitPoints.length; i++) {
-            var point = orbitPoints[i];
-            point.x -= deltaX;
-            point.y -= deltaY;
-
-            orbitPoints[i] = this.rotatePoint(point, { x: -pX, y: -pY }, 2 * Math.PI - w);
         }
 
         /*
